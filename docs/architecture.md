@@ -34,7 +34,8 @@ doebkweb/
 │   │   └── en.ts                  #   英文 UI 字符串
 │   │
 │   ├── data/                      # 共享数据层
-│   │   ├── playlist.ts            #   音乐播放列表（专辑/曲目/LRC）
+│   │   ├── music.json             #   音乐配置（唯一数据源，纯 JSON）
+	│   │   ├── playlist.ts            #   类型定义 + helper（从 music.json 导入）
 │   │   └── photos.ts              #   摄影数据（缩略图/原图/alt）
 │   │
 │   ├── content/                   # Content Collections
@@ -147,12 +148,12 @@ src/types/i18n.ts              UIStrings 接口（类型约束）
 BaseLayout.astro
   ├── 导入 tokens.css → reset.css → global.css（全局生效）
   ├── 根据 Astro.currentLocale 选择 zh/en UI 文案
-  ├── hideHeader === false 时渲染侧边栏 + 播放器：
-  │   ├── <Sidebar t={t} />           # 左侧：导航 + 语言设置
-  │   ├── <main class="content-area">  # 中间：页面内容
-  │   │   └── <slot />
-  │   └── <VinylPlayer />              # 右上角：唱片播放器
-  └── hideHeader === true 时仅渲染 <slot />（全屏页面）
+  ├── 始终渲染（所有页面）：
+  │   ├── <audio id="audio" persist />  # 音频元素，跨页持久化
+  │   ├── <VinylPlayer />               # 唱片播放器，跨页持久化
+  │   ├── {!hideHeader && <Sidebar />}  # 首页隐藏
+  │   └── <main><slot /></main>
+  └── 首页：body 无 has-sidebar class，VinylPlayer CSS 隐藏
 ```
 
 每个 `[lang]` 页面文件：
@@ -167,49 +168,50 @@ BaseLayout.astro
 
 ### 机制
 
-`Sidebar`、`VinylPlayer` 和 `#audio` 使用 `transition:persist` 跨页面导航保持 DOM 元素。`BaseLayout` 通过 `hideHeader` prop 控制在首页是否渲染这些组件：
+`#audio` 和 `VinylPlayer` 使用 `transition:persist` 跨页面保持 DOM 元素。两者在 BaseLayout 中始终渲染，首页通过 CSS 隐藏 VinylPlayer。
 
 ```
-其他页面 (hideHeader=false):          首页 (hideHeader=true):
-  <Sidebar />                            (无 Sidebar)
-  <VinylPlayer />                        (无 VinylPlayer)
-  <audio id="audio" />                 <audio id="audio" (persist) />
+所有页面:
+  <audio id="audio" persist />     ← 始终存在，跨页存活
+  <VinylPlayer persist />          ← 始终存在，首页 CSS 隐藏
+  <Sidebar />                      ← hideHeader 时不存在
 ```
 
-### 导航到首页时发生的事
+### 首页行为
 
-首页不渲染 `Sidebar` / `VinylPlayer`，Astro View Transition 发现目标页无匹配的 persist 元素 → **移除**这些元素。导航回其他页面时 → **重建**新元素。
+首页 `body` 无 `has-sidebar` class → `body:not(.has-sidebar) .vinyl-app { display: none }`。
+首页脚本：pause audio → 清 dataset → dispatch `vp-reset` CustomEvent 在 `#audio` 上，
+VinylPlayer 监听 `vp-reset` 重置 UI（封面、文本、按钮）。
 
-### 问题与解决方案
+### VinylPlayer 生命周期
 
-| 问题 | 根因 | 修复 |
-|---|---|---|
-| 重建后脚本不初始化 | `window.__sidebarReady` 等全局守卫在元素移除后仍为 `true`，新元素初始化被跳过 | 守卫改用 `element.dataset.xyz`（随元素销毁），`astro:after-swap` 事件清守卫并重新 `init()` |
-| 闭包持有旧 DOM 引用 | 事件回调捕获的是已被销毁的元素引用 | `els()` 函数获取实时 DOM 引用；委托事件到 `document` 上监听 |
-| `style.display = ""` 不生效 | 清空 inline style 后 CSS class 的 `display: none` 重新生效 | 全部使用显式值（`"block"`, `"flex"`, `"inline-block"`, `"none"`） |
-| persist audio 播放状态丢失 | `init()` 硬编码 `playing = false`，未同步 persist audio 的真实状态 | `init()` 末尾读取 `audio.paused` 同步 `applyPlayingState()` |
-
-### 组件级 re-init 模式
-
-```javascript
-// 每个 persist 组件使用相同模式
-(function () {
-  function init() {
-    var el = document.getElementById("my-component");
-    if (!el) return;
-    if (el.dataset.ready === "1") return;  // 元素级守卫
-    el.dataset.ready = "1";
-    // ... 绑定事件、初始化状态 ...
-  }
-
-  init();
-  document.addEventListener("astro:after-swap", function () {
-    var el = document.getElementById("my-component");
-    if (el) el.dataset.ready = "";
-    init();
-  });
-})();
 ```
+init() 执行一次（vinylReady 守卫）
+  ├─ wireAudio()        → 所有监听器绑定到 #audio（play/pause/ended/album-change/track-change/vp-reset）
+  ├─ document click      → 委托事件（始终有效）
+  ├─ 读 audio.dataset    → 恢复封面/专辑名
+  └─ 同 syncPlayingState → 同步播放状态
+
+无 teardown / before-swap / after-swap（组件从不销毁）
+```
+
+### 事件总线
+
+所有自定义事件在 `#audio` 上：
+- `album-change` ← music 页 dispatch → VinylPlayer 监听到 → 加载专辑
+- `track-change` ← VinylPlayer dispatch → VinylPlayer 监听到 → 更新 UI
+- `vp-reset` ← 首页 dispatch → VinylPlayer 监听 → 清 UI
+
+### 音乐数据流
+
+```
+src/data/music.json           ← 唯一数据源（JSON）
+       │
+       ▼
+src/data/playlist.ts          ← 类型 + getFlatTracks() + getTrackUrl()
+       │
+       ├── BaseLayout         → getFlatTracks() → VinylPlayer (define:vars)
+       └── music.astro        → albums + getTrackUrl()
 
 ---
 
@@ -273,12 +275,13 @@ VPS（FastAPI，独立服务）
 - 首页（全屏欢迎页，渐变入场动画，音乐/摄影导航按钮）
 - 关于我（Content Collections，Markdown 渲染，listed: false 排除，内嵌简历下载）
 - 文档系统（列表/详情/分类/归档 + Shiki 语法高亮）
-- 音乐页（专辑架网格排列，封面 hover 黑胶唱片滑出 + 播放按钮，曲目列表展开收起，与 VinylPlayer CustomEvent 双向联动同步播放状态）
+- 音乐页（专辑架网格排列，封面 hover 黑胶唱片滑出，点击播放整张专辑，与 VinylPlayer 通过 CustomEvent 联动）
+- 音乐配置独立为 `src/data/music.json`，加专辑无需改代码
 - 摄影页（自适应网格 + 懒加载 + Lightbox 全屏预览 + 键盘导航）
 - 共享数据层（`src/data/playlist.ts` / `photos.ts`，集中管理内容）
 - 404 页面
 - i18n 中英文 UI 切换（含音乐/摄影完整文案）
-- 唱片播放器（右上角悬浮，transition:persist 跨页持久化，唱片旋转动画 + 唱臂联动，CustomEvent 事件总线与外部分页同步，re-init 模式处理 View Transition 元素重建）
+- 唱片播放器（右上角悬浮，transition:persist 跨页持久化，首页 CSS 隐藏；唱片旋转动画 + 唱臂联动；所有事件在 #audio 上，一次 init 永不重建；音量控制）
 - Cloudflare R2 图床 + 音乐托管（cdn.doebkblcya.com，2 专辑 14 首曲目已上传）
 - Cloudflare Pages 代码就绪（_redirects / 404.html）（Dashboard 创建待完成）
 - wrangler CLI 管理 R2（API Token + --remote + unset proxy）

@@ -165,7 +165,7 @@
 
 - **代码适配**
   - `VinylPlayer.astro`：R2 URL 构造、专辑目录结构、LRC 支持、唱片标签显示专辑名 + 曲名
-  - 共享数据层 `src/data/playlist.ts`：Album/Track 接口、专辑分组、URL 辅助函数
+  - 音乐数据层：`src/data/music.json` 唯一数据源 + `src/data/playlist.ts` 类型/helper
   - 共享数据层 `src/data/photos.ts`：Photo 接口、空数据就绪
   - `public/_redirects`：`/ → /zh/` 301
   - `public/404.html`：全局 404 回退

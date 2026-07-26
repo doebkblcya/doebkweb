@@ -129,6 +129,32 @@ R2 bucket 已配置 CORS，允许主站跨域访问音频和图片：
 
 ---
 
+## 音乐配置
+
+音乐数据独立存放在 `src/data/music.json`，纯 JSON 格式：
+
+```json
+{
+  "r2Base": "https://cdn.doebkblcya.com/music",
+  "albums": [
+    {
+      "name": "专辑名（对应 R2 music/ 子目录）",
+      "artist": "歌手",
+      "review": "个人札记（可选，空字符串则无）",
+      "meta": {},
+      "tracks": [
+        { "title": "曲名", "file": "文件名.mp3" },
+        { "title": "曲名", "file": "文件名.mp3", "lrc": "歌词.lrc" }
+      ]
+    }
+  ]
+}
+```
+
+加专辑只需编辑此 JSON，`playlist.ts` 自动生成派生数据。
+
+---
+
 ## 构建产物
 
 `pnpm build` 生成的 `dist/` 目录结构：
@@ -187,6 +213,7 @@ dist/
 ### 音乐播放失败
 
 - 确认 MP3 文件已上传到 R2 `music/` 路径
+- 检查 `src/data/music.json` 中曲目 file 字段与 R2 文件名一致
 - R2 CORS 配置是否正确
 - 浏览器 DevTools Network 面板查看请求是否返回 200
 - 文件名中如有特殊字符，确认 URL 编码正确
