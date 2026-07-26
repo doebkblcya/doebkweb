@@ -1,0 +1,154 @@
+---
+export { getStaticPaths } from "../_getStaticPaths";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+import { ui as zh } from "../../../i18n/zh";
+import { ui as en } from "../../../i18n/en";
+
+const lang = Astro.currentLocale || "zh";
+const t = lang === "zh" ? zh : en;
+
+const allDocs = await getCollection("docs", ({ data }) => !data.draft && data.listed !== false);
+allDocs.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
+---
+
+<BaseLayout title={t.docs.title} hideFooter>
+  <div class="page">
+    <h1 class="page-title">{t.docs.title}</h1>
+    <hr class="page-divider" />
+
+    {allDocs.length === 0 ? (
+      <p class="empty">{t.docs.emptyList}</p>
+    ) : (
+      <>
+        <nav class="cats" aria-label={t.docs.allCategories}>
+          <a href={`/${lang}/docs/archive/`} class="cat-item archive-link">{t.docs.viewArchive}</a>
+          <a href={`/${lang}/docs/`} class="cat-item is-active">{t.docs.allCategories}</a>
+          {categories.map((cat) => (
+            <a href={`/${lang}/docs/category/${cat}/`} class="cat-item">{cat}</a>
+          ))}
+        </nav>
+
+        <div class="doc-list">
+          {allDocs.map((doc) => (
+            <a href={`/${lang}/docs/${doc.slug}/`} class="doc-card">
+              <h2 class="doc-title">{doc.data.title}</h2>
+              <p class="doc-summary">{doc.data.summary}</p>
+              <div class="doc-meta">
+                <time datetime={doc.data.date.toISOString()}>
+                  {doc.data.date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+                    year: "numeric", month: "long", day: "numeric",
+                  })}
+                </time>
+                <span class="doc-cat">{doc.data.category}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding: var(--space-16) var(--space-8) var(--space-24);
+  }
+
+  .page-title {
+    font-size: var(--text-5xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    max-width: 40rem;
+  }
+
+  .page-divider {
+    width: 100%;
+    height: 1px;
+    border: none;
+    background: var(--color-border);
+    margin: var(--space-10) 0;
+  }
+
+  .empty {
+    font-size: var(--text-lg);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ── Categories ─────────────────────────────── */
+  .cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+
+  .cat-item {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    transition: color 150ms, background 150ms;
+  }
+
+  .cat-item:hover,
+  .cat-item.is-active {
+    color: var(--color-text-primary);
+    background: var(--color-accent-subtle);
+    border-color: var(--color-text-tertiary);
+  }
+
+  /* ── Doc cards ──────────────────────────────── */
+  .doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .doc-card {
+    display: block;
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    transition: background 150ms;
+  }
+
+  .doc-card:hover {
+    background: var(--color-bg-surface-hover);
+  }
+
+  .doc-title {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: var(--tracking-normal);
+    line-height: var(--leading-snug);
+  }
+
+  .doc-summary {
+    margin-top: var(--space-2);
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+
+  .doc-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+  }
+
+  .doc-cat {
+    padding: 0 var(--space-2);
+    font-size: var(--text-xs);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-full);
+  }
+</style>

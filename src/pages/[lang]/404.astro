@@ -1,0 +1,60 @@
+---
+export { getStaticPaths } from "./_getStaticPaths";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+import { ui as zh } from "../../i18n/zh";
+import { ui as en } from "../../i18n/en";
+
+const lang = Astro.currentLocale || "zh";
+const t = lang === "zh" ? zh : en;
+---
+
+<BaseLayout title={t.notFound.title}>
+  <div class="page">
+    <h1 class="page-code">404</h1>
+    <h2 class="page-title">{t.notFound.title}</h2>
+    <p class="page-desc">{t.notFound.description}</p>
+    <a class="back-link" href={`/${lang}/`}>{t.notFound.backHome} →</a>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: var(--max-width-content);
+    margin: 0 auto;
+    padding: var(--space-20) var(--space-6);
+    text-align: center;
+  }
+
+  .page-code {
+    font-size: 6rem;
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    line-height: 1;
+    color: var(--color-border);
+    margin-bottom: var(--space-4);
+  }
+
+  .page-title {
+    margin-bottom: var(--space-4);
+  }
+
+  .page-desc {
+    color: var(--color-text-secondary);
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-8);
+    line-height: var(--leading-relaxed);
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--color-accent);
+    transition: opacity var(--duration-fast);
+  }
+
+  .back-link:hover {
+    opacity: 0.7;
+  }
+</style>

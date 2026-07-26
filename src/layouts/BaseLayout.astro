@@ -1,0 +1,94 @@
+---
+import type { UIStrings } from "../types/i18n";
+
+import { ui as zh } from "../i18n/zh";
+import { ui as en } from "../i18n/en";
+import Sidebar from "../components/Sidebar.astro";
+import VinylPlayer from "../components/VinylPlayer.astro";
+import Footer from "../components/Footer.astro";
+import { ViewTransitions } from "astro:transitions";
+import { getFlatTracks } from "../data/playlist";
+
+import "../styles/tokens.css";
+import "../styles/reset.css";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  hideHeader?: boolean;
+  hideFooter?: boolean;
+}
+
+const { title, description, hideHeader = false, hideFooter = false } = Astro.props;
+const lang = Astro.currentLocale || "zh";
+const t: UIStrings = lang === "zh" ? zh : en;
+const pageTitle = title ? `${title} — ${t.site.title}` : t.site.title;
+const pageDescription = description || t.site.description;
+
+const flatTracksJson = JSON.stringify(getFlatTracks());
+const r2Base = "https://cdn.doebkblcya.com/music";
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={pageDescription} />
+    <title>{pageTitle}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <ViewTransitions />
+  </head>
+  <body class={!hideHeader ? "has-sidebar" : ""}>
+    <a class="skip-link" href="#main-content">
+      {t.common.skipToContent}
+    </a>
+    <!-- Shared audio element — persisted across page navigations -->
+    <audio id="audio" preload="none" data-astro-transition-persist="audio"></audio>
+    <VinylPlayer flatTracks={flatTracksJson} r2Base={r2Base} />
+    {!hideHeader && <Sidebar t={t} currentPath={Astro.url.pathname} />}
+    <div class="content-area">
+      <main id="main-content">
+        <slot />
+      </main>
+      {!hideFooter && <Footer t={t} />}
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: var(--space-4);
+    z-index: 1000;
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-accent);
+    color: #fff;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    transition: top var(--duration-fast);
+  }
+
+  .skip-link:focus {
+    top: var(--space-2);
+  }
+
+  :root {
+    --sidebar-width: 12rem;
+  }
+
+  .has-sidebar .content-area {
+    margin-left: var(--sidebar-width);
+  }
+
+  @media (max-width: 768px) {
+    .has-sidebar .content-area {
+      margin-left: 0;
+      margin-right: 0;
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,112 @@
+/*
+ * Design Tokens — Apple-style
+ *
+ * Architecture:
+ *   :root              — Light mode (current)
+ *   [data-theme="dark"] — Dark mode (reserved, to be filled later)
+ *
+ * Naming convention: --{category}-{name}[-{modifier}]
+ */
+
+:root {
+  /* ── Colors ─────────────────────────────────────────────── */
+  /* Page & Surface */
+  --color-bg-page: #f5f5f7;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-hover: #f0f0f2;
+
+  /* Text */
+  --color-text-primary: #1d1d1f;
+  --color-text-secondary: #86868b;
+  --color-text-tertiary: #aeaeb2;
+
+  /* Accent */
+  --color-accent: #1d1d1f;
+  --color-accent-hover: #000000;
+  --color-accent-subtle: rgba(0, 0, 0, 0.06);
+
+  /* Border */
+  --color-border: #d2d2d7;
+  --color-border-light: #e5e5ea;
+
+  /* Semantic */
+  --color-success: #34c759;
+  --color-warning: #ff9500;
+  --color-error: #ff3b30;
+
+  /* ── Typography ──────────────────────────────────────────── */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono",
+    ui-monospace, monospace;
+
+  /* Size scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+  --text-5xl: 3.5rem;
+
+  /* Leading */
+  --leading-tight: 1.1;
+  --leading-snug: 1.3;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* Tracking */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.01em;
+
+  /* ── Spacing ─────────────────────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* ── Border Radius ───────────────────────────────────────── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+  /* ── Glass Material ──────────────────────────────────────── */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-border: rgba(0, 0, 0, 0.08);
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  --max-width-content: 720px;
+  --max-width-wide: 1024px;
+  --header-height: 3rem;
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
+  /* ── Interactive ─────────────────────────────────────────── */
+  --press-scale: 0.97;
+}
+
+/* ── Dark Mode (reserved) ──────────────────────────────────── */
+/* [data-theme="dark"] { } */

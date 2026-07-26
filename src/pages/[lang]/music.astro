@@ -1,0 +1,308 @@
+---
+export { getStaticPaths } from "./_getStaticPaths";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { albums, getTrackUrl } from "../../data/playlist";
+
+import { ui as zh } from "../../i18n/zh";
+import { ui as en } from "../../i18n/en";
+
+const lang = Astro.currentLocale || "zh";
+const t = lang === "zh" ? zh : en;
+
+const dataJson = JSON.stringify({
+  albums: albums.map(a => ({
+    name: a.name,
+    artist: a.artist,
+    cover: a.cover,
+    review: a.review || null,
+    meta: a.meta || null,
+    tracks: a.tracks.map(tr => ({
+      title: tr.title,
+      album: a.name,
+      file: tr.file,
+      url: getTrackUrl({ ...tr, album: a.name }),
+    })),
+  })),
+});
+---
+
+<BaseLayout title={t.music.title} hideFooter>
+  <div class="page">
+    <h1 class="page-title">{t.music.title}</h1>
+    <hr class="page-divider" />
+
+    {albums.length === 0 ? (
+      <div class="empty-state">
+        <p>{t.music.emptyList}</p>
+      </div>
+    ) : (
+      <div class="shelf" id="shelf">
+        {albums.map((album, ai) => (
+          <div class="album-sleeve" id={`album-${ai}`} data-album-index={ai}>
+            <!-- Card: cover + vinyl -->
+            <button class="sleeve-card" data-album={ai} aria-label={`${album.name} — ${album.artist}`}>
+              <div class="sleeve-inner">
+                <!-- Vinyl disc behind cover -->
+                <div class="vinyl-disc">
+                  <div class="vinyl-center"></div>
+                </div>
+                <!-- Cover on top -->
+                <div class="sleeve-cover">
+                  <img
+                    class="cover-img"
+                    src={album.cover}
+                    alt={album.name}
+                    loading="lazy"
+                    onerror={`this.style.display='none';this.parentElement.classList.add('no-img')`}
+                  />
+                  <div class="cover-fallback">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            <!-- Info -->
+            <div class="sleeve-info">
+              <h2 class="sleeve-name">{album.name}</h2>
+              <p class="sleeve-artist">{album.artist}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<script define:vars={{ dataJson }}>
+  var DATA = JSON.parse(dataJson);
+  var ALBUMS = DATA.albums;
+
+  (function () {
+    var shelf = document.getElementById("shelf");
+    if (!shelf) return;
+
+    // ── Click: send album to VinylPlayer ──────────────
+    function sendToPlayer(ai) {
+      var a = ALBUMS[ai];
+      if (!a) return;
+      var audio = document.querySelector("#audio");
+      if (!audio) return;
+      audio.dispatchEvent(new CustomEvent("album-change", {
+        detail: {
+          albumName: a.name,
+          artist: a.artist,
+          cover: a.cover,
+          review: a.review,
+          meta: a.meta,
+          tracks: a.tracks,
+        },
+        bubbles: false,
+      }));
+    }
+
+    shelf.addEventListener("click", function (e) {
+      var card = e.target.closest(".sleeve-card");
+      if (!card) return;
+
+      e.preventDefault();
+      var ai = parseInt(card.getAttribute("data-album") || "0", 10);
+      sendToPlayer(ai);
+    });
+  })();
+</script>
+
+<style>
+  .page {
+    padding: var(--space-16) var(--space-8) var(--space-24);
+  }
+
+  .page-title {
+    font-size: var(--text-5xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .page-divider {
+    width: 100%;
+    height: 1px;
+    border: none;
+    background: var(--color-border);
+    margin: var(--space-10) 0;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-16) 0;
+    color: var(--color-text-tertiary);
+    font-size: var(--text-lg);
+  }
+
+  /* ── Shelf grid ────────────────────────────────── */
+  .shelf {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-12) var(--space-8);
+  }
+
+  /* ── Album sleeve ──────────────────────────────── */
+  .album-sleeve {
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--space-4);
+  }
+
+  /* ── Card (cover + vinyl) ──────────────────────── */
+  .sleeve-card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: none;
+    border: none;
+    cursor: pointer;
+    perspective: 800px;
+    padding: 0;
+  }
+
+  .sleeve-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+  }
+
+  /* ── Vinyl disc behind cover ───────────────────── */
+  .vinyl-disc {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 35% 35%,
+      #2a2a2a 0%, #111 3%, #1a1a1a 5%, #0d0d0d 7%,
+      #1a1a1a 9%, #0a0a0a 12%, #181818 14%, #0d0d0d 17%,
+      #161616 19%, #0a0a0a 22%, #171717 24%, #0d0d0d 27%,
+      #151515 29%, #0a0a0a 32%, #171717 34%, #0d0d0d 37%,
+      #141414 39%, #0a0a0a 42%, #161616 44%, #0d0d0d 47%,
+      #141414 49%, #0a0a0a 52%, #151515 54%, #0d0d0d 57%,
+      #131313 59%, #0a0a0a 62%, #151515 64%, #0d0d0d 67%,
+      #131313 69%, #0a0a0a 72%, #141414 74%, #0d0d0d 77%,
+      #121212 79%
+    );
+    box-shadow:
+      0 4px 30px rgba(0,0,0,0.3),
+      0 0 0 1px rgba(255,255,255,0.03);
+    transform: translateX(0);
+    opacity: 0;
+    transition:
+      transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 300ms;
+  }
+
+  .vinyl-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22%;
+    height: 22%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #e44 0%, #c33 100%);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
+  }
+
+  /* ── Cover on top ──────────────────────────────── */
+  .sleeve-cover {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-bg-surface);
+    box-shadow: var(--shadow-md);
+    transform: translateX(0);
+    transition:
+      transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 500ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .sleeve-cover.no-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sleeve-cover.no-img .cover-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border);
+  }
+
+  .cover-fallback {
+    display: none;
+  }
+
+  /* ── Hover: vinyl slides out ───────────────────── */
+  .sleeve-card:hover .vinyl-disc {
+    transform: translateX(36%);
+    opacity: 1;
+  }
+
+  .sleeve-card:hover .sleeve-cover {
+    transform: translateX(-14%);
+    box-shadow:
+      0 8px 40px rgba(0,0,0,0.25),
+      0 0 0 1px rgba(0,0,0,0.06);
+  }
+
+  .sleeve-card:active .sleeve-cover {
+    transform: translateX(-14%) scale(0.98);
+    transition: transform 100ms;
+  }
+
+  /* ── Info ──────────────────────────────────────── */
+  .sleeve-info {
+    margin-top: var(--space-4);
+    padding: 0 var(--space-1);
+  }
+
+  .sleeve-name {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 200ms;
+  }
+
+  .sleeve-artist {
+    margin-top: 2px;
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 200ms;
+  }
+
+  /* ── Mobile ────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .shelf {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var(--space-8) var(--space-6);
+    }
+  }
+</style>

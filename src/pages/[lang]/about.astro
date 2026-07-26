@@ -1,0 +1,107 @@
+---
+export { getStaticPaths } from "./_getStaticPaths";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getEntry } from "astro:content";
+
+import { ui as zh } from "../../i18n/zh";
+import { ui as en } from "../../i18n/en";
+
+const lang = Astro.currentLocale || "zh";
+const t = lang === "zh" ? zh : en;
+
+const about = await getEntry("docs", "about");
+const { Content } = await about!.render();
+---
+
+<BaseLayout title={t.about.title} hideFooter>
+  <div class="page">
+    <h1 class="page-title">{t.about.title}</h1>
+    <hr class="page-divider" />
+    <div class="page-body">
+      <Content />
+    </div>
+
+    <hr class="page-divider" />
+    <div class="resume-section">
+      <p class="resume-desc">{t.about.resumeDesc}</p>
+      <a class="download-btn" href="/resume.pdf" download>
+        <svg class="download-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        {t.about.downloadResume}
+      </a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding: var(--space-16) var(--space-8) var(--space-24);
+  }
+
+  .page-title {
+    font-size: var(--text-5xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    max-width: 40rem;
+  }
+
+  .page-divider {
+    width: 100%;
+    height: 1px;
+    border: none;
+    background: var(--color-border);
+    margin: var(--space-10) 0;
+  }
+
+  .page-body {
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+  }
+
+  .page-body :global(p + p) {
+    margin-top: var(--space-6);
+  }
+
+  /* ── Resume download ─────────────────────────── */
+  .resume-section {
+    text-align: center;
+    padding: var(--space-4) 0;
+  }
+
+  .resume-desc {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-6);
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: #fff;
+    background: var(--color-accent);
+    border-radius: var(--radius-full);
+    transition:
+      background var(--duration-fast),
+      transform var(--duration-fast);
+  }
+
+  .download-btn:hover {
+    background: var(--color-accent-hover);
+  }
+
+  .download-btn:active {
+    transform: scale(0.98);
+  }
+
+  .download-icon {
+    flex-shrink: 0;
+  }
+</style>

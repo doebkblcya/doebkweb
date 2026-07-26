@@ -1,0 +1,233 @@
+---
+interface Track {
+  title: string;
+  album: string;
+  file: string;
+  cover?: string;
+  lrc?: string;
+}
+
+// R2 目录结构: music/<专辑名>/<歌曲.mp3>
+const playlist: Track[] = [
+  // fade — last little while
+  { title: "again", album: "fade", file: "last little while - again.mp3" },
+  { title: "daydream", album: "fade", file: "last little while - daydream.mp3" },
+  { title: "insomnia", album: "fade", file: "last little while - insomnia.mp3" },
+  { title: "little while", album: "fade", file: "last little while - little while.mp3", lrc: "last little while - little while.lrc" },
+  { title: "moonscape", album: "fade", file: "last little while - moonscape.mp3", lrc: "last little while - moonscape.lrc" },
+  { title: "stargaze", album: "fade", file: "last little while - stargaze.mp3" },
+  // 如臨深遠 ～雨縒煙柳～ — Demetori
+  { title: "さくらさくら ~ Japanize Dream", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - さくらさくら ~ Japanize Dream.mp3", lrc: "Demetori - さくらさくら ~ Japanize Dream.lrc" },
+  { title: "メイドと血の懐中时计", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - メイドと血の懐中时计.mp3", lrc: "Demetori - メイドと血の懐中时计.lrc" },
+  { title: "东の国の眠らない夜", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 东の国の眠らない夜.mp3", lrc: "Demetori - 东の国の眠らない夜.lrc" },
+  { title: "优雅に咲かせ、墨染の桜 ~ Border of Life", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 优雅に咲かせ、墨染の桜 ~ Border of Life.mp3", lrc: "Demetori - 优雅に咲かせ、墨染の桜 ~ Border of Life.lrc" },
+  { title: "幻视の夜 ~ Ghostly Eyes", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 幻视の夜 ~ Ghostly Eyes.mp3", lrc: "Demetori - 幻视の夜 ~ Ghostly Eyes.lrc" },
+  { title: "无何有の郷 ~ Deep Mountain", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 无何有の郷 ~ Deep Mountain.mp3", lrc: "Demetori - 无何有の郷 ~ Deep Mountain.lrc" },
+  { title: "红楼 ~ Eastern Dream", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 红楼 ~ Eastern Dream.mp3", lrc: "Demetori - 红楼 ~ Eastern Dream.lrc" },
+  { title: "风の循环 ~ Wind Tour", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 风の循环 ~ Wind Tour.mp3", lrc: "Demetori - 风の循环 ~ Wind Tour.lrc" },
+];
+---
+
+<div class="music" id="music-player">
+  <div class="music-header">
+    <svg class="music-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M9 18V5l12-2v13"/>
+      <circle cx="6" cy="18" r="3"/>
+      <circle cx="18" cy="16" r="3"/>
+    </svg>
+    <span class="music-label">音乐</span>
+  </div>
+
+  {playlist.length === 0 ? (
+    <p class="music-empty">播放列表为空</p>
+  ) : (
+    <div class="music-player">
+      <audio id="audio" preload="none"></audio>
+      <p class="music-title" id="music-title">—</p>
+      <div class="music-controls">
+        <button class="music-btn" id="play-btn" aria-label="播放">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        </button>
+        <div class="music-progress" id="progress-bar">
+          <div class="music-progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  (function () {
+    const audio = document.getElementById("audio") as HTMLAudioElement | null;
+    const playBtn = document.getElementById("play-btn");
+    const titleEl = document.getElementById("music-title");
+    const progressFill = document.getElementById("progress-fill");
+    const progressBar = document.getElementById("progress-bar");
+
+    const R2_BASE = "https://cdn.doebkblcya.com/music";
+    const tracks = [
+      { title: "again", album: "fade", file: "last little while - again.mp3" },
+      { title: "daydream", album: "fade", file: "last little while - daydream.mp3" },
+      { title: "insomnia", album: "fade", file: "last little while - insomnia.mp3" },
+      { title: "little while", album: "fade", file: "last little while - little while.mp3", lrc: "last little while - little while.lrc" },
+      { title: "moonscape", album: "fade", file: "last little while - moonscape.mp3", lrc: "last little while - moonscape.lrc" },
+      { title: "stargaze", album: "fade", file: "last little while - stargaze.mp3" },
+      { title: "さくらさくら ~ Japanize Dream", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - さくらさくら ~ Japanize Dream.mp3", lrc: "Demetori - さくらさくら ~ Japanize Dream.lrc" },
+      { title: "メイドと血の懐中时计", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - メイドと血の懐中时计.mp3", lrc: "Demetori - メイドと血の懐中时计.lrc" },
+      { title: "东の国の眠らない夜", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 东の国の眠らない夜.mp3", lrc: "Demetori - 东の国の眠らない夜.lrc" },
+      { title: "优雅に咲かせ、墨染の桜 ~ Border of Life", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 优雅に咲かせ、墨染の桜 ~ Border of Life.mp3", lrc: "Demetori - 优雅に咲かせ、墨染の桜 ~ Border of Life.lrc" },
+      { title: "幻视の夜 ~ Ghostly Eyes", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 幻视の夜 ~ Ghostly Eyes.mp3", lrc: "Demetori - 幻视の夜 ~ Ghostly Eyes.lrc" },
+      { title: "无何有の郷 ~ Deep Mountain", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 无何有の郷 ~ Deep Mountain.mp3", lrc: "Demetori - 无何有の郷 ~ Deep Mountain.lrc" },
+      { title: "红楼 ~ Eastern Dream", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 红楼 ~ Eastern Dream.mp3", lrc: "Demetori - 红楼 ~ Eastern Dream.lrc" },
+      { title: "风の循环 ~ Wind Tour", album: "如臨深遠 ～雨縒煙柳～", file: "Demetori - 风の循环 ~ Wind Tour.mp3", lrc: "Demetori - 风の循环 ~ Wind Tour.lrc" },
+    ];
+
+    if (!audio || !playBtn || !titleEl || tracks.length === 0) return;
+
+    let current = 0;
+    let playing = false;
+
+    function loadTrack(i: number) {
+      current = i;
+      const t = tracks[i];
+      // R2 structure: music/<album>/<file>
+      audio!.src = R2_BASE + "/" + encodeURIComponent(t.album) + "/" + encodeURIComponent(t.file);
+      titleEl!.textContent = t.title;
+      if (progressFill) progressFill.style.width = "0%";
+    }
+
+    playBtn.addEventListener("click", () => {
+      if (playing) {
+        audio!.pause();
+      } else {
+        if (!audio!.src) loadTrack(0);
+        audio!.play().catch(() => {});
+      }
+    });
+
+    audio.addEventListener("play", () => {
+      playing = true;
+      playBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+    });
+
+    audio.addEventListener("pause", () => {
+      playing = false;
+      playBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      if (!audio.duration || !progressFill) return;
+      progressFill.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+    });
+
+    audio.addEventListener("ended", () => {
+      if (tracks.length === 0) return;
+      loadTrack((current + 1) % tracks.length);
+      audio!.play().catch(() => {});
+    });
+
+    progressBar?.addEventListener("click", (e) => {
+      if (!audio.duration || !progressBar) return;
+      const rect = progressBar.getBoundingClientRect();
+      audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+    });
+
+    loadTrack(0);
+  })();
+</script>
+
+<style>
+  .music {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .music-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-secondary);
+  }
+
+  .music-icon {
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .music-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .music-empty {
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    white-space: normal;
+    line-height: var(--leading-relaxed);
+  }
+
+  .music-player {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .music-title {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: normal;
+  }
+
+  .music-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .music-btn {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--color-accent-subtle);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background 200ms, color 200ms;
+  }
+
+  .music-btn:hover {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .music-progress {
+    flex: 1;
+    height: 3px;
+    background: var(--color-border-light);
+    border-radius: 2px;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .music-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-accent);
+    border-radius: 2px;
+    transition: width 100ms linear;
+  }
+
+  :global(.collapsed) .music-label,
+  :global(.collapsed) .music-empty,
+  :global(.collapsed) .music-player {
+    opacity: 0;
+    transition: opacity 100ms;
+  }
+</style>

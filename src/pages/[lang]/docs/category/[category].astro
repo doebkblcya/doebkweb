@@ -1,0 +1,154 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+
+import { ui as zh } from "../../../../i18n/zh";
+import { ui as en } from "../../../../i18n/en";
+
+export async function getStaticPaths() {
+  const docs = await getCollection("docs", ({ data }) => !data.draft && data.listed !== false);
+  const categories = [...new Set(docs.map((d) => d.data.category))];
+  return ["zh", "en"].flatMap((lang) =>
+    categories.map((cat) => ({ params: { lang, category: cat } }))
+  );
+}
+
+const { category } = Astro.params;
+const lang = Astro.currentLocale || "zh";
+const t = lang === "zh" ? zh : en;
+
+const allDocs = await getCollection("docs", ({ data }) => !data.draft);
+const filtered = allDocs
+  .filter((d) => d.data.category === category)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
+---
+
+<BaseLayout title={`${category} — ${t.docs.title}`} hideFooter>
+  <div class="page">
+    <h1 class="page-title">{category}</h1>
+    <hr class="page-divider" />
+
+    <nav class="cats" aria-label={t.docs.allCategories}>
+      <a href={`/${lang}/docs/`} class="cat-item">{t.docs.allCategories}</a>
+      {categories.map((cat) => (
+        <a
+          href={`/${lang}/docs/category/${cat}/`}
+          class={`cat-item${cat === category ? " is-active" : ""}`}
+        >
+          {cat}
+        </a>
+      ))}
+    </nav>
+
+    {filtered.length === 0 ? (
+      <p class="empty">{t.docs.emptyCategory}</p>
+    ) : (
+      <div class="doc-list">
+        {filtered.map((doc) => (
+          <a href={`/${lang}/docs/${doc.slug}/`} class="doc-card">
+            <h2 class="doc-title">{doc.data.title}</h2>
+            <p class="doc-summary">{doc.data.summary}</p>
+            <div class="doc-meta">
+              <time datetime={doc.data.date.toISOString()}>
+                {doc.data.date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+                  year: "numeric", month: "long", day: "numeric",
+                })}
+              </time>
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding: var(--space-16) var(--space-8) var(--space-24);
+  }
+
+  .page-title {
+    font-size: var(--text-5xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    max-width: 40rem;
+    text-transform: capitalize;
+  }
+
+  .page-divider {
+    width: 100%;
+    height: 1px;
+    border: none;
+    background: var(--color-border);
+    margin: var(--space-10) 0;
+  }
+
+  .empty {
+    font-size: var(--text-lg);
+    color: var(--color-text-tertiary);
+  }
+
+  .cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+
+  .cat-item {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    transition: color 150ms, background 150ms;
+  }
+
+  .cat-item:hover,
+  .cat-item.is-active {
+    color: var(--color-text-primary);
+    background: var(--color-accent-subtle);
+    border-color: var(--color-text-tertiary);
+  }
+
+  .doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .doc-card {
+    display: block;
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    transition: background 150ms;
+  }
+
+  .doc-card:hover {
+    background: var(--color-bg-surface-hover);
+  }
+
+  .doc-title {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    letter-spacing: var(--tracking-normal);
+    line-height: var(--leading-snug);
+  }
+
+  .doc-summary {
+    margin-top: var(--space-2);
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+
+  .doc-meta {
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-text-tertiary);
+  }
+</style>

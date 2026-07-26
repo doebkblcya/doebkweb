@@ -1,0 +1,157 @@
+---
+import type { UIStrings } from "../types/i18n";
+import LanguageSettings from "./LanguageSettings.astro";
+
+interface Props {
+  t: UIStrings;
+  currentPath: string;
+}
+
+const { t, currentPath } = Astro.props;
+
+const navItems: { label: string; href: string }[] = [
+  { label: t.nav.home,   href: "/" },
+  { label: t.nav.about,  href: "/about/" },
+  { label: t.nav.docs,   href: "/docs/" },
+  { label: t.nav.music,  href: "/music/" },
+  { label: t.nav.photos, href: "/photos/" },
+];
+
+const lang = Astro.currentLocale || "zh";
+
+function isActive(itemHref: string): boolean {
+  const path = currentPath.replace(/^\/[a-z]{2}\//, "/");
+  if (itemHref === "/") return path === "/";
+  return path.startsWith(itemHref);
+}
+---
+
+<aside class="sidebar" id="sidebar" transition:persist="sidebar">
+  <nav class="sidebar-nav" aria-label="Main navigation">
+    <ul class="nav-list">
+      {navItems.map((item) => (
+        <li>
+          <a
+            href={`/${lang}${item.href}`}
+            class={`nav-item${isActive(item.href) ? " is-active" : ""}`}
+          >
+            <span class="nav-indicator" aria-hidden="true"></span>
+            <span class="nav-label">{item.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <LanguageSettings t={t} currentPath={currentPath} />
+  </div>
+</aside>
+
+<script>
+  // Persisted across View Transitions — update active nav item after navigation.
+  (function () {
+    var sidebar = document.getElementById("sidebar");
+    if (!sidebar) return;
+    if (sidebar.dataset.sidebarReady === "1") return;
+    sidebar.dataset.sidebarReady = "1";
+
+    document.addEventListener("astro:after-swap", function () {
+      var sb = document.getElementById("sidebar");
+      if (!sb) return;
+      var path = window.location.pathname.replace(/^\/[a-z]{2}\//, "/");
+      var links = sb.querySelectorAll(".nav-item");
+      for (var i = 0; i < links.length; i++) {
+        var href = links[i].getAttribute("href") || "";
+        href = href.replace(/^\/[a-z]{2}\//, "/");
+        var active = href === "/" ? path === "/" : path.startsWith(href);
+        links[i].classList.toggle("is-active", active);
+      }
+    });
+  })();
+</script>
+
+<style>
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 12rem;
+    height: 100vh;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--space-6) var(--space-4);
+    border-right: 1px solid var(--color-border-light);
+    background: var(--color-bg-page);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* ── Nav list ───────────────────────────────────── */
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition:
+      color 200ms,
+      background-color 200ms;
+  }
+
+  .nav-item:hover {
+    color: var(--color-text-primary);
+    background: var(--color-accent-subtle);
+  }
+
+  .nav-item.is-active {
+    color: var(--color-accent);
+    background: var(--color-accent-subtle);
+  }
+
+  /* ── Indicator ──────────────────────────────────── */
+  .nav-indicator {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--color-border);
+    transition: background 200ms;
+  }
+
+  .nav-item.is-active .nav-indicator {
+    background: var(--color-accent);
+  }
+
+  .nav-item:hover .nav-indicator {
+    background: var(--color-text-tertiary);
+  }
+
+  .nav-item.is-active:hover .nav-indicator {
+    background: var(--color-accent);
+  }
+
+  /* ── Bottom / Settings ──────────────────────────── */
+  .sidebar-bottom {
+    padding-bottom: 0;
+    overflow: visible;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      display: none;
+    }
+  }
+</style>

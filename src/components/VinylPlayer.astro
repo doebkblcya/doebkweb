@@ -1,0 +1,1133 @@
+---
+interface Props {
+  flatTracks: string;
+  r2Base: string;
+}
+const { flatTracks: flatTracksJson, r2Base } = Astro.props;
+---
+
+<div class="vinyl-app" id="vinyl-app" data-astro-transition-persist="vinyl-player">
+  <!-- Trigger: mini disc -->
+  <button class="vinyl-trigger" id="vinyl-trigger" aria-label="音乐">
+    <div class="mini-disc" id="mini-disc">
+      <div class="mini-disc-art" id="mini-disc-art"></div>
+    </div>
+  </button>
+
+  <!-- Expanded panel -->
+  <div class="vinyl-panel" id="vinyl-panel">
+    <div class="panel-inner">
+      <!-- Tonearm -->
+      <div class="tonearm" id="tonearm">
+        <svg width="120" height="180" viewBox="0 0 120 180" fill="none">
+          <!-- Pivot base at top-right of disc -->
+          <rect x="85" y="22" width="30" height="20" rx="5" fill="#636366"/>
+          <rect x="90" y="16" width="20" height="9" rx="3" fill="#7a7a7e"/>
+          <!-- Counterweight -->
+          <circle cx="100" cy="32" r="9" fill="#48484a"/>
+          <!-- Arm: from pivot extending down-left toward record surface -->
+          <line x1="100" y1="35" x2="24" y2="148" stroke="#aeaeb2" stroke-width="5" stroke-linecap="round"/>
+          <!-- Headshell at record end -->
+          <g transform="translate(10, 135) rotate(-10)">
+            <rect x="0" y="0" width="30" height="14" rx="3" fill="#1d1d1f"/>
+            <rect x="4" y="3" width="22" height="2.5" rx="1" fill="#333"/>
+            <!-- Stylus needle pointing onto record -->
+            <line x1="22" y1="14" x2="24" y2="20" stroke="#86868b" stroke-width="1.5" stroke-linecap="round"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Album cover disc -->
+      <div class="player-disc-wrap" id="player-disc-wrap">
+        <div class="player-disc" id="player-disc">
+          <!-- Groove rings -->
+          <div class="disc-grooves"></div>
+          <!-- Cover label area -->
+          <div class="disc-cover-art" id="disc-cover-art">
+            <div class="cover-placeholder" id="cover-placeholder">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
+              </svg>
+            </div>
+          </div>
+          <!-- Label ring -->
+          <div class="disc-label-ring"></div>
+        </div>
+      </div>
+
+      <!-- Now playing info -->
+      <div class="player-info">
+        <h3 class="player-album-name" id="player-album-name">未在播放</h3>
+        <p class="player-artist" id="player-artist"></p>
+        <p class="player-track-title" id="player-track-title"></p>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="player-actions visible" id="player-actions">
+        <!-- Transport controls — show only when album loaded -->
+        <span class="actions-group" id="actions-transport">
+          <button class="action-btn" id="btn-prev" title="上一首">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="18,4 6,12 18,20"/><rect x="4" y="4" width="2" height="16"/></svg>
+          </button>
+          <button class="action-btn action-btn-play" id="btn-playpause" title="播放">
+            <svg class="icon-play" id="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
+            <svg class="icon-pause" id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+          <button class="action-btn" id="btn-next" title="下一首">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 18,12 6,20"/><rect x="18" y="4" width="2" height="16"/></svg>
+          </button>
+        </span>
+        <span class="actions-sep" id="actions-sep"></span>
+        <!-- Info buttons — show only when album loaded -->
+        <span class="actions-group" id="actions-info">
+          <button class="action-btn" id="btn-playlist" title="播放列表">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+          <button class="action-btn" id="btn-review" title="札记">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </button>
+        </span>
+        <span class="actions-sep" id="actions-sep2"></span>
+        <!-- Volume -->
+        <span class="volume-wrap" id="volume-wrap">
+          <button class="action-btn" id="btn-volume" title="音量">
+            <svg id="icon-volume-high" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+            <svg id="icon-volume-low" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+            <svg id="icon-volume-mute" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          </button>
+          <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="80" />
+        </span>
+        <!-- Shelf button — distinct, always visible in panel -->
+        <a class="action-btn" id="btn-shelf" href="/zh/music/" title="专辑架">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <rect x="2" y="2" width="20" height="20" rx="2"/>
+            <circle cx="8" cy="8" r="2"/><circle cx="16" cy="8" r="2"/>
+            <circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/>
+          </svg>
+          <span>专辑架</span>
+        </a>
+      </div>
+
+      <!-- Track list panel -->
+      <div class="player-tracks" id="player-tracks">
+        <ul class="track-list" id="track-list">
+          <!-- Populated by JS -->
+        </ul>
+      </div>
+
+      <!-- Review panel -->
+      <div class="player-review" id="player-review">
+        <p class="review-text" id="review-text"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ flatTracksJson, r2Base }}>
+  (function () {
+    // ═══════════════════════════════════════════════════════
+    //  All music state lives on #audio (the only persisted element).
+    //  VinylPlayer is a pure rendering layer — it reads from
+    //  #audio on init and writes to #audio on user actions.
+    // ═══════════════════════════════════════════════════════
+
+    var R2_BASE = r2Base;
+    var flatTracks = JSON.parse(flatTracksJson);
+
+    // ── UI-only state (persists across pages, reset on home) ──
+    var panelOpen = false;
+    var tracksOpen = false;
+    var reviewOpen = false;
+
+    // ── State accessors (read from #audio, the single source of truth) ──
+    function _audio() { return document.getElementById("audio"); }
+    function _playing() { var a = _audio(); return a && !a.paused; }
+    function _idx() { var a = _audio(); if (!a || !a.dataset.vpIdx) return 0; return parseInt(a.dataset.vpIdx, 10) || 0; }
+    function _albumCtx() {
+      var a = _audio();
+      if (!a || !a.dataset.vpAlbum) return null;
+      return {
+        name: a.dataset.vpAlbum,
+        artist: a.dataset.vpArtist || "",
+        cover: a.dataset.vpCover || "",
+        tracks: flatTracks.filter(function (t) { return t.album === a.dataset.vpAlbum; }),
+        meta: null,
+      };
+    }
+    function _tracks() { var ctx = _albumCtx(); return ctx ? ctx.tracks : flatTracks; }
+
+    // ── DOM refs (always fresh) ──────────────────────────
+    function els() {
+      return {
+        audio:      document.getElementById("audio"),
+        trigger:    document.getElementById("vinyl-trigger"),
+        panel:      document.getElementById("vinyl-panel"),
+        playerDisc: document.getElementById("player-disc"),
+        discCoverArt:  document.getElementById("disc-cover-art"),
+        miniDisc:   document.getElementById("mini-disc"),
+        miniDiscArt:   document.getElementById("mini-disc-art"),
+        tonearm:    document.getElementById("tonearm"),
+        albumName:  document.getElementById("player-album-name"),
+        artist:     document.getElementById("player-artist"),
+        trackTitle: document.getElementById("player-track-title"),
+        actionsTransport: document.getElementById("actions-transport"),
+        actionsSep:     document.getElementById("actions-sep"),
+        actionsInfo:    document.getElementById("actions-info"),
+        btnPrev:        document.getElementById("btn-prev"),
+        btnPlaypause:   document.getElementById("btn-playpause"),
+        iconPlay:       document.getElementById("icon-play"),
+        iconPause:      document.getElementById("icon-pause"),
+        btnNext:        document.getElementById("btn-next"),
+        btnPlaylist:    document.getElementById("btn-playlist"),
+        btnReview:      document.getElementById("btn-review"),
+        btnVolume:      document.getElementById("btn-volume"),
+        volumeSlider:   document.getElementById("volume-slider"),
+        iconVolHigh:    document.getElementById("icon-volume-high"),
+        iconVolLow:     document.getElementById("icon-volume-low"),
+        iconVolMute:    document.getElementById("icon-volume-mute"),
+        btnShelf:       document.getElementById("btn-shelf"),
+        trackList:      document.getElementById("track-list"),
+        playerTracks:   document.getElementById("player-tracks"),
+        playerReview:   document.getElementById("player-review"),
+        reviewText:     document.getElementById("review-text"),
+      };
+    }
+
+    // ── Helpers ─────────────────────────────────────────
+    function buildUrl(track) {
+      if (track.url) return track.url;
+      var album = track.album || (_albumCtx() && _albumCtx().name) || "";
+      return R2_BASE + "/" + encodeURIComponent(album) + "/" + encodeURIComponent(track.file);
+    }
+    function escHtml(s) {
+      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // ── UI mutators ─────────────────────────────────────
+    function updateInfo(i) {
+      var e = els(), tracks = _tracks(), t = tracks[i];
+      if (!t || !e.trackTitle) return;
+      e.trackTitle.textContent = t.title;
+      var ctx = _albumCtx();
+      if (ctx && e.albumName) e.albumName.textContent = ctx.name;
+      else if (e.albumName) e.albumName.textContent = t.album || "";
+      if (ctx && e.artist) e.artist.textContent = ctx.artist;
+      else if (e.artist) e.artist.textContent = "";
+    }
+
+    function setCover(url) {
+      var e = els();
+      if (!e.discCoverArt || !e.miniDiscArt) return;
+      if (url) {
+        e.discCoverArt.style.backgroundImage = "url(" + url + ")";
+        e.discCoverArt.classList.add("has-cover");
+        e.miniDiscArt.style.backgroundImage = "url(" + url + ")";
+        e.miniDiscArt.classList.add("has-cover");
+      } else {
+        e.discCoverArt.style.backgroundImage = "";
+        e.discCoverArt.classList.remove("has-cover");
+        e.miniDiscArt.style.backgroundImage = "";
+        e.miniDiscArt.classList.remove("has-cover");
+      }
+    }
+
+    function setReview(text) {
+      var e = els();
+      if (!e.reviewText) return;
+      e.reviewText.textContent = text || "暂无札记";
+      if (e.btnReview) e.btnReview.style.display = "inline-flex";
+    }
+
+    function renderTrackList() {
+      var e = els(), tracks = _tracks();
+      if (!e.trackList) return;
+      if (tracks.length === 0) { e.trackList.innerHTML = ""; return; }
+      var ctx = _albumCtx();
+      e.trackList.innerHTML = tracks.map(function (t, i) {
+        return '<li class="track-item"><button class="track-btn" data-index="' + i + '">' +
+          '<span class="track-num">' + String(i + 1).padStart(2, "0") + '</span>' +
+          '<span class="track-body"><span class="track-title">' + escHtml(t.title) + '</span>' +
+          (ctx ? '' : '<span class="track-album">' + escHtml(t.album || "") + '</span>') +
+          '</span><span class="track-status"><span class="track-eq">' +
+          '<span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span>' +
+          '</span></span></button></li>';
+      }).join("");
+      updateTrackUI();
+    }
+
+    function applyPlayingState(state) {
+      var e = els();
+      if (e.playerDisc) e.playerDisc.classList.toggle("spinning", state);
+      if (e.tonearm) e.tonearm.classList.toggle("on-record", state);
+      if (e.miniDisc) e.miniDisc.classList.toggle("spinning", state);
+      if (e.iconPlay) e.iconPlay.style.display = state ? "none" : "block";
+      if (e.iconPause) e.iconPause.style.display = state ? "block" : "none";
+      if (e.btnPlaypause) e.btnPlaypause.setAttribute("title", state ? "暂停" : "播放");
+      updateTrackUI();
+    }
+
+    function updateTrackUI() {
+      var e = els();
+      if (!e.trackList) return;
+      var p = _playing(), cur = _idx();
+      var btns = e.trackList.querySelectorAll(".track-btn");
+      for (var i = 0; i < btns.length; i++) {
+        var idx = parseInt(btns[i].dataset.index || "-1", 10);
+        btns[i].classList.toggle("is-active", idx === cur && p);
+      }
+    }
+
+    function showAlbumUI() {
+      var e = els();
+      if (e.actionsTransport) e.actionsTransport.style.display = "flex";
+      if (e.actionsSep) e.actionsSep.style.display = "inline-block";
+      if (e.btnPlaylist) e.btnPlaylist.style.display = "inline-flex";
+      if (e.btnReview) e.btnReview.style.display = "inline-flex";
+      if (e.btnVolume) e.btnVolume.style.display = "inline-flex";
+      if (e.volumeSlider) e.volumeSlider.style.display = "block";
+      var sep2 = document.getElementById("actions-sep2");
+      if (sep2) sep2.style.display = "inline-block";
+    }
+
+    // ── Volume ────────────────────────────────────────
+    function syncVolumeUI() {
+      var e = els(), a = _audio();
+      var vol = a ? a.volume : 0.8;
+      var muted = a ? a.muted : false;
+      if (e.volumeSlider) e.volumeSlider.value = String(Math.round(vol * 100));
+      if (e.iconVolHigh) e.iconVolHigh.style.display = (!muted && vol > 0.5) ? "block" : "none";
+      if (e.iconVolLow) e.iconVolLow.style.display = (!muted && vol <= 0.5 && vol > 0) ? "block" : "none";
+      if (e.iconVolMute) e.iconVolMute.style.display = (muted || vol === 0) ? "block" : "none";
+    }
+
+    function _wireVolume() {
+      var e = els(), a = _audio(); if (!a) return;
+      if (e.volumeSlider) {
+        e.volumeSlider.addEventListener("input", function () {
+          var v = parseInt(e.volumeSlider.value, 10) / 100;
+          if (a) { a.volume = v; a.muted = false; }
+          syncVolumeUI();
+        });
+      }
+      if (e.btnVolume) {
+        e.btnVolume.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          if (a) { a.muted = !a.muted; }
+          syncVolumeUI();
+        });
+      }
+      syncVolumeUI();
+    }
+
+    // ── Panel controls ──────────────────────────────────
+    function toggleTracks() {
+      var e = els();
+      tracksOpen = !tracksOpen;
+      if (e.playerTracks) e.playerTracks.classList.toggle("open", tracksOpen);
+      if (e.btnPlaylist) e.btnPlaylist.classList.toggle("is-active", tracksOpen);
+      if (tracksOpen && reviewOpen) toggleReview();
+    }
+    function toggleReview() {
+      var e = els();
+      reviewOpen = !reviewOpen;
+      if (e.playerReview) e.playerReview.classList.toggle("open", reviewOpen);
+      if (e.btnReview) e.btnReview.classList.toggle("is-active", reviewOpen);
+      if (reviewOpen && tracksOpen) toggleTracks();
+    }
+    function closeSubPanels() { if (tracksOpen) toggleTracks(); if (reviewOpen) toggleReview(); }
+    function openPanel() {
+      var e = els();
+      panelOpen = true;
+      if (e.panel) e.panel.classList.add("open");
+      if (e.trigger) e.trigger.classList.add("hidden");
+      applyPlayingState(_playing());
+      var ctx = _albumCtx();
+      if (ctx) { setCover(ctx.cover); renderTrackList(); }
+    }
+    function closePanel() {
+      var e = els();
+      panelOpen = false;
+      if (e.panel) e.panel.classList.remove("open");
+      if (e.trigger) e.trigger.classList.remove("hidden");
+      closeSubPanels();
+    }
+
+    // ── Load & play ─────────────────────────────────────
+    function loadTrack(i) {
+      var tracks = _tracks(), t = tracks[i];
+      if (!t) return;
+      var a = _audio(); if (!a) return;
+      a.dataset.vpIdx = String(i);
+      a.src = buildUrl(t);
+      updateInfo(i);
+      a.dispatchEvent(new CustomEvent("track-change", {
+        detail: { albumName: t.album || (_albumCtx() && _albumCtx().name) || "", trackTitle: t.title, trackIndex: i },
+        bubbles: false,
+      }));
+    }
+    function play() {
+      var a = _audio(); if (!a) return;
+      if (!a.src) { var tr = _tracks(); if (tr.length) loadTrack(0); }
+      a.play().catch(function () {});
+    }
+
+    // ── Click handlers ──────────────────────────────────
+    function handleVinylClick(e) {
+      var E = els();
+      // Trigger
+      if (e.target.closest("#vinyl-trigger")) { e.stopPropagation(); panelOpen ? closePanel() : openPanel(); return; }
+      // Play/pause
+      if (e.target.closest("#btn-playpause")) { e.stopPropagation(); if (!E.audio || !E.audio.src) return; _playing() ? E.audio.pause() : E.audio.play().catch(function(){}); return; }
+      // Prev
+      if (e.target.closest("#btn-prev")) { e.stopPropagation(); var tr = _tracks(); if (tr.length) { var p = _idx() > 0 ? _idx() - 1 : tr.length - 1; loadTrack(p); play(); } return; }
+      // Next
+      if (e.target.closest("#btn-next")) { e.stopPropagation(); var tr2 = _tracks(); if (tr2.length) { var n = (_idx() + 1) % tr2.length; loadTrack(n); play(); } return; }
+      // Track btn
+      var tb = e.target.closest(".track-btn");
+      if (tb) { var idx = parseInt(tb.dataset.index || "0", 10); if (idx === _idx()) { _playing() ? E.audio.pause() : E.audio.play().catch(function(){}); } else { loadTrack(idx); play(); } return; }
+      // Shelf
+      if (e.target.closest("#btn-shelf")) { e.preventDefault(); e.stopPropagation(); var sf = document.getElementById("shelf"); if (sf) { if (panelOpen) closePanel(); sf.scrollIntoView({behavior:"smooth"}); } else { if (panelOpen) closePanel(); var href = els().btnShelf ? els().btnShelf.getAttribute("href") : "/zh/music/"; window.location.href = href; } return; }
+      // Playlist
+      if (e.target.closest("#btn-playlist")) { e.stopPropagation(); toggleTracks(); return; }
+      // Review
+      if (e.target.closest("#btn-review")) { e.stopPropagation(); toggleReview(); return; }
+    }
+    function handleDocClick(e) {
+      if (!panelOpen) return;
+      var E = els();
+      if (!E.panel || !E.trigger) return;
+      if (!E.panel.contains(e.target) && !E.trigger.contains(e.target)) closePanel();
+    }
+
+    // ── Audio event listeners ────────────────────────────
+    var _onAudioPlay, _onAudioPause, _onAudioEnded, _onAlbumChange, _onTrackChange, _onVpReset;
+
+    function wireAudio() {
+      var a = _audio(); if (!a) return;
+
+      _onAudioPlay   = function () { applyPlayingState(true); };
+      _onAudioPause  = function () { applyPlayingState(false); };
+      _onAudioEnded  = function () { var tr = _tracks(); if (tr.length) { loadTrack((_idx() + 1) % tr.length); play(); } };
+      _onAlbumChange = function (ev) {
+        var d = ev.detail;
+        var ad = _audio(); if (!ad) return;
+        ad.dataset.vpAlbum = d.albumName;
+        ad.dataset.vpArtist = d.artist;
+        ad.dataset.vpCover  = d.cover;
+        setCover(d.cover); setReview(d.review || null); renderTrackList();
+        var e = els();
+        if (e.albumName) e.albumName.textContent = d.albumName;
+        if (e.artist) e.artist.textContent = d.artist;
+        if (e.trackTitle) e.trackTitle.textContent = "";
+        showAlbumUI();
+        loadTrack(0); play();
+        if (!panelOpen) openPanel();
+      };
+      _onTrackChange = function (ev) {
+        var d = ev.detail;
+        if (typeof d.trackIndex === "number" && d.trackIndex >= 0) { updateInfo(d.trackIndex); updateTrackUI(); }
+      };
+
+      a.addEventListener("play", _onAudioPlay);
+      a.addEventListener("pause", _onAudioPause);
+      a.addEventListener("ended", _onAudioEnded);
+      a.addEventListener("album-change", _onAlbumChange);
+      a.addEventListener("track-change", _onTrackChange);
+
+      _onVpReset = function () {
+        panelOpen = false;
+        if (tracksOpen) toggleTracks();
+        if (reviewOpen) toggleReview();
+        setCover("");
+        renderTrackList();
+        var e2 = els();
+        if (e2.albumName) e2.albumName.textContent = "未在播放";
+        if (e2.artist) e2.artist.textContent = "";
+        if (e2.trackTitle) e2.trackTitle.textContent = "";
+        if (e2.actionsTransport) e2.actionsTransport.style.display = "none";
+        if (e2.actionsSep) e2.actionsSep.style.display = "none";
+        if (e2.btnPlaylist) e2.btnPlaylist.style.display = "none";
+        if (e2.btnReview) e2.btnReview.style.display = "none";
+        if (e2.btnVolume) e2.btnVolume.style.display = "none";
+        if (e2.volumeSlider) e2.volumeSlider.style.display = "none";
+        var sep22 = document.getElementById("actions-sep2");
+        if (sep22) sep22.style.display = "none";
+      };
+      a.addEventListener("vp-reset", _onVpReset);
+    }
+
+    // ── Init ─────────────────────────────────────────────
+    function init() {
+      var app = document.getElementById("vinyl-app");
+      if (!app || app.dataset.vinylReady === "1") return;
+      app.dataset.vinylReady = "1";
+
+      wireAudio();
+      document.addEventListener("click", handleVinylClick);
+      document.addEventListener("click", handleDocClick);
+
+      // Default: no album — transport/review/playlist hidden
+      var e = els();
+      if (e.actionsTransport) e.actionsTransport.style.display = "none";
+      if (e.actionsSep) e.actionsSep.style.display = "none";
+      if (e.btnPlaylist) e.btnPlaylist.style.display = "none";
+      if (e.btnReview) e.btnReview.style.display = "none";
+      if (e.btnVolume) e.btnVolume.style.display = "none";
+      if (e.volumeSlider) e.volumeSlider.style.display = "none";
+      var sep2 = document.getElementById("actions-sep2");
+      if (sep2) sep2.style.display = "none";
+      setCover("");
+      setReview(null);
+      renderTrackList();
+
+      // Restore album UI from audio state
+      var a = _audio();
+      if (a && a.dataset.vpAlbum) {
+        setCover(a.dataset.vpCover || "");
+        if (e.albumName) e.albumName.textContent = a.dataset.vpAlbum;
+        if (e.artist) e.artist.textContent = a.dataset.vpArtist || "";
+        showAlbumUI();
+      }
+
+      _wireVolume();
+      applyPlayingState(_playing());
+    }
+
+    init();
+  })();
+</script>
+
+<style>
+  /* ── Root container ─────────────────────────────── */
+  .vinyl-app {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 200;
+  }
+
+  /* ── Trigger: mini disc ────────────────────────── */
+  .vinyl-trigger {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transition: transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+  }
+
+  .vinyl-trigger:hover {
+    transform: scale(1.2);
+  }
+
+  .vinyl-trigger.active {
+    transform: scale(1.2);
+  }
+
+  .vinyl-trigger.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+    transition: opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+                transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .mini-disc {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    /* Vinyl gradient */
+    background: radial-gradient(
+      circle at 30% 30%,
+      #2a2a2a 0%, #111 3%, #1a1a1a 6%, #0d0d0d 8%,
+      #1a1a1a 10%, #0a0a0a 13%, #1a1a1a 15%, #0d0d0d 18%,
+      #1a1a1a 20%, #0a0a0a 23%, #181818 25%, #0d0d0d 28%,
+      #161616 30%, #0a0a0a 33%, #181818 35%, #0d0d0d 38%,
+      #161616 40%, #0a0a0a 43%, #181818 45%, #0d0d0d 48%,
+      #161616 50%, #0a0a0a 53%, #181818 55%, #0d0d0d 58%,
+      #151515 60%, #0a0a0a 63%, #171717 65%, #0d0d0d 68%,
+      #141414 70%, #0a0a0a 73%, #171717 75%
+    );
+    box-shadow:
+      0 2px 12px rgba(0,0,0,0.3),
+      0 0 0 1px rgba(255,255,255,0.04);
+    transition: box-shadow 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .vinyl-trigger:hover .mini-disc {
+    box-shadow:
+      0 4px 24px rgba(0,0,0,0.4),
+      0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  .mini-disc.spinning {
+    animation: spin 8s linear infinite;
+  }
+
+  .mini-disc-art {
+    position: absolute;
+    /* Same label size as main player disc */
+    inset: 22%;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+    background-color: #1a1a1a;
+  }
+
+  .mini-disc-art.has-cover {
+    background-color: transparent;
+  }
+
+  /* ── Panel ──────────────────────────────────────── */
+  .vinyl-panel {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 340px;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.3);
+    transform-origin: top right;
+    transition:
+      opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      visibility 0ms 300ms;
+    overflow: hidden;
+  }
+
+  .vinyl-panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition:
+      opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      visibility 0ms 0ms;
+  }
+
+  .panel-inner {
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  /* ── Player disc ────────────────────────────────── */
+  .player-disc-wrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .player-disc {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 35% 35%,
+      #2a2a2a 0%, #111 2%, #1a1a1a 4%, #0d0d0d 6%,
+      #1a1a1a 8%, #0a0a0a 11%, #1a1a1a 13%, #0d0d0d 16%,
+      #181818 18%, #0a0a0a 21%, #171717 23%, #0d0d0d 26%,
+      #161616 28%, #0a0a0a 31%, #171717 33%, #0d0d0d 36%,
+      #151515 38%, #0a0a0a 41%, #171717 43%, #0d0d0d 46%,
+      #151515 48%, #0a0a0a 51%, #161616 53%, #0d0d0d 56%,
+      #141414 58%, #0a0a0a 61%, #161616 63%, #0d0d0d 66%,
+      #141414 68%, #0a0a0a 71%, #151515 73%, #0d0d0d 76%,
+      #131313 78%
+    );
+    box-shadow:
+      0 4px 30px rgba(0,0,0,0.35),
+      0 0 0 1px rgba(255,255,255,0.04);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .player-disc.spinning {
+    animation: spin 8s linear infinite;
+  }
+
+  /* ── Disc grooves (decorative concentric rings) ─── */
+  .disc-grooves {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-radial-gradient(
+      circle at 35% 35%,
+      transparent 0px,
+      transparent 2px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(255,255,255,0.015) 3px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Disc cover art (label area) ─────────────────── */
+  .disc-cover-art {
+    position: absolute;
+    /* Smaller label — roughly 40% of disc diameter, like a real 12" record */
+    inset: 22%;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #1a1a1a;
+  }
+
+  .disc-cover-art.has-cover {
+    background-color: transparent;
+  }
+
+  /* ── Cover placeholder (no album loaded) ─────────── */
+  .cover-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-tertiary);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .disc-cover-art.has-cover .cover-placeholder {
+    display: none;
+  }
+
+  /* ── Label ring (separates label from grooves) ───── */
+  .disc-label-ring {
+    position: absolute;
+    inset: 21%;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.06);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* ── Tonearm ────────────────────────────────────── */
+  .tonearm {
+    position: absolute;
+    top: -6px;
+    left: 175px;
+    width: 120px;
+    height: 180px;
+    z-index: 3;
+    /* Pivot at (100, 35) in SVG coords → 83.3% 19.4% of element */
+    transform-origin: 83.3% 19.4%;
+    /* Rest: arm parked to the right, off the record */
+    transform: rotate(-50deg);
+    transition: transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    pointer-events: none;
+  }
+
+  /* Playing: arm over the record, stylus in groove */
+  .tonearm.on-record {
+    transform: rotate(-20deg);
+  }
+
+  .tonearm svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Player info ────────────────────────────────── */
+  .player-info {
+    text-align: center;
+    margin-top: var(--space-4);
+    width: 100%;
+  }
+
+  .player-album-name {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+  }
+
+  .player-artist {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+
+  .player-track-title {
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+    margin-top: 2px;
+    font-weight: 500;
+  }
+
+  /* ── Action buttons row ─────────────────────────── */
+  .player-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .actions-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .actions-sep {
+    width: 1px;
+    height: 16px;
+    background: var(--color-border);
+    flex-shrink: 0;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--color-accent-subtle);
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 200ms, color 200ms;
+    font-family: inherit;
+    white-space: nowrap;
+    min-width: 2rem;
+    min-height: 1.75rem;
+  }
+
+  .action-btn:hover {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .action-btn.is-active {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .action-btn-play {
+    min-width: 2.25rem;
+    min-height: 2rem;
+  }
+
+  .action-btn svg {
+    flex-shrink: 0;
+  }
+
+  .icon-pause {
+    display: none;
+  }
+
+  /* ── Volume ─────────────────────────────────────── */
+  .volume-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .volume-slider {
+    width: 60px;
+    height: 3px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    cursor: pointer;
+  }
+
+  .volume-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    cursor: pointer;
+    border: none;
+  }
+
+  /* ── Track list panel ───────────────────────────── */
+  .player-tracks {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      max-height 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 300ms ease,
+      margin-top 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    margin-top: 0;
+  }
+
+  .player-tracks.open {
+    max-height: 360px;
+    opacity: 1;
+    margin-top: var(--space-4);
+    overflow-y: auto;
+  }
+
+  .track-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-1);
+    background: var(--color-bg-surface-hover);
+    border-radius: var(--radius-lg);
+  }
+
+
+  /* ── Review panel ────────────────────────────────── */
+  .player-review {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      max-height 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 300ms ease,
+      margin-top 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    margin-top: 0;
+  }
+
+  .player-review.open {
+    max-height: 200px;
+    opacity: 1;
+    margin-top: var(--space-4);
+    overflow-y: auto;
+  }
+
+  .review-text {
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+    padding: var(--space-3);
+    background: var(--color-bg-surface-hover);
+    border-radius: var(--radius-md);
+    white-space: pre-wrap;
+  }
+
+  /* ── Spin animation ─────────────────────────────── */
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Mobile ─────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .vinyl-app {
+      top: var(--space-3);
+      right: var(--space-3);
+    }
+
+    .vinyl-trigger {
+      width: 3rem;
+      height: 3rem;
+    }
+
+    .vinyl-panel {
+      width: calc(100vw - 2rem);
+      right: -12px;
+      top: -12px;
+    }
+
+    .player-disc-wrap {
+      width: 150px;
+      height: 150px;
+    }
+
+    .tonearm {
+      width: 90px;
+      height: 135px;
+      top: -5px;
+      left: 131px;
+      transform-origin: 83.3% 19.4%;
+    }
+
+    .player-tracks.open {
+      max-height: 240px;
+    }
+  }
+</style>
+
+<!--
+  Global track-list styles.
+  Track items are created via JS innerHTML, so they don't get
+  Astro's scoped data-astro-cid attribute. These styles must be global.
+-->
+<style is:global>
+  /* ── Hide on home page (body lacks has-sidebar) ──── */
+  body:not(.has-sidebar) .vinyl-app {
+    display: none;
+  }
+
+  /* ── Track list items (dynamically generated) ───── */
+  .track-item {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .track-item + .track-item {
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .track-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 150ms, padding-left 200ms;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    position: relative;
+  }
+
+  .track-btn:hover {
+    background: rgba(255,255,255,0.03);
+    padding-left: var(--space-4);
+  }
+
+  .track-btn.is-active {
+    background: var(--color-accent-subtle);
+  }
+
+  .track-btn.is-active:hover {
+    background: var(--color-accent-subtle);
+    padding-left: var(--space-3);
+  }
+
+  .track-num {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    width: 1.25rem;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    text-align: right;
+    font-family: var(--font-mono, "SF Mono", "Cascadia Code", monospace);
+  }
+
+  .track-btn.is-active .track-num {
+    color: var(--color-accent);
+  }
+
+  .track-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .track-title {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+  }
+
+  .track-btn.is-active .track-title {
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .track-album {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── EQ animation ────────────────────────────────── */
+  .track-status {
+    flex-shrink: 0;
+    width: 20px;
+    height: 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .track-eq {
+    display: none;
+    align-items: flex-end;
+    gap: 1px;
+    height: 100%;
+  }
+
+  .track-btn.is-active .track-eq {
+    display: flex;
+  }
+
+  .eq-bar {
+    width: 2px;
+    background: var(--color-accent);
+    border-radius: 1px;
+    animation: eq-bounce 0.8s ease-in-out infinite;
+  }
+
+  .eq-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+  .eq-bar:nth-child(2) { height: 100%; animation-delay: 0.2s; }
+  .eq-bar:nth-child(3) { height: 40%; animation-delay: 0.4s; }
+
+  @keyframes eq-bounce {
+    0%, 100% { transform: scaleY(0.5); }
+    50% { transform: scaleY(1); }
+  }
+</style>

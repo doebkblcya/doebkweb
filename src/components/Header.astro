@@ -1,0 +1,124 @@
+---
+import type { UIStrings } from "../types/i18n";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
+
+interface Props {
+  t: UIStrings;
+  currentPath: string;
+}
+
+const { t, currentPath } = Astro.props;
+
+const navItems: { label: string; href: string }[] = [
+  { label: t.nav.home, href: "/" },
+  { label: t.nav.about, href: "/about/" },
+  { label: t.nav.docs, href: "/docs/" },
+  { label: t.nav.resume, href: "/resume/" },
+];
+
+const lang = Astro.currentLocale || "zh";
+
+function isActive(itemHref: string): boolean {
+  // Normalize: strip locale prefix for comparison
+  const path = currentPath.replace(/^\/[a-z]{2}\//, "/");
+  if (itemHref === "/") return path === "/";
+  return path.startsWith(itemHref);
+}
+---
+
+<header class="header">
+  <div class="header-inner">
+    <a href={`/${lang}/`} class="logo" aria-label={t.site.title}>
+      {t.site.title}
+    </a>
+
+    <nav class="nav" aria-label="Main navigation">
+      {
+        navItems.map((item) => (
+          <a
+            href={`/${lang}${item.href}`}
+            class={`nav-link${isActive(item.href) ? " is-active" : ""}`}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <LanguageSwitcher t={t} currentPath={currentPath} />
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .header-inner {
+    width: 100%;
+    max-width: var(--max-width-wide);
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  .logo {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-text-primary);
+    flex-shrink: 0;
+    transition: opacity var(--duration-fast);
+  }
+
+  .logo:hover {
+    opacity: 0.7;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .nav-link {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-md);
+    transition:
+      color var(--duration-fast),
+      background-color var(--duration-fast);
+  }
+
+  .nav-link:hover {
+    color: var(--color-text-primary);
+    background: var(--color-accent-subtle);
+  }
+
+  .nav-link.is-active {
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 640px) {
+    .nav {
+      display: none;
+    }
+
+    .header-inner {
+      justify-content: space-between;
+    }
+  }
+</style>
