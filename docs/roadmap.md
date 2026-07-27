@@ -6,7 +6,7 @@
 |---|---|---|
 | v0.1（Demo） | ✅ 完成 | 项目骨架、Design Tokens、i18n、首页 + About + 简历 + 404 |
 | v0.2 | ✅ 完成 | 文档系统（列表/详情/分类/归档）、双栏布局、音乐播放器 |
-| v0.3 | 📋 计划中 | Pagefind 搜索集成 |
+| v0.3 | ✅ 完成 | Pagefind 搜索、文档卡片化、内容宽度调节、Markdown 渲染增强 |
 | v0.4 | 📋 计划中 | Motion 动效打磨、页面过渡动画 |
 | v1.0 | 📋 计划中 | 正式上线、内容完善、SEO/RSS/sitemap |
 | v1.1 | ✅ 完成 | 音乐 & 摄影（R2 图床、专辑架、黑胶动画、摄影网格 + Lightbox） |
@@ -55,29 +55,18 @@
 
 - **Content Collections**
   - `src/content/docs/` 目录，Markdown + frontmatter
-  - 类型安全的 collection schema（`title`, `date`, `updated`, `category`, `summary`, `draft`, `listed`）
+  - 类型安全的 collection schema（`title`, `date`, `updated`, `summary`, `draft`, `listed`）
   - `listed: false` 排除特殊页面（about.md 不出现在文档列表）
-  - 3 篇示例文档用于开发调试
 
 - **文档列表页** `/docs/`
   - 全部文档，按日期倒序
-  - 筛选栏：按分类快速筛选
   - 空状态：居中 "暂无文档" + 引导文案
-  - "查看归档" 链接
 
 - **文档详情页** `/docs/[slug]/`
   - Markdown → HTML 渲染（`getEntry()` + `render()`）
   - 代码块语法高亮（Shiki，github-light 主题）
-  - 排版优化（正文行宽、标题层级、`<hr>` 分隔、引用块）
-  - frontmatter 信息展示（日期、更新日期、分类、阅读时间）
-
-- **分类页** `/docs/category/[category]/`
-  - 按 frontmatter `category` 筛选
-  - 空状态：该分类暂无文档
-
-- **归档页** `/docs/archive/`
-  - 按年月分组展示
-  - 空状态：暂无归档
+  - 排版优化（标题层级、`<hr>` 分隔、引用块）
+  - frontmatter 信息展示（日期、更新日期）
 
 - **音乐播放器**
   - 自定义 HTML5 Audio 控件
@@ -87,26 +76,45 @@
   - URL 编码处理中文/空格文件名
   - HTTP Range 流式播放，不占满带宽
 
-- **右侧边栏**
-  - 个人信息卡片（头像/姓名/简介/位置/GitHub 链接）
-  - 音乐播放器集成
-  - 折叠状态隐藏所有交互内容
-  - 空播放列表时显示引导文案
-
 ---
 
-## v0.3 — 搜索（计划中）
+## v0.3 — 搜索 & 文档优化（完成）
 
-### 待实现
+- **Pagefind 搜索**
+  - 构建后钩子：`astro build && pagefind --site dist`
+  - 文档列表页内嵌搜索下拉，毛玻璃材质面板
+  - 搜索结果卡片：标题 + 摘要片段（`<mark>` 高亮匹配词）+ 日期
+  - 键盘导航：↑↓ 选择、Enter 跳转、Escape 关闭
+  - 加载状态（呼吸圆点动画）+ 空结果引导
+  - 搜索范围：仅当前语言 `/docs/` 下的文档
 
-- **Pagefind 集成**
-  - 构建后钩子：`astro build` 后自动运行 Pagefind CLI
-  - `dist/pagefind/` 输出搜索索引
+- **文档列表优化**
+  - 卡片化布局：白色 `bg-surface` 背景区分，hover 微抬 + 轻阴影
+  - 排序切换：按日期最新/最早
+  - Spring 缓出动画 (`cubic-bezier(0.16, 1, 0.3, 1)`)
 
-- **搜索页** `/search/`
-  - Pagefind 默认搜索 UI（或轻量自定义）
-  - 搜索结果列表（标题 + 片段 + 链接）
-  - 无结果状态：搜索建议
+- **文档详情页优化**
+  - 返回链接移除（侧边栏已有路径导航）
+  - 标题与分割线撑满内容区全宽，正文 `max-width` 约束可读性
+  - 阅读时间移除
+
+- **设置面板**
+  - 居中弹出窗口，半透明模糊遮罩
+  - 语言切换 + 内容宽度三档调节（窄 48rem / 中 64rem / 宽 80rem）
+  - 宽度持久化 localStorage，跨页保持
+  - Esc 或点击遮罩关闭
+
+- **Markdown 渲染增强**
+  - h4/h5/h6 层级样式
+  - `<kbd>` 按键样式（等宽字体 + 底部加粗立体感）
+  - 表格隔行变色 (zebra striping)
+  - 外部链接自动加 `↗` 标识
+  - 标题 hover 时左侧淡入 `#` 锚点
+  - `<details>/<summary>` 折叠块（三角箭头旋转动画）
+
+- **内容**
+  - About Me 替换为详细真实的个人介绍
+  - 9 篇技术文档导入（ComfyUI / FLUX / Gyroflow / Qwen / ASR 等）
 
 ---
 

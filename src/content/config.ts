@@ -5,7 +5,6 @@ const docs = defineCollection({
     title: z.string(),
     date: z.date(),
     updated: z.date().optional(),
-    category: z.string(),
     summary: z.string(),
     draft: z.boolean().default(false),
     listed: z.boolean().default(true),

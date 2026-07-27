@@ -7,7 +7,7 @@
 | 静态站点生成器 | Astro | ^5.6 |
 | 动画库 | Motion（原 Framer Motion） | ^12.11 |
 | 类型检查 | @astrojs/check + TypeScript | ^5.8 |
-| 搜索 | Pagefind | 后续集成 |
+| 搜索 | Pagefind | ^1.5.2 |
 | 部署 | Cloudflare Pages + R2 | — |
 
 ---
@@ -48,9 +48,9 @@ doebkweb/
 │   │   └── BaseLayout.astro       #   全局布局骨架（双栏 + 内容区）
 │   │
 │   ├── components/                # 可复用组件
-│   │   ├── Sidebar.astro          #   左侧导航栏（静态固定宽度 12rem）
+│   │   ├── Sidebar.astro          #   左侧导航栏（7.5rem + 设置面板入口）
 │   │   ├── VinylPlayer.astro      #   唱片播放器（右上角悬浮，View Transition 持久化）
-│   │   └── LanguageSettings.astro #   语言 & 设置面板
+│   │   └── LanguageSettings.astro #   语言 & 设置弹窗（居中窗口，语言切换 + 内容宽度调节）
 │   │
 │   └── pages/                     # 路由页面（文件路径 = URL）
 │       ├── index.astro            #   / → 301 重定向到 /zh/
@@ -62,11 +62,8 @@ doebkweb/
 │           ├── photos.astro       #     /zh/photos/ 摄影网格（懒加载 + Lightbox）
 │           ├── 404.astro          #     /zh/404/    自定义 404
 │           └── docs/              #     文档系统
-│               ├── index.astro    #       文档列表（分类筛选）
-│               ├── [slug].astro   #       文档详情（Shiki 高亮）
-│               ├── archive.astro  #       时间归档
-│               └── category/
-│                   └── [category].astro  # 分类筛选
+│               ├── index.astro    #       文档列表（搜索 + 排序）
+│               └── [slug].astro   #       文档详情（Shiki 高亮）
 │
 ├── docs/                          # 项目文档（本文件所在目录）
 ├── astro.config.mjs               # Astro 配置（i18n + Shiki）
@@ -85,11 +82,8 @@ doebkweb/
 /[lang]/about/                     →  About Me（Markdown 渲染 + 简历下载）
 /[lang]/music/                     →  专辑架（黑胶动画 + 播放联动）
 /[lang]/photos/                    →  摄影网格（懒加载 + Lightbox）
-/[lang]/docs/                      →  文档列表（分类筛选）
+/[lang]/docs/                      →  文档列表（搜索 + 排序）
 /[lang]/docs/[slug]/               →  文档详情（Shiki 语法高亮）
-/[lang]/docs/category/[category]/  →  分类筛选页
-/[lang]/docs/archive/              →  时间归档（年月分组）
-/[lang]/search/                    →  全文搜索（计划中）
 /[lang]/404/                       →  自定义 404
 ```
 
@@ -130,8 +124,8 @@ src/types/i18n.ts              UIStrings 接口（类型约束）
        layouts/BaseLayout.astro
          ├── <html lang={lang}>
          ├── <title> 根据 title prop + site.title 拼接
-         ├── <Header t={t}>
-         └── <Footer t={t}>
+         ├── <Sidebar t={t}>
+         └── <VinylPlayer>
 ```
 
 **规则**：
@@ -271,23 +265,21 @@ VPS（FastAPI，独立服务）
 
 已实现：
 - 项目骨架 + Design Tokens + 全局样式
-- 左侧边栏（静态固定宽度 12rem，导航激活项跟踪）
-- 首页（全屏欢迎页，渐变入场动画，音乐/摄影导航按钮）
-- 关于我（Content Collections，Markdown 渲染，listed: false 排除，内嵌简历下载）
-- 文档系统（列表/详情/分类/归档 + Shiki 语法高亮）
-- 音乐页（专辑架网格排列，封面 hover 黑胶唱片滑出，点击播放整张专辑，与 VinylPlayer 通过 CustomEvent 联动）
-- 音乐配置独立为 `src/data/music.json`，加专辑无需改代码
-- 摄影页（自适应网格 + 懒加载 + Lightbox 全屏预览 + 键盘导航）
-- 共享数据层（`src/data/playlist.ts` / `photos.ts`，集中管理内容）
-- 404 页面
-- i18n 中英文 UI 切换（含音乐/摄影完整文案）
-- 唱片播放器（右上角悬浮，transition:persist 跨页持久化，首页 CSS 隐藏；唱片旋转动画 + 唱臂联动；所有事件在 #audio 上，一次 init 永不重建；音量控制）
-- Cloudflare R2 图床 + 音乐托管（cdn.doebkblcya.com，2 专辑 14 首曲目已上传）
-- Cloudflare Pages 代码就绪（_redirects / 404.html）（Dashboard 创建待完成）
-- wrangler CLI 管理 R2（API Token + --remote + unset proxy）
+- 左侧边栏（7.5rem 固定宽度，导航激活项跟踪）
+- 首页（全屏欢迎页）
+- 关于我（Content Collections Markdown 渲染，listed: false）
+- 文档系统（列表 + 详情，Shiki 语法高亮，9 篇技术文档）
+- 文档搜索（Pagefind 内嵌下拉，键盘导航，毛玻璃面板）
+- 内容宽度三档调节（窄/中/宽，localStorage 持久化）
+- 设置面板（居中弹出窗口：语言切换 + 宽度控制）
+- Markdown 渲染增强（h4-h6、kbd、表格斑马纹、外部链接标识、标题锚点、折叠块）
+- 音乐页（专辑架网格 + 黑胶动画 + 播放联动）
+- 摄影页（网格 + 懒加载 + Lightbox）
+- 唱片播放器（persist 持久化，唱片旋转 + 唱臂联动）
+- i18n 中英文 UI 切换
+- Cloudflare R2 媒体托管 + Pages 部署
 
 未实现：
-- Pagefind 搜索
 - Motion spring 动效（页面过渡、手势交互）
 - 暗色模式（CSS 变量已预留）
 - 移动端汉堡菜单

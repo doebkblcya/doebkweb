@@ -49,19 +49,6 @@ const navButtons = [
   </div>
 </BaseLayout>
 
-<script>
-  // Stop music and tell the persistent VinylPlayer to reset its UI.
-  const audio = document.getElementById("audio");
-  if (audio) {
-    audio.pause();
-    audio.removeAttribute("src");
-    delete audio.dataset.vpAlbum;
-    delete audio.dataset.vpArtist;
-    delete audio.dataset.vpCover;
-  }
-  if (audio) audio.dispatchEvent(new CustomEvent("vp-reset", { bubbles: false }));
-</script>
-
 <style>
   .welcome {
     display: flex;

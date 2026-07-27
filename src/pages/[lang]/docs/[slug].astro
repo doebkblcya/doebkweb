@@ -29,11 +29,10 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
 
 <BaseLayout title={doc.data.title} hideFooter>
   <div class="page">
-    <a href={`/${lang}/docs/`} class="back-link">{t.docs.backToDocs}</a>
 
     <h1 class="page-title">{doc.data.title}</h1>
 
-    <div class="page-meta">
+    <div class="page-meta" data-pagefind-ignore>
       <time datetime={doc.data.date.toISOString()}>
         {t.docs.published} {doc.data.date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
           year: "numeric", month: "long", day: "numeric",
@@ -46,10 +45,6 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
           })}
         </time>
       )}
-      <span>· {readingTime} {t.docs.readingTime}</span>
-      <a href={`/${lang}/docs/category/${doc.data.category}/`} class="meta-cat">
-        {doc.data.category}
-      </a>
     </div>
 
     <hr class="page-divider" />
@@ -57,32 +52,21 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
     <div class="page-body">
       <Content />
     </div>
+
+    <!-- Pagefind metadata (hidden, for search indexing) -->
+    <span data-pagefind-meta="date" style="display:none">{doc.data.date.toISOString()}</span>
   </div>
 </BaseLayout>
 
 <style>
   .page {
-    max-width: 48rem;
     padding: var(--space-16) var(--space-8) var(--space-24);
   }
 
-  .back-link {
-    display: inline-block;
-    margin-bottom: var(--space-8);
-    font-size: var(--text-sm);
-    color: var(--color-text-tertiary);
-    transition: color 150ms;
-  }
-
-  .back-link:hover {
-    color: var(--color-text-secondary);
-  }
-
   .page-title {
-    font-size: var(--text-5xl);
+    font-size: var(--text-4xl);
     font-weight: 700;
     letter-spacing: var(--tracking-tight);
-    line-height: var(--leading-tight);
   }
 
   .page-meta {
@@ -95,19 +79,6 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
     color: var(--color-text-tertiary);
   }
 
-  .meta-cat {
-    margin-left: var(--space-2);
-    padding: 0 var(--space-2);
-    font-size: var(--text-xs);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-full);
-    transition: background 150ms;
-  }
-
-  .meta-cat:hover {
-    background: var(--color-bg-surface-hover);
-  }
-
   .page-divider {
     width: 100%;
     height: 1px;
@@ -117,6 +88,7 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
   }
 
   .page-body {
+    max-width: var(--content-width, 64rem);
     font-size: var(--text-lg);
     line-height: var(--leading-relaxed);
     color: var(--color-text-secondary);
@@ -237,6 +209,123 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
     font-weight: 600;
     color: var(--color-text-primary);
     background: var(--color-bg-surface-hover);
+  }
+
+  .page-body :global(h4) {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+  }
+
+  .page-body :global(h5) {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-top: var(--space-5);
+    margin-bottom: var(--space-1);
+  }
+
+  .page-body :global(h6) {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-5);
+    margin-bottom: var(--space-1);
+  }
+
+  /* ── Keyboard keys ──────────────────────────── */
+  .page-body :global(kbd) {
+    display: inline-block;
+    padding: 0.1em 0.45em;
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    color: var(--color-text-primary);
+    background: var(--color-bg-page);
+    border: 1px solid var(--color-border);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-sm);
+    line-height: 1.5;
+  }
+
+  /* ── Table zebra ────────────────────────────── */
+  .page-body :global(tr:nth-child(even)) {
+    background: var(--color-bg-page);
+  }
+
+  /* ── External links ─────────────────────────── */
+  .page-body :global(a[href^="http"]:not([href*="doebkblcya.com"]))::after {
+    content: " ↗";
+    font-size: 0.75em;
+    opacity: 0.5;
+  }
+
+  /* ── Heading anchor ─────────────────────────── */
+  .page-body :global(h2),
+  .page-body :global(h3),
+  .page-body :global(h4) {
+    position: relative;
+    scroll-margin-top: var(--space-4);
+  }
+
+  .page-body :global(h2)::before,
+  .page-body :global(h3)::before,
+  .page-body :global(h4)::before {
+    content: "#";
+    position: absolute;
+    left: -1.2em;
+    color: var(--color-text-tertiary);
+    opacity: 0;
+    transition: opacity 150ms;
+    font-weight: 400;
+    font-size: 0.85em;
+  }
+
+  .page-body :global(h2):hover::before,
+  .page-body :global(h3):hover::before,
+  .page-body :global(h4):hover::before {
+    opacity: 0.4;
+  }
+
+  /* ── Details / Summary ──────────────────────── */
+  .page-body :global(details) {
+    margin: var(--space-4) 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+  }
+
+  .page-body :global(summary) {
+    font-weight: 600;
+    font-size: var(--text-base);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    padding: var(--space-2) 0;
+    list-style: none;
+  }
+
+  .page-body :global(summary)::-webkit-details-marker {
+    display: none;
+  }
+
+  .page-body :global(summary)::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: var(--space-2);
+    transition: transform 150ms;
+    font-size: 0.75em;
+    color: var(--color-text-tertiary);
+  }
+
+  .page-body :global(details[open]) summary::before {
+    transform: rotate(90deg);
+  }
+
+  .page-body :global(details) > :not(summary) {
+    margin-top: var(--space-3);
   }
 
   .page-body :global(hr) {

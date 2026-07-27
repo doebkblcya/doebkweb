@@ -28,15 +28,15 @@ function isActive(itemHref: string): boolean {
 
 <aside class="sidebar" id="sidebar" transition:persist="sidebar">
   <nav class="sidebar-nav" aria-label="Main navigation">
-    <ul class="nav-list">
+    <ul class="nav-list" id="nav-list">
+      <div class="nav-slider" id="nav-slider"></div>
       {navItems.map((item) => (
         <li>
           <a
             href={`/${lang}${item.href}`}
             class={`nav-item${isActive(item.href) ? " is-active" : ""}`}
           >
-            <span class="nav-indicator" aria-hidden="true"></span>
-            <span class="nav-label">{item.label}</span>
+              <span class="nav-label">{item.label}</span>
           </a>
         </li>
       ))}
@@ -49,12 +49,40 @@ function isActive(itemHref: string): boolean {
 </aside>
 
 <script>
-  // Persisted across View Transitions — update active nav item after navigation.
   (function () {
     var sidebar = document.getElementById("sidebar");
     if (!sidebar) return;
     if (sidebar.dataset.sidebarReady === "1") return;
     sidebar.dataset.sidebarReady = "1";
+
+    var slider = document.getElementById("nav-slider");
+    var navList = document.getElementById("nav-list");
+
+    function getItemOffset(item) {
+      return item.offsetTop + (item.offsetHeight - slider.offsetHeight) / 2;
+    }
+
+    function moveSliderTo(item) {
+      if (!slider || !item) return;
+      slider.style.transform = "translateY(" + getItemOffset(item) + "px)";
+    }
+
+    function moveToActive() {
+      var active = navList.querySelector(".nav-item.is-active");
+      if (active) moveSliderTo(active);
+    }
+
+    moveToActive();
+
+    // Hover: slider follows cursor
+    navList.addEventListener("mouseover", function (e) {
+      var item = e.target.closest(".nav-item");
+      if (item) moveSliderTo(item);
+    });
+
+    navList.addEventListener("mouseleave", function () {
+      moveToActive();
+    });
 
     document.addEventListener("astro:after-swap", function () {
       var sb = document.getElementById("sidebar");
@@ -67,6 +95,9 @@ function isActive(itemHref: string): boolean {
         var active = href === "/" ? path === "/" : path.startsWith(href);
         links[i].classList.toggle("is-active", active);
       }
+      slider = document.getElementById("nav-slider");
+      navList = document.getElementById("nav-list");
+      moveToActive();
     });
   })();
 </script>
@@ -76,77 +107,78 @@ function isActive(itemHref: string): boolean {
     position: fixed;
     top: 0;
     left: 0;
-    width: 12rem;
+    width: 7.5rem;
     height: 100vh;
     z-index: 100;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-6) var(--space-3);
     border-right: 1px solid var(--color-border-light);
     background: var(--color-bg-page);
     overflow: hidden;
     white-space: nowrap;
   }
 
-  /* ── Nav list ───────────────────────────────────── */
+  /* ── Nav: vertically centered ──────────────────── */
+  .sidebar-nav {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
   .nav-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    width: 100%;
+    position: relative;
   }
 
+  /* ── Sliding background pill ──────────────────── */
+  .nav-slider {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1.875rem;
+    background: var(--color-accent-subtle);
+    border-radius: var(--radius-md);
+    transition: transform 350ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Nav items ─────────────────────────────────── */
   .nav-item {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--text-base);
+    justify-content: center;
+    padding: var(--space-2) var(--space-1);
+    font-size: var(--text-sm);
     font-weight: 500;
     color: var(--color-text-secondary);
     border-radius: var(--radius-md);
     text-decoration: none;
-    transition:
-      color 200ms,
-      background-color 200ms;
+    position: relative;
+    z-index: 1;
+    transition: color 200ms;
+    background: none;
   }
 
   .nav-item:hover {
     color: var(--color-text-primary);
-    background: var(--color-accent-subtle);
   }
 
   .nav-item.is-active {
     color: var(--color-accent);
-    background: var(--color-accent-subtle);
-  }
-
-  /* ── Indicator ──────────────────────────────────── */
-  .nav-indicator {
-    flex-shrink: 0;
-    width: 1.25rem;
-    height: 2px;
-    border-radius: 1px;
-    background: var(--color-border);
-    transition: background 200ms;
-  }
-
-  .nav-item.is-active .nav-indicator {
-    background: var(--color-accent);
-  }
-
-  .nav-item:hover .nav-indicator {
-    background: var(--color-text-tertiary);
-  }
-
-  .nav-item.is-active:hover .nav-indicator {
-    background: var(--color-accent);
+    font-weight: 600;
   }
 
   /* ── Bottom / Settings ──────────────────────────── */
   .sidebar-bottom {
     padding-bottom: 0;
     overflow: visible;
+    flex-shrink: 0;
   }
 
   @media (max-width: 768px) {

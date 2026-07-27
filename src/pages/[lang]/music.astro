@@ -1,7 +1,7 @@
 ---
 export { getStaticPaths } from "./_getStaticPaths";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { albums, getTrackUrl } from "../../data/playlist";
+import { albums as rawAlbums, getTrackUrl } from "../../data/playlist";
 
 import { ui as zh } from "../../i18n/zh";
 import { ui as en } from "../../i18n/en";
@@ -9,8 +9,13 @@ import { ui as en } from "../../i18n/en";
 const lang = Astro.currentLocale || "zh";
 const t = lang === "zh" ? zh : en;
 
+const albums = [...rawAlbums]
+  .map((a, i) => ({ ...a, _idx: i }))
+  .sort((a, b) => a.name.localeCompare(b.name, "zh"));
+
 const dataJson = JSON.stringify({
-  albums: albums.map(a => ({
+  albums: rawAlbums.map((a, i) => ({
+    _idx: i,
     name: a.name,
     artist: a.artist,
     cover: a.cover,
@@ -23,6 +28,12 @@ const dataJson = JSON.stringify({
       url: getTrackUrl({ ...tr, album: a.name }),
     })),
   })),
+  i18n: {
+    searchPlaceholder: t.music.searchPlaceholder,
+    sortAlbum: t.music.sortAlbum,
+    sortArtist: t.music.sortArtist,
+    noResults: t.music.noResults,
+  },
 });
 ---
 
@@ -31,16 +42,42 @@ const dataJson = JSON.stringify({
     <h1 class="page-title">{t.music.title}</h1>
     <hr class="page-divider" />
 
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          id="search-input"
+          class="search-input"
+          type="search"
+          placeholder={t.music.searchPlaceholder}
+          autocomplete="off"
+          oninput="window.__vt_musicSearch(this.value)"
+        />
+      </div>
+      <div class="sort-group" role="group" aria-label={lang === "zh" ? "排序方式" : "Sort by"}>
+        <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="4" y1="12" x2="16" y2="12"/>
+          <line x1="4" y1="18" x2="12" y2="18"/>
+        </svg>
+        <button class="sort-option is-active" onclick="window.__vt_musicSort(this, 'album')">{t.music.sortAlbum}</button>
+        <span class="sort-sep" aria-hidden="true">·</span>
+        <button class="sort-option" onclick="window.__vt_musicSort(this, 'artist')">{t.music.sortArtist}</button>
+      </div>
+    </div>
+
     {albums.length === 0 ? (
       <div class="empty-state">
         <p>{t.music.emptyList}</p>
       </div>
     ) : (
-      <div class="shelf" id="shelf">
-        {albums.map((album, ai) => (
-          <div class="album-sleeve" id={`album-${ai}`} data-album-index={ai}>
+      <div class="shelf" id="shelf" onclick="window.__vt_musicAlbumClick(event)">
+        {albums.map((album) => (
+          <div class="album-sleeve" data-idx={album._idx}>
             <!-- Card: cover + vinyl -->
-            <button class="sleeve-card" data-album={ai} aria-label={`${album.name} — ${album.artist}`}>
+            <button class="sleeve-card" data-album={album._idx} aria-label={`${album.name} — ${album.artist}`}>
               <div class="sleeve-inner">
                 <!-- Vinyl disc behind cover -->
                 <div class="vinyl-disc">
@@ -74,6 +111,10 @@ const dataJson = JSON.stringify({
         ))}
       </div>
     )}
+
+    <div class="no-results" id="no-results" style="display:none">
+      <p>{t.music.noResults}</p>
+    </div>
   </div>
 </BaseLayout>
 
@@ -81,57 +122,194 @@ const dataJson = JSON.stringify({
   var DATA = JSON.parse(dataJson);
   var ALBUMS = DATA.albums;
 
-  (function () {
+  window.__vt_musicSort = function (btn, mode) {
+    // Update active state
+    document.querySelectorAll(".sort-option").forEach(function (b) { b.classList.remove("is-active"); });
+    btn.classList.add("is-active");
+    // Save current sort/query
+    window.__vt_musicSortMode = mode;
+    window.__vt_musicRender();
+  };
+
+  window.__vt_musicSearch = function (val) {
+    window.__vt_musicQuery = val.trim();
+    window.__vt_musicRender();
+  };
+
+  window.__vt_musicRender = function () {
+    var arr = ALBUMS.slice();
+    // Filter
+    var q = (window.__vt_musicQuery || "").toLowerCase();
+    if (q) {
+      arr = arr.filter(function (a) {
+        if (a.name.toLowerCase().indexOf(q) !== -1) return true;
+        if (a.artist.toLowerCase().indexOf(q) !== -1) return true;
+        return a.tracks.some(function (t) { return t.title.toLowerCase().indexOf(q) !== -1; });
+      });
+    }
+    // Sort
+    var mode = window.__vt_musicSortMode || "album";
+    arr.sort(function (a, b) {
+      if (mode === "artist") return a.artist.localeCompare(b.artist, "zh");
+      return a.name.localeCompare(b.name, "zh");
+    });
+
     var shelf = document.getElementById("shelf");
+    var noResults = document.getElementById("no-results");
     if (!shelf) return;
 
-    // ── Click: send album to VinylPlayer ──────────────
-    function sendToPlayer(ai) {
-      var a = ALBUMS[ai];
-      if (!a) return;
-      var audio = document.querySelector("#audio");
-      if (!audio) return;
-      audio.dispatchEvent(new CustomEvent("album-change", {
-        detail: {
-          albumName: a.name,
-          artist: a.artist,
-          cover: a.cover,
-          review: a.review,
-          meta: a.meta,
-          tracks: a.tracks,
-        },
-        bubbles: false,
-      }));
+    if (arr.length === 0) {
+      shelf.style.display = "none";
+      if (noResults) noResults.style.display = "block";
+      return;
     }
+    shelf.style.display = "";
+    if (noResults) noResults.style.display = "none";
 
-    shelf.addEventListener("click", function (e) {
-      var card = e.target.closest(".sleeve-card");
-      if (!card) return;
+    var visible = {};
+    for (var i = 0; i < arr.length; i++) { visible[arr[i]._idx] = true; }
+    for (var i = 0; i < arr.length; i++) {
+      var sleeve = shelf.querySelector('.album-sleeve[data-idx="' + arr[i]._idx + '"]');
+      if (sleeve) { sleeve.style.display = ""; shelf.appendChild(sleeve); }
+    }
+    var all = shelf.querySelectorAll(".album-sleeve");
+    for (var i = 0; i < all.length; i++) {
+      var sidx = parseInt(all[i].getAttribute("data-idx") || "-1", 10);
+      if (!visible[sidx]) all[i].style.display = "none";
+    }
+  };
 
-      e.preventDefault();
-      var ai = parseInt(card.getAttribute("data-album") || "0", 10);
-      sendToPlayer(ai);
-    });
-  })();
+  window.__vt_musicAlbumClick = function (e) {
+    var card = e.target.closest(".sleeve-card");
+    if (!card) return;
+    e.preventDefault();
+    var ai = parseInt(card.getAttribute("data-album") || "0", 10);
+    var a = ALBUMS[ai];
+    if (!a) return;
+    var audio = document.getElementById("audio");
+    if (!audio) return;
+    audio.dispatchEvent(new CustomEvent("album-change", {
+      detail: { albumName: a.name, artist: a.artist, cover: a.cover, review: a.review, meta: a.meta, tracks: a.tracks },
+      bubbles: false,
+    }));
+  };
 </script>
 
 <style>
-  .page {
-    padding: var(--space-16) var(--space-8) var(--space-24);
+  /* ── Toolbar ─────────────────────────────────── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-10);
+    flex-wrap: wrap;
   }
 
-  .page-title {
-    font-size: var(--text-5xl);
-    font-weight: 700;
-    letter-spacing: var(--tracking-tight);
+  /* ── Search ──────────────────────────────────── */
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+    max-width: 320px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--color-text-tertiary);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 14px 8px 36px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-bg-page);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    outline: none;
+    transition: background 200ms, box-shadow 200ms;
+    font-family: inherit;
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-tertiary);
+  }
+
+  .search-input:focus {
+    background: var(--color-bg-surface);
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  }
+
+  /* WebKit search input reset */
+  .search-input::-webkit-search-decoration,
+  .search-input::-webkit-search-cancel-button,
+  .search-input::-webkit-search-results-button,
+  .search-input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+  }
+
+  /* ── Sort ─────────────────────────────────────── */
+  .sort-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .sort-icon {
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+
+  .sort-option {
+    padding: 4px 6px;
+    border: none;
+    background: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    transition: color 150ms;
+    white-space: nowrap;
+  }
+
+  .sort-option:hover {
+    color: var(--color-text-secondary);
+  }
+
+  .sort-option.is-active {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .sort-sep {
+    color: var(--color-border);
+    font-size: var(--text-sm);
+    user-select: none;
+  }
+
+  /* ── No results ──────────────────────────────── */
+  .no-results {
+    text-align: center;
+    padding: var(--space-16) 0;
+    color: var(--color-text-tertiary);
+    font-size: var(--text-lg);
+  }
+
+  /* ── Page ────────────────────────────────────── */
+  .page {
+    padding: var(--space-10) var(--space-8) var(--space-24);
   }
 
   .page-divider {
-    width: 100%;
-    height: 1px;
-    border: none;
-    background: var(--color-border);
-    margin: var(--space-10) 0;
+    margin: var(--space-4) 0 var(--space-6);
   }
 
   .empty-state {

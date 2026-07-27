@@ -33,33 +33,33 @@ export interface AboutStrings {
 
 export interface DocStrings {
   title: string;
-  archive: string;
   emptyList: string;
-  emptyCategory: string;
-  emptyArchive: string;
-  allCategories: string;
-  viewArchive: string;
-  backToDocs: string;
-  category: string;
   published: string;
   updated: string;
   readingTime: string;
+  sortNewest: string;
+  sortOldest: string;
+  searchPlaceholder: string;
+  searchLoading: string;
+  searchNoResults: string;
+  searchEmptyHint: string;
+  searchResultCount: (n: number) => string;
+  searchKeyboard: string;
 }
 
 export interface MusicStrings {
   title: string;
-  description: string;
   emptyList: string;
-  tracks: string;
-  lyrics: string;
-  noLyrics: string;
+  sortAlbum: string;
+  sortArtist: string;
+  searchPlaceholder: string;
+  noResults: string;
 }
 
 export interface PhotosStrings {
   title: string;
-  description: string;
   emptyList: string;
-  loadMore: string;
+  noNote: string;
 }
 
 export interface NotFoundStrings {
@@ -68,11 +68,6 @@ export interface NotFoundStrings {
   backHome: string;
 }
 
-export interface ProfileStrings {
-  name: string;
-  bio: string;
-  location: string;
-}
 
 export interface CommonStrings {
   skipToContent: string;
@@ -87,7 +82,6 @@ export interface UIStrings {
   docs: DocStrings;
   music: MusicStrings;
   photos: PhotosStrings;
-  profile: ProfileStrings;
   notFound: NotFoundStrings;
   common: CommonStrings;
 }

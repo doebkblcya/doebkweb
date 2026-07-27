@@ -47,9 +47,9 @@ const r2Base = "https://cdn.doebkblcya.com/music";
     <!-- Shared audio element — persisted across page navigations -->
     <audio id="audio" preload="none" data-astro-transition-persist="audio"></audio>
     <VinylPlayer flatTracks={flatTracksJson} r2Base={r2Base} />
-    {!hideHeader && <Sidebar t={t} currentPath={Astro.url.pathname} />}
+    <Sidebar t={t} currentPath={Astro.url.pathname} />
     <div class="content-area">
-      <main id="main-content">
+      <main id="main-content" data-pagefind-body>
         <slot />
       </main>
       {!hideFooter && <Footer t={t} />}
@@ -77,7 +77,7 @@ const r2Base = "https://cdn.doebkblcya.com/music";
   }
 
   :root {
-    --sidebar-width: 12rem;
+    --sidebar-width: 7.5rem;
   }
 
   .has-sidebar .content-area {
@@ -90,5 +90,12 @@ const r2Base = "https://cdn.doebkblcya.com/music";
       margin-right: 0;
       transition: none;
     }
+  }
+</style>
+
+<style is:global>
+  /* Hide sidebar on home page — kept in DOM for View Transition persistence */
+  body:not(.has-sidebar) .sidebar {
+    display: none;
   }
 </style>

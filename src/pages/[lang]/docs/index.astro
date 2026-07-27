@@ -12,7 +12,12 @@ const t = lang === "zh" ? zh : en;
 const allDocs = await getCollection("docs", ({ data }) => !data.draft && data.listed !== false);
 allDocs.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
-const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
+const docsJson = JSON.stringify(allDocs.map((d) => ({
+  slug: d.slug,
+  title: d.data.title,
+  summary: d.data.summary,
+  date: d.data.date.toISOString(),
+})));
 ---
 
 <BaseLayout title={t.docs.title} hideFooter>
@@ -24,17 +29,35 @@ const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
       <p class="empty">{t.docs.emptyList}</p>
     ) : (
       <>
-        <nav class="cats" aria-label={t.docs.allCategories}>
-          <a href={`/${lang}/docs/archive/`} class="cat-item archive-link">{t.docs.viewArchive}</a>
-          <a href={`/${lang}/docs/`} class="cat-item is-active">{t.docs.allCategories}</a>
-          {categories.map((cat) => (
-            <a href={`/${lang}/docs/category/${cat}/`} class="cat-item">{cat}</a>
-          ))}
-        </nav>
+        <div class="toolbar">
+          <div class="search-wrap" id="search-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+              id="search-input"
+              class="search-input"
+              type="search"
+              placeholder={t.docs.searchPlaceholder}
+              autocomplete="off"
+              oninput="window.__vt_docsSearch(this.value)"
+              onfocus="window.__vt_docsSearch(this.value)"
+            />
+            <div class="search-results" id="search-results" hidden></div>
+          </div>
+          <div class="sort-group" role="group" aria-label={lang === "zh" ? "排序方式" : "Sort by"}>
+            <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="4" y1="6" x2="20" y2="6"/>
+              <line x1="4" y1="12" x2="16" y2="12"/>
+              <line x1="4" y1="18" x2="12" y2="18"/>
+            </svg>
+            <button class="sort-option is-active" onclick="window.__vt_docsSort(this, 'desc')">{t.docs.sortNewest}</button>
+            <span class="sort-sep" aria-hidden="true">·</span>
+            <button class="sort-option" onclick="window.__vt_docsSort(this, 'asc')">{t.docs.sortOldest}</button>
+          </div>
+        </div>
 
-        <div class="doc-list">
+        <div class="doc-list" id="doc-list">
           {allDocs.map((doc) => (
-            <a href={`/${lang}/docs/${doc.slug}/`} class="doc-card">
+            <a href={`/${lang}/docs/${doc.slug}/`} class="doc-card" data-date={doc.data.date.toISOString()}>
               <h2 class="doc-title">{doc.data.title}</h2>
               <p class="doc-summary">{doc.data.summary}</p>
               <div class="doc-meta">
@@ -43,7 +66,6 @@ const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
                     year: "numeric", month: "long", day: "numeric",
                   })}
                 </time>
-                <span class="doc-cat">{doc.data.category}</span>
               </div>
             </a>
           ))}
@@ -55,22 +77,7 @@ const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
 
 <style>
   .page {
-    padding: var(--space-16) var(--space-8) var(--space-24);
-  }
-
-  .page-title {
-    font-size: var(--text-5xl);
-    font-weight: 700;
-    letter-spacing: var(--tracking-tight);
-    max-width: 40rem;
-  }
-
-  .page-divider {
-    width: 100%;
-    height: 1px;
-    border: none;
-    background: var(--color-border);
-    margin: var(--space-10) 0;
+    padding: var(--space-10) var(--space-8) var(--space-24);
   }
 
   .empty {
@@ -78,29 +85,274 @@ const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
     color: var(--color-text-tertiary);
   }
 
-  /* ── Categories ─────────────────────────────── */
-  .cats {
+  /* ── Toolbar ─────────────────────────────────── */
+  .toolbar {
     display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-10);
     flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-bottom: var(--space-8);
   }
 
-  .cat-item {
-    padding: var(--space-1) var(--space-3);
+  /* ── Search ──────────────────────────────────── */
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+    max-width: 320px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--color-text-tertiary);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 14px 8px 36px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-bg-page);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    outline: none;
+    transition: background 200ms, box-shadow 200ms;
+    font-family: inherit;
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-tertiary);
+  }
+
+  .search-input:focus {
+    background: var(--color-bg-surface);
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  }
+
+  /* WebKit search input reset */
+  .search-input::-webkit-search-decoration,
+  .search-input::-webkit-search-cancel-button,
+  .search-input::-webkit-search-results-button,
+  .search-input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+  }
+
+</style>
+<style is:global>
+  /* ── Results dropdown ───────────────────────── */
+  .search-results {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.04);
+    max-height: 26rem;
+    overflow-y: auto;
+    z-index: 50;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transition: opacity 200ms ease-out, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+
+  .search-results:not([hidden]) {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  /* ── Results header ─────────────────────────── */
+  .search-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .search-header-count {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Results list ───────────────────────────── */
+  .search-results-list {
+    padding: var(--space-1);
+  }
+
+  .search-result-item {
+    display: block;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    transition: background 120ms;
+    text-decoration: none;
+    cursor: pointer;
+    outline: none;
+    scroll-margin: var(--space-1);
+  }
+
+  .search-result-item + .search-result-item {
+    margin-top: 1px;
+  }
+
+  .search-result-item:hover,
+  .search-result-item.is-active {
+    background: var(--color-accent-subtle);
+  }
+
+  .search-result-item.is-active {
+    box-shadow: inset 0 0 0 2px var(--color-accent);
+  }
+
+  /* ── Result content ─────────────────────────── */
+  .search-result-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: var(--leading-snug);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .search-result-excerpt {
+    margin-top: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-relaxed);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .search-result-excerpt mark {
+    background: rgba(0, 113, 227, 0.12);
+    color: #0071e3;
+    border-radius: 2px;
+    padding: 0 1px;
+    font-weight: 500;
+  }
+
+  .search-result-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ── Empty state ────────────────────────────── */
+  .search-empty {
+    padding: var(--space-8) var(--space-4);
+    text-align: center;
+  }
+
+  .search-empty-icon {
+    width: 36px;
+    height: 36px;
+    margin: 0 auto var(--space-3);
+    color: var(--color-text-tertiary);
+    opacity: 0.5;
+  }
+
+  .search-empty-title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1);
+  }
+
+  .search-empty-hint {
+    font-size: var(--text-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ── Loading state ──────────────────────────── */
+  .search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .search-loading-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-text-tertiary);
+    animation: searchDotPulse 1.2s ease-in-out infinite;
+  }
+
+  .search-loading-dot:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  .search-loading-dot:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  @keyframes searchDotPulse {
+    0%, 80%, 100% { opacity: 0.15; transform: scale(0.75); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+</style>
+<style>
+  /* ── Sort ─────────────────────────────────────── */
+  .sort-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .sort-icon {
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+
+  .sort-option {
+    padding: 4px 6px;
+    border: none;
+    background: none;
+    border-radius: var(--radius-sm);
     font-size: var(--text-sm);
     font-weight: 500;
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-full);
-    transition: color 150ms, background 150ms;
+    font-family: inherit;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    transition: color 150ms;
+    white-space: nowrap;
   }
 
-  .cat-item:hover,
-  .cat-item.is-active {
-    color: var(--color-text-primary);
-    background: var(--color-accent-subtle);
-    border-color: var(--color-text-tertiary);
+  .sort-option:hover {
+    color: var(--color-text-secondary);
+  }
+
+  .sort-option.is-active {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .sort-sep {
+    color: var(--color-border);
+    font-size: var(--text-sm);
+    user-select: none;
   }
 
   /* ── Doc cards ──────────────────────────────── */
@@ -114,11 +366,14 @@ const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
     display: block;
     padding: var(--space-6);
     border-radius: var(--radius-lg);
-    transition: background 150ms;
+    background: var(--color-bg-surface);
+    transition: background 150ms, transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .doc-card:hover {
     background: var(--color-bg-surface-hover);
+    transform: scale(1.008);
+    box-shadow: var(--shadow-sm);
   }
 
   .doc-title {
@@ -145,10 +400,248 @@ const categories = [...new Set(allDocs.map((d) => d.data.category))].sort();
     color: var(--color-text-tertiary);
   }
 
-  .doc-cat {
-    padding: 0 var(--space-2);
-    font-size: var(--text-xs);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-full);
-  }
 </style>
+
+<script define:vars={{ docsJson, lang }}>
+  var DOCS = JSON.parse(docsJson);
+  var LANG = lang;
+
+  // ═══ Sort ══════════════════════════════════════
+  window.__vt_docsSort = function (btn, dir) {
+    var sorted = DOCS.slice().sort(function (a, b) {
+      return dir === "asc"
+        ? new Date(a.date).getTime() - new Date(b.date).getTime()
+        : new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+    var list = document.getElementById("doc-list");
+    if (!list) return;
+    var cards = list.querySelectorAll(".doc-card");
+    var map = new Map();
+    cards.forEach(function (c) { map.set(c.getAttribute("data-date") || "", c); });
+    for (var i = 0; i < sorted.length; i++) {
+      var card = map.get(sorted[i].date);
+      if (card) list.appendChild(card);
+    }
+    // Update active state
+    var buttons = document.querySelectorAll(".sort-option");
+    buttons.forEach(function (b) { b.classList.remove("is-active"); });
+    btn.classList.add("is-active");
+  };
+
+  // ═══ Search (Pagefind) ═════════════════════════
+  window.__vt_searchDebounce = 0;
+  window.__vt_searchSelected = -1;
+  window.__vt_searchResults = [];
+  window.__vt_searchTerm = "";
+  window.__vt_searchLoading = false;
+
+  function __vt_formatDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString(LANG === "zh" ? "zh-CN" : "en-US", {
+      year: "numeric", month: "short", day: "numeric",
+    });
+  }
+
+  function __vt_docsEscapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  window.__vt_docsHideResults = function () {
+    var el = document.getElementById("search-results");
+    if (el) { el.hidden = true; el.innerHTML = ""; }
+    window.__vt_searchSelected = -1;
+    window.__vt_searchResults = [];
+    window.__vt_searchLoading = false;
+  };
+
+  window.__vt_docsSetLoading = function (show) {
+    window.__vt_searchLoading = show;
+    var el = document.getElementById("search-results");
+    if (!el) return;
+    if (show) {
+      el.innerHTML = '<div class="search-loading"><span class="search-loading-dot"></span><span class="search-loading-dot"></span><span class="search-loading-dot"></span></div>';
+      el.hidden = false;
+    }
+  };
+
+  window.__vt_docsSearch = function (term) {
+    var q = term.trim();
+    window.__vt_searchTerm = q;
+    clearTimeout(window.__vt_docsDebounce);
+    if (!q) {
+      window.__vt_docsHideResults();
+      return;
+    }
+    window.__vt_docsSetLoading(true);
+    window.__vt_docsDebounce = setTimeout(function () {
+      window.__vt_docsDoSearch(q);
+    }, 200);
+  };
+
+  window.__vt_docsDoSearch = async function (term) {
+    if (!window.__vt_pagefindMod) {
+      window.__vt_docsHideResults();
+      return;
+    }
+    // Guard against stale queries
+    if (window.__vt_searchTerm !== term) return;
+
+    try {
+      var search = await window.__vt_pagefindMod.search(term);
+      var el = document.getElementById("search-results");
+      if (!el || window.__vt_searchTerm !== term) return;
+
+      if (!search || !search.results || search.results.length === 0) {
+        el.innerHTML = '<div class="search-empty"><svg class="search-empty-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty-title">' + (LANG === "zh" ? "未找到匹配的文档" : "No matching documents") + '</div><div class="search-empty-hint">' + (LANG === "zh" ? "试试其他关键词" : "Try different keywords") + '</div></div>';
+        el.hidden = false;
+        window.__vt_searchResults = [];
+        window.__vt_searchSelected = -1;
+        window.__vt_searchLoading = false;
+        return;
+      }
+
+      // Load full data for top results
+      var raw = await Promise.all(search.results.slice(0, 8).map(function (r) { return r.data().catch(function () { return null; }); }));
+      var items = [];
+      for (var i = 0; i < raw.length; i++) {
+        var data = raw[i];
+        if (!data) continue;
+        var url = data.url;
+        if (!url) continue;
+        if (url.charAt(0) !== "/") url = "/" + url;
+        // Filter: only docs under current lang, exclude list page itself
+        if (url.indexOf("/" + LANG + "/docs/") !== 0) continue;
+        if (url === "/" + LANG + "/docs/") continue;
+
+        var title = (data.meta && data.meta.title) ? data.meta.title : url;
+        var excerpt = data.excerpt || "";
+        var date = (data.meta && data.meta.date) ? data.meta.date : "";
+
+        items.push({
+          url: url,
+          title: title,
+          excerpt: excerpt,
+          date: date,
+        });
+      }
+
+      window.__vt_searchResults = items;
+      window.__vt_searchSelected = -1;
+      window.__vt_searchLoading = false;
+
+      if (items.length === 0) {
+        el.innerHTML = '<div class="search-empty"><svg class="search-empty-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty-title">' + (LANG === "zh" ? "未找到匹配的文档" : "No matching documents") + '</div><div class="search-empty-hint">' + (LANG === "zh" ? "试试其他关键词" : "Try different keywords") + '</div></div>';
+        el.hidden = false;
+        return;
+      }
+
+      // Build result HTML
+      var html = '';
+      // Header
+      html += '<div class="search-header"><span class="search-header-count">' + (LANG === "zh" ? "找到 " + items.length + " 篇文档" : "Found " + items.length + " document" + (items.length !== 1 ? "s" : "")) + '</span></div>';
+
+      // Items
+      html += '<div class="search-results-list">';
+      for (var j = 0; j < items.length; j++) {
+        var it = items[j];
+        var metaParts = [];
+        if (it.date) metaParts.push('<time class="search-result-date">' + __vt_formatDate(it.date) + '</time>');
+        var metaHtml = metaParts.length ? '<div class="search-result-meta">' + metaParts.join('') + '</div>' : '';
+
+        html += '<a href="' + it.url + '" class="search-result-item" data-search-index="' + j + '" onclick="window.__vt_docsHideResults()"><div class="search-result-body"><div class="search-result-title">' + __vt_docsEscapeHtml(it.title) + '</div>' + (it.excerpt ? '<div class="search-result-excerpt">' + it.excerpt + '</div>' : '') + metaHtml + '</div></a>';
+      }
+      html += '</div>';
+
+      el.innerHTML = html;
+      el.hidden = false;
+    } catch (e) {
+      console.error("Search error:", e);
+      window.__vt_docsHideResults();
+    }
+  };
+
+  // ═══ Keyboard navigation ══════════════════════
+  function __vt_docsUpdateSelection() {
+    var items = document.querySelectorAll(".search-result-item");
+    items.forEach(function (item, idx) {
+      if (idx === window.__vt_searchSelected) {
+        item.classList.add("is-active");
+        item.scrollIntoView({ block: "nearest" });
+      } else {
+        item.classList.remove("is-active");
+      }
+    });
+  }
+
+  window.__vt_docsNavigate = function (direction) {
+    var len = window.__vt_searchResults.length;
+    if (len === 0) return;
+    if (direction === "down") {
+      window.__vt_searchSelected = (window.__vt_searchSelected + 1) % len;
+    } else {
+      window.__vt_searchSelected = window.__vt_searchSelected <= 0 ? len - 1 : window.__vt_searchSelected - 1;
+    }
+    __vt_docsUpdateSelection();
+  };
+
+  window.__vt_docsOpenSelected = function () {
+    if (window.__vt_searchSelected >= 0 && window.__vt_searchSelected < window.__vt_searchResults.length) {
+      var item = window.__vt_searchResults[window.__vt_searchSelected];
+      window.__vt_docsHideResults();
+      if (item && item.url) {
+        // Use Astro's navigate if available (View Transitions), fallback to location
+        window.location.href = item.url;
+      }
+    }
+  };
+
+  // ═══ Document listeners (outside click / keyboard) ═
+  if (window.__vt_docs_onClick) document.removeEventListener("click", window.__vt_docs_onClick);
+  if (window.__vt_docs_onKeydown) document.removeEventListener("keydown", window.__vt_docs_onKeydown);
+
+  window.__vt_docs_onClick = function (e) {
+    var wrap = document.getElementById("search-wrap");
+    if (wrap && !wrap.contains(e.target)) window.__vt_docsHideResults();
+  };
+
+  window.__vt_docs_onKeydown = function (e) {
+    var results = document.getElementById("search-results");
+    // Only intercept when results are visible
+    if (!results || results.hidden) return;
+
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        window.__vt_docsHideResults();
+        var inp = document.getElementById("search-input");
+        if (inp) inp.blur();
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        window.__vt_docsNavigate("down");
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        window.__vt_docsNavigate("up");
+        break;
+      case "Enter":
+        e.preventDefault();
+        window.__vt_docsOpenSelected();
+        break;
+    }
+  };
+
+  document.addEventListener("click", window.__vt_docs_onClick);
+  document.addEventListener("keydown", window.__vt_docs_onKeydown);
+
+  // ═══ Init Pagefind ══════════════════════════════
+  (async function () {
+    try {
+      if (window.__vt_pagefindMod) await window.__vt_pagefindMod.destroy();
+      window.__vt_pagefindMod = await import("/pagefind/pagefind.js");
+      await window.__vt_pagefindMod.init();
+    } catch { /* dev mode */ }
+  })();
+</script>

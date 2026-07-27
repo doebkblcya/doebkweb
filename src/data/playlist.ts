@@ -59,12 +59,6 @@ export function getTrackUrl(track: Track & { album?: string }): string {
   return `${R2_BASE}/${encodeURIComponent(album)}/${encodeURIComponent(track.file)}`;
 }
 
-export function getLrcUrl(track: Track & { album?: string }): string | null {
-  if (!track.lrc) return null;
-  const album = (track as any).album || "";
-  return `${R2_BASE}/${encodeURIComponent(album)}/${encodeURIComponent(track.lrc)}`;
-}
-
 /** Flat track data for VinylPlayer (only what the client needs). */
 export function getFlatTracks(): { title: string; album: string; file: string }[] {
   const result: { title: string; album: string; file: string }[] = [];
