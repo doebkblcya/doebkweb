@@ -263,7 +263,9 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
       e.trackList.innerHTML = tracks.map(function (t, i) {
         return '<li class="track-item"><button class="track-btn" data-index="' + i + '">' +
           '<span class="track-num">' + String(i + 1).padStart(2, "0") + '</span>' +
-          '<span class="track-body"><span class="track-title">' + escHtml(t.title) + '</span>' +
+          '<span class="track-body"><span class="track-title"><span class="tt-runner">' +
+          '<span class="tt-item">' + escHtml(t.title) + '</span><span class="tt-item">' + escHtml(t.title) + '</span>' +
+          '</span></span>' +
           (ctx ? '' : '<span class="track-album">' + escHtml(t.album || "") + '</span>') +
           '</span><span class="track-status"><span class="track-eq">' +
           '<span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span>' +
@@ -417,7 +419,7 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
     }
 
     // ── Audio event listeners ────────────────────────────
-    var _onAudioPlay, _onAudioPause, _onAudioEnded, _onAlbumChange, _onTrackChange, _onVpReset;
+    var _onAudioPlay, _onAudioPause, _onAudioEnded, _onAlbumChange, _onTrackChange;
 
     function wireAudio() {
       var a = _audio(); if (!a) return;
@@ -450,27 +452,6 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
       a.addEventListener("ended", _onAudioEnded);
       a.addEventListener("album-change", _onAlbumChange);
       a.addEventListener("track-change", _onTrackChange);
-
-      _onVpReset = function () {
-        panelOpen = false;
-        if (tracksOpen) toggleTracks();
-        if (reviewOpen) toggleReview();
-        setCover("");
-        renderTrackList();
-        var e2 = els();
-        if (e2.trackTitle) e2.trackTitle.textContent = "未在播放";
-        if (e2.albumName) e2.albumName.textContent = "";
-        if (e2.artist) e2.artist.textContent = "";
-        if (e2.actionsTransport) e2.actionsTransport.style.display = "none";
-        if (e2.actionsSep) e2.actionsSep.style.display = "none";
-        if (e2.btnPlaylist) e2.btnPlaylist.style.display = "none";
-        if (e2.btnReview) e2.btnReview.style.display = "none";
-        if (e2.btnVolume) e2.btnVolume.style.display = "none";
-        if (e2.volumeSlider) e2.volumeSlider.style.display = "none";
-        var sep22 = document.getElementById("actions-sep2");
-        if (sep22) sep22.style.display = "none";
-      };
-      a.addEventListener("vp-reset", _onVpReset);
     }
 
     // ── Init ─────────────────────────────────────────────
@@ -482,6 +463,24 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
       wireAudio();
       document.addEventListener("click", handleVinylClick);
       document.addEventListener("click", handleDocClick);
+
+      // ── Track title hover scroll ──────────────────────
+      // 悬停溢出的曲名启动左滚（marquee 双份文本无缝循环），移出停止
+      document.addEventListener("mouseover", function (e) {
+        var title = e.target.closest ? e.target.closest(".track-title") : null;
+        if (!title) return;
+        // 溢出判断用第一份 .tt-item（双份结构下 track-title.scrollWidth 是双份总宽，会误判）
+        var item = title.querySelector(".tt-item");
+        var overflows = !!(item && item.scrollWidth > title.clientWidth);
+        title.classList.toggle("is-scroll", overflows);
+      });
+      document.addEventListener("mouseout", function (e) {
+        var title = e.target.closest ? e.target.closest(".track-title") : null;
+        if (!title) return;
+        var related = e.relatedTarget;
+        if (related && related.closest && related.closest(".track-title") === title) return; // 标题内部移动不停止
+        title.classList.remove("is-scroll");
+      });
 
       // Default: no album — transport/review/playlist hidden
       var e = els();
@@ -1081,8 +1080,53 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
     color: var(--color-text-primary);
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     line-height: 1.4;
+  }
+
+  /* ── Hover scroll（marquee）────────────────────────
+   * 悬停溢出曲名时左滚展示完整标题。双份文本 translateX(-50%) 无缝循环。
+   * 非悬停：第一份 max-width 100% + ellipsis 保持省略号。 */
+  .tt-runner {
+    display: inline-flex;
+    will-change: transform;
+  }
+
+  .tt-item {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  /* 非 hover：runner 收进容器宽度、第二份隐藏——否则双份并排都被显示
+   * （item 的 max-width 100% 相对 runner，而 runner 宽度 = 双份内容宽） */
+  .track-title:not(.is-scroll) .tt-runner {
+    max-width: 100%;
+  }
+
+  .track-title:not(.is-scroll) .tt-item + .tt-item {
+    display: none;
+  }
+
+  .track-title.is-scroll .tt-item {
+    max-width: none;
+    overflow: visible;
+  }
+
+  .track-title.is-scroll .tt-runner {
+    animation: tt-scroll 12s linear infinite;
+  }
+
+  @keyframes tt-scroll {
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .track-title.is-scroll .tt-runner {
+      animation: none;
+    }
   }
 
   .track-btn.is-active .track-title {

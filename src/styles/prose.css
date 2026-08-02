@@ -1,0 +1,273 @@
+/* ── Markdown 正文排版（.page-body 内元素）──────────────────
+ * 共享于 about 页与文档详情页，两页均 import 本文件。
+ * 布局差异（宽度/对齐/栅格）留在各页面组件内，这里只管元素排版。 */
+
+.page-body {
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-secondary);
+}
+
+/* ── Headings ─────────────────────────────── */
+/* 正文内 h1：开头重复标题由 rehypeDropLeadingH1 移除；流内 h1 视觉收敛为 h2 层级，
+ * 页面标题（.page-title 40px）保持唯一大标题 */
+.page-body h1 {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: var(--space-10);
+  margin-bottom: var(--space-4);
+}
+
+.page-body h2 {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: var(--space-10);
+  margin-bottom: var(--space-4);
+}
+
+.page-body h3 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-3);
+}
+
+.page-body h4 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-2);
+}
+
+.page-body h5 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-1);
+}
+
+.page-body h6 {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-1);
+}
+
+/* 标题锚点 + 跳转偏移 */
+.page-body h2,
+.page-body h3,
+.page-body h4 {
+  position: relative;
+  scroll-margin-top: var(--space-10);
+}
+
+.page-body h2::before,
+.page-body h3::before,
+.page-body h4::before {
+  content: "#";
+  position: absolute;
+  left: -1.2em;
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity 150ms;
+  font-weight: 400;
+  font-size: 0.85em;
+}
+
+.page-body h2:hover::before,
+.page-body h3:hover::before,
+.page-body h4:hover::before {
+  opacity: 0.4;
+}
+
+/* ── 段落与列表 ────────────────────────────── */
+.page-body p {
+  margin-bottom: var(--space-4);
+}
+
+.page-body ul,
+.page-body ol {
+  margin-bottom: var(--space-4);
+  padding-left: var(--space-6);
+  list-style: disc;
+}
+
+.page-body li {
+  margin-bottom: var(--space-2);
+}
+
+.page-body strong {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* ── 代码 ──────────────────────────────────── */
+.page-body pre {
+  margin: var(--space-6) 0;
+  padding: var(--space-5) var(--space-6);
+  background: #f6f8fa;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+.page-body pre code {
+  font-family: var(--font-mono);
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.page-body p code,
+.page-body li code {
+  padding: 0.15em 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface-hover);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+}
+
+.page-body kbd {
+  display: inline-block;
+  padding: 0.1em 0.45em;
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+  border: 1px solid var(--color-border);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
+}
+
+/* ── 引用与链接 ────────────────────────────── */
+.page-body blockquote {
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-bg-surface-hover);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  color: var(--color-text-secondary);
+}
+
+.page-body blockquote p {
+  margin-bottom: 0;
+}
+
+.page-body a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity 150ms;
+}
+
+.page-body a:hover {
+  opacity: 0.7;
+}
+
+.page-body a[href^="http"]:not([href*="doebkblcya.com"])::after {
+  content: " ↗";
+  font-size: 0.75em;
+  opacity: 0.5;
+}
+
+/* ── 图片与表格 ────────────────────────────── */
+.page-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  margin: var(--space-6) 0;
+}
+
+/* 表格外层滚动容器（由 rehypeTableWrap 生成），窄屏横向滚动防压扁 */
+.page-body .table-wrap {
+  width: 100%;
+  margin: var(--space-6) 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* max-content：能放下时占满容器（min-width 100%），放不下时按内容宽撑开触发滚动 */
+.page-body table {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font-size: 0.9375em;
+}
+
+.page-body th,
+.page-body td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.page-body th {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface-hover);
+}
+
+.page-body tr:nth-child(even) {
+  background: var(--color-bg-page);
+}
+
+/* ── 折叠块 ────────────────────────────────── */
+.page-body details {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+}
+
+.page-body summary {
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  list-style: none;
+}
+
+.page-body summary::-webkit-details-marker {
+  display: none;
+}
+
+.page-body summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: var(--space-2);
+  transition: transform 150ms;
+  font-size: 0.75em;
+  color: var(--color-text-tertiary);
+}
+
+.page-body details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.page-body details > :not(summary) {
+  margin-top: var(--space-3);
+}
+
+/* ── 分隔线 ────────────────────────────────── */
+.page-body hr {
+  width: 100%;
+  height: 1px;
+  border: none;
+  background: var(--color-border);
+  margin: var(--space-10) 0;
+}

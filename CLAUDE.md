@@ -30,10 +30,10 @@ Astro ^5.6 · Motion ^12.11 · Pagefind · Shiki 代码高亮 · Cloudflare Page
 - **纯静态输出**，无后端，无数据库
 - **Design Tokens**：`src/styles/tokens.css` 管所有颜色/间距/字体，换肤只改这一个文件。`:root` = 亮色，`[data-theme="dark"]` 预留暗色
 - **i18n**：`src/types/i18n.ts` 定义 `UIStrings` 接口 → `zh.ts` / `en.ts` 实现。文档内容不翻译，只翻译 UI 文案
-- **Content Collections**：Markdown 放 `src/content/docs/`，frontmatter 必填 `title`、`date`、`category`、`summary`
+- **Content Collections**：Markdown 放 `src/content/docs/`，frontmatter 必填 `title`、`date`、`summary`；可选 `updated`、`draft`、`listed`（schema 见 `src/content/config.ts`，无 `category` 字段）
 - **媒体资源**：大文件走 R2（`cdn.doebkblcya.com`），小文件放 `public/`
 - **动画**：简单交互用 CSS transition，spring 物理动效用 Motion 库。`prefers-reduced-motion` 降级为 opacity
-- **音乐**：`src/data/music.json` 是唯一数据源，加专辑只改这一个文件
+- **音乐**：`src/data/music.json` 是唯一数据源，加专辑只改这一个文件（曲序用 `trackNo` 字段，数据层排序，数组书写顺序不承担语义）
 - **View Transitions**：VT 只替换 DOM，不执行 body 内 `<script>` → 切页回来后所有 `addEventListener` 丢失。**所有非 persist 元素的交互必须用 inline HTML 属性。**
   - **`onclick=""`**：页面交互的唯一入口。逻辑全部放在 `window.__vt_xxx` 全局函数中，函数内每次 `document.getElementById` 取最新 DOM，不依赖闭包。
   - **`document` 级监听**（keyboard）：存 `window.__vt_xxx`，每次脚本执行先 `removeEventListener` 旧函数再 `addEventListener` 新函数。

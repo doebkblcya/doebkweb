@@ -24,8 +24,6 @@ export const ui: UIStrings = {
 
   about: {
     title: "About",
-    resumeDesc: "Download the complete PDF version of my resume below.",
-    downloadResume: "Download PDF Resume",
   },
 
   docs: {
@@ -33,7 +31,7 @@ export const ui: UIStrings = {
     emptyList: "No documents yet",
     published: "Published",
     updated: "Updated",
-    readingTime: "min read",
+    toc: "Table of Contents",
     sortNewest: "Newest",
     sortOldest: "Oldest",
     searchPlaceholder: "Search docs…",

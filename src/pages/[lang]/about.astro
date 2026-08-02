@@ -2,6 +2,7 @@
 export { getStaticPaths } from "./_getStaticPaths";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getEntry } from "astro:content";
+import "../../styles/prose.css";
 
 import { ui as zh } from "../../i18n/zh";
 import { ui as en } from "../../i18n/en";
@@ -15,286 +16,28 @@ const { Content } = await about!.render();
 
 <BaseLayout title={t.about.title} hideFooter>
   <div class="page">
-    <h1 class="page-title">{t.about.title}</h1>
-    <hr class="page-divider" />
+    <div class="page-header">
+      <h1 class="page-title">{t.about.title}</h1>
+      <hr class="page-divider" />
+    </div>
     <div class="page-body">
       <Content />
-    </div>
-
-    <hr class="page-divider" />
-    <div class="resume-section">
-      <p class="resume-desc">{t.about.resumeDesc}</p>
-      <a class="download-btn" href="/resume.pdf" download>
-        <svg class="download-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        {t.about.downloadResume}
-      </a>
     </div>
   </div>
 </BaseLayout>
 
 <style>
+  /* 布局与文档详情页一致：80rem 左对齐（排版样式见 prose.css） */
   .page {
-    padding: var(--space-10) var(--space-8) var(--space-24);
+    padding: var(--space-16) var(--space-8) var(--space-24);
+  }
+
+  .page-header {
+    max-width: 80rem;
   }
 
   .page-body {
-    max-width: var(--content-width, 64rem);
-    font-size: var(--text-lg);
-    line-height: var(--leading-relaxed);
-    color: var(--color-text-secondary);
-  }
-
-  .page-body :global(h2) {
-    font-size: var(--text-2xl);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-10);
-    margin-bottom: var(--space-4);
-  }
-
-  .page-body :global(h3) {
-    font-size: var(--text-xl);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-8);
-    margin-bottom: var(--space-3);
-  }
-
-  .page-body :global(p) {
-    margin-bottom: var(--space-4);
-  }
-
-  .page-body :global(ul),
-  .page-body :global(ol) {
-    margin-bottom: var(--space-4);
-    padding-left: var(--space-6);
-    list-style: disc;
-  }
-
-  .page-body :global(li) {
-    margin-bottom: var(--space-2);
-  }
-
-  .page-body :global(strong) {
-    font-weight: 600;
-    color: var(--color-text-primary);
-  }
-
-  .page-body :global(p code),
-  .page-body :global(li code) {
-    padding: 0.15em 0.4em;
-    font-family: var(--font-mono);
-    font-size: 0.875em;
-    color: var(--color-text-primary);
-    background: var(--color-bg-surface-hover);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-sm);
-  }
-
-  .page-body :global(a) {
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: opacity 150ms;
-  }
-
-  .page-body :global(a:hover) {
-    opacity: 0.7;
-  }
-
-  .page-body :global(blockquote) {
-    margin: var(--space-6) 0;
-    padding: var(--space-4) var(--space-6);
-    background: var(--color-bg-surface-hover);
-    border-left: 3px solid var(--color-accent);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    color: var(--color-text-secondary);
-  }
-
-  .page-body :global(blockquote p) {
-    margin-bottom: 0;
-  }
-
-  .page-body :global(h4) {
-    font-size: var(--text-lg);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-6);
-    margin-bottom: var(--space-2);
-  }
-
-  .page-body :global(h5) {
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-5);
-    margin-bottom: var(--space-1);
-  }
-
-  .page-body :global(h6) {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: var(--space-5);
-    margin-bottom: var(--space-1);
-  }
-
-  .page-body :global(kbd) {
-    display: inline-block;
-    padding: 0.1em 0.45em;
-    font-family: var(--font-mono);
-    font-size: 0.8em;
-    color: var(--color-text-primary);
-    background: var(--color-bg-page);
-    border: 1px solid var(--color-border);
-    border-bottom-width: 2px;
-    border-radius: var(--radius-sm);
-    line-height: 1.5;
-  }
-
-  .page-body :global(a[href^="http"]:not([href*="doebkblcya.com"]))::after {
-    content: " ↗";
-    font-size: 0.75em;
-    opacity: 0.5;
-  }
-
-  .page-body :global(h2),
-  .page-body :global(h3),
-  .page-body :global(h4) {
-    position: relative;
-    scroll-margin-top: var(--space-4);
-  }
-
-  .page-body :global(h2)::before,
-  .page-body :global(h3)::before,
-  .page-body :global(h4)::before {
-    content: "#";
-    position: absolute;
-    left: -1.2em;
-    color: var(--color-text-tertiary);
-    opacity: 0;
-    transition: opacity 150ms;
-    font-weight: 400;
-    font-size: 0.85em;
-  }
-
-  .page-body :global(h2):hover::before,
-  .page-body :global(h3):hover::before,
-  .page-body :global(h4):hover::before {
-    opacity: 0.4;
-  }
-
-  .page-body :global(details) {
-    margin: var(--space-4) 0;
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-lg);
-  }
-
-  .page-body :global(summary) {
-    font-weight: 600;
-    font-size: var(--text-base);
-    color: var(--color-text-primary);
-    cursor: pointer;
-    padding: var(--space-2) 0;
-    list-style: none;
-  }
-
-  .page-body :global(summary)::-webkit-details-marker {
-    display: none;
-  }
-
-  .page-body :global(summary)::before {
-    content: "▸";
-    display: inline-block;
-    margin-right: var(--space-2);
-    transition: transform 150ms;
-    font-size: 0.75em;
-    color: var(--color-text-tertiary);
-  }
-
-  .page-body :global(details[open]) summary::before {
-    transform: rotate(90deg);
-  }
-
-  .page-body :global(details) > :not(summary) {
-    margin-top: var(--space-3);
-  }
-
-  .page-body :global(table) {
-    width: 100%;
-    margin: var(--space-6) 0;
-    border-collapse: collapse;
-    font-size: 0.9375em;
-  }
-
-  .page-body :global(th),
-  .page-body :global(td) {
-    padding: var(--space-3) var(--space-4);
-    text-align: left;
-    border-bottom: 1px solid var(--color-border-light);
-  }
-
-  .page-body :global(th) {
-    font-weight: 600;
-    color: var(--color-text-primary);
-    background: var(--color-bg-surface-hover);
-  }
-
-  .page-body :global(tr:nth-child(even)) {
-    background: var(--color-bg-page);
-  }
-
-  .page-body :global(hr) {
-    width: 100%;
-    height: 1px;
-    border: none;
-    background: var(--color-border);
-    margin: var(--space-10) 0;
-  }
-
-  /* ── Resume download ─────────────────────────── */
-  .resume-section {
-    text-align: center;
-    padding: var(--space-4) 0;
-  }
-
-  .resume-desc {
-    font-size: var(--text-base);
-    color: var(--color-text-secondary);
-    margin-bottom: var(--space-6);
-  }
-
-  .download-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-4) var(--space-8);
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: #fff;
-    background: var(--color-accent);
-    border-radius: var(--radius-full);
-    transition:
-      background var(--duration-fast),
-      transform var(--duration-fast);
-  }
-
-  .download-btn:hover {
-    background: var(--color-accent-hover);
-  }
-
-  .download-btn:active {
-    transform: scale(0.98);
-  }
-
-  .download-icon {
-    flex-shrink: 0;
+    max-width: 80rem;
+    min-width: 0;
   }
 </style>

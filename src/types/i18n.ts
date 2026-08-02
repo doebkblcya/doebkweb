@@ -27,8 +27,6 @@ export interface HomeStrings {
 
 export interface AboutStrings {
   title: string;
-  resumeDesc: string;
-  downloadResume: string;
 }
 
 export interface DocStrings {
@@ -36,7 +34,7 @@ export interface DocStrings {
   emptyList: string;
   published: string;
   updated: string;
-  readingTime: string;
+  toc: string;
   sortNewest: string;
   sortOldest: string;
   searchPlaceholder: string;

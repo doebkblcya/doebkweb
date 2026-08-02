@@ -4,3 +4,4 @@ dist/
 .DS_Store
 *.local
 _r2-upload/
+.playwright-mcp/

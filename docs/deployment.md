@@ -143,8 +143,8 @@ R2 bucket 已配置 CORS，允许主站跨域访问音频和图片：
       "review": "个人札记（可选，空字符串则无）",
       "meta": {},
       "tracks": [
-        { "title": "曲名", "file": "文件名.mp3" },
-        { "title": "曲名", "file": "文件名.mp3", "lrc": "歌词.lrc" }
+        { "trackNo": 1, "title": "曲名", "file": "文件名.mp3" },
+        { "trackNo": 2, "title": "曲名", "file": "文件名.mp3", "lrc": "歌词.lrc" }
       ]
     }
   ]
@@ -152,6 +152,8 @@ R2 bucket 已配置 CORS，允许主站跨域访问音频和图片：
 ```
 
 加专辑只需编辑此 JSON，`playlist.ts` 自动生成派生数据。
+
+> **曲序**：`trackNo` 为曲目序号（1 起），数据层按此升序排列（`playlist.ts` 中 sort），数组书写顺序不承担语义；缺省 `trackNo` 的曲目排最后、保持数组序。对应歌词文件名：`文件名.lrc` 放 R2 同目录。
 
 ---
 
@@ -166,18 +168,20 @@ dist/
 ├── index.html                      # / → /zh/ 重定向页
 ├── zh/
 │   ├── index.html                  # 首页
-│   ├── about/index.html            # About Me（含简历下载）
+│   ├── about/index.html            # About Me
 │   ├── music/index.html            # 音乐专辑架
 │   ├── photos/index.html           # 摄影网格
 │   ├── 404.html                    # 自定义 404
-│   ├── docs/index.html             # 文档列表
-│   ├── docs/archive/index.html     # 归档
-│   └── search/index.html           # 搜索（v0.3+）
+│   └── docs/
+│       ├── index.html              # 文档列表（含内嵌 Pagefind 搜索 + 排序）
+│       └── <slug>/index.html       # 单篇文档详情
 ├── en/                             # 英文页面（同上结构）
 ├── _astro/                         # CSS/JS 资源（哈希命名，可永久缓存）
-├── pagefind/                       # 搜索索引（v0.3+）
+├── pagefind/                       # 搜索索引
 └── favicon.svg
 ```
+
+> v1.2 精简后：无独立归档页 `/docs/archive`、分类页 `/docs/category/*`、搜索页 `/search`，搜索内嵌在文档列表页。
 
 ---
 

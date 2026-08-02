@@ -24,7 +24,8 @@ doebkweb/
 │   ├── styles/                    # 全局样式
 │   │   ├── tokens.css             #   Design Tokens（颜色/间距/字体/阴影/玻璃）
 │   │   ├── reset.css              #   CSS Reset
-│   │   └── global.css             #   全局排版基础样式
+│   │   ├── global.css             #   全局排版基础样式
+│   │   └── prose.css              #   Markdown 正文排版（about + 文档详情共享）
 │   │
 │   ├── types/                     # TypeScript 类型定义
 │   │   └── i18n.ts                #   UIStrings 接口（强制中英文结构一致）
@@ -35,29 +36,30 @@ doebkweb/
 │   │
 │   ├── data/                      # 共享数据层
 │   │   ├── music.json             #   音乐配置（唯一数据源，纯 JSON）
-	│   │   ├── playlist.ts            #   类型定义 + helper（从 music.json 导入）
-│   │   └── photos.ts              #   摄影数据（缩略图/原图/alt）
+│   │   ├── playlist.ts            #   类型定义 + helper（从 music.json 导入）
+│   │   └── photos.ts              #   摄影数据（原图/缩略图/alt/日期）
 │   │
 │   ├── content/                   # Content Collections
 │   │   ├── config.ts              #   Collection schema（zod 校验）
 │   │   └── docs/                  #   Markdown 文档
 │   │       ├── about.md           #     关于我（listed: false）
-│   │       └── *.md               #     技术文档
+│   │       └── *.md               #     技术文档（9 篇）
 │   │
 │   ├── layouts/                   # 页面布局
-│   │   └── BaseLayout.astro       #   全局布局骨架（双栏 + 内容区）
+│   │   └── BaseLayout.astro       #   全局布局骨架（侧边栏 + 内容区 + 页脚）
 │   │
 │   ├── components/                # 可复用组件
-│   │   ├── Sidebar.astro          #   左侧导航栏（7.5rem + 设置面板入口）
-│   │   ├── VinylPlayer.astro      #   唱片播放器（右上角悬浮，View Transition 持久化）
-│   │   └── LanguageSettings.astro #   语言 & 设置弹窗（居中窗口，语言切换 + 内容宽度调节）
+│   │   ├── Sidebar.astro          #   左侧导航栏（7.5rem，导航 + 设置面板入口）
+│   │   ├── VinylPlayer.astro      #   唱片播放器（迷你碟触发 + 展开面板，View Transition 持久化）
+│   │   ├── LanguageSettings.astro #   语言切换弹窗（居中窗口）
+│   │   └── Footer.astro           #   页脚（hideFooter prop 控制）
 │   │
 │   └── pages/                     # 路由页面（文件路径 = URL）
 │       ├── index.astro            #   / → 301 重定向到 /zh/
 │       └── [lang]/                #   语言前缀路由组
 │           ├── _getStaticPaths.ts #     共享的 getStaticPaths（zh/en 双路径生成）
 │           ├── index.astro        #     /zh/  /en/  首页（全屏欢迎）
-│           ├── about.astro        #     /zh/about/  关于我（MD 渲染 + 简历下载）
+│           ├── about.astro        #     /zh/about/  关于我（MD 渲染）
 │           ├── music.astro        #     /zh/music/  专辑架（黑胶动画 + 播放联动）
 │           ├── photos.astro       #     /zh/photos/ 摄影网格（懒加载 + Lightbox）
 │           ├── 404.astro          #     /zh/404/    自定义 404
@@ -66,6 +68,8 @@ doebkweb/
 │               └── [slug].astro   #       文档详情（Shiki 高亮）
 │
 ├── docs/                          # 项目文档（本文件所在目录）
+├── scripts/
+│   └── process-photos.mjs         # 照片处理脚本（RAW → 2000px JPEG + 480px WebP）
 ├── astro.config.mjs               # Astro 配置（i18n + Shiki）
 ├── tsconfig.json                  # TypeScript 配置
 ├── package.json                   # 依赖与脚本
@@ -79,7 +83,7 @@ doebkweb/
 ```
 /                                  →  301 重定向到 /zh/
 /[lang]/                           →  首页（全屏欢迎页）
-/[lang]/about/                     →  About Me（Markdown 渲染 + 简历下载）
+/[lang]/about/                     →  About Me（Markdown 渲染）
 /[lang]/music/                     →  专辑架（黑胶动画 + 播放联动）
 /[lang]/photos/                    →  摄影网格（懒加载 + Lightbox）
 /[lang]/docs/                      →  文档列表（搜索 + 排序）
@@ -98,7 +102,7 @@ doebkweb/
   --color-bg-page: #f5f5f7
   --color-bg-surface: #ffffff
   --color-text-primary: #1d1d1f
-  --color-accent: #0071e3
+  --color-accent: #1d1d1f      ← 黑色 accent（Apple 风格）
   --glass-bg: rgba(255,255,255,0.72)
   ...
 }
@@ -140,14 +144,16 @@ src/types/i18n.ts              UIStrings 接口（类型约束）
 
 ```
 BaseLayout.astro
+  ├── <ViewTransitions /> 启用 View Transitions 路由
   ├── 导入 tokens.css → reset.css → global.css（全局生效）
   ├── 根据 Astro.currentLocale 选择 zh/en UI 文案
   ├── 始终渲染（所有页面）：
-  │   ├── <audio id="audio" persist />  # 音频元素，跨页持久化
-  │   ├── <VinylPlayer />               # 唱片播放器，跨页持久化
-  │   ├── {!hideHeader && <Sidebar />}  # 首页隐藏
-  │   └── <main><slot /></main>
-  └── 首页：body 无 has-sidebar class，VinylPlayer CSS 隐藏
+  │   ├── <audio id="audio" data-astro-transition-persist="audio" />  # 音频元素，跨页持久化
+  │   ├── <VinylPlayer data-astro-transition-persist="vinyl-player" /> # 唱片播放器，跨页持久化
+  │   ├── <Sidebar />                    # 始终渲染，首页靠 CSS 隐藏（不再用 hideHeader 条件）
+  │   ├── <main><slot /></main>
+  │   └── {!hideFooter && <Footer />}    # 页脚，首页隐藏
+  └── 首页：body 无 has-sidebar class → Sidebar / VinylPlayer 均 CSS 隐藏
 ```
 
 每个 `[lang]` 页面文件：
@@ -162,26 +168,25 @@ BaseLayout.astro
 
 ### 机制
 
-`#audio` 和 `VinylPlayer` 使用 `transition:persist` 跨页面保持 DOM 元素。两者在 BaseLayout 中始终渲染，首页通过 CSS 隐藏 VinylPlayer。
+`#audio` 和 `VinylPlayer` 使用 `data-astro-transition-persist` 属性跨页面保持 DOM 元素。两者在 BaseLayout 中始终渲染，首页通过 CSS 隐藏。
 
 ```
 所有页面:
-  <audio id="audio" persist />     ← 始终存在，跨页存活
-  <VinylPlayer persist />          ← 始终存在，首页 CSS 隐藏
-  <Sidebar />                      ← hideHeader 时不存在
+  <audio id="audio" data-astro-transition-persist="audio" />           ← 始终存在，跨页存活
+  <VinylPlayer data-astro-transition-persist="vinyl-player" />         ← 始终存在，首页 CSS 隐藏
+  <Sidebar />                    ← 始终渲染，首页 CSS 隐藏
 ```
 
 ### 首页行为
 
-首页 `body` 无 `has-sidebar` class → `body:not(.has-sidebar) .vinyl-app { display: none }`。
-首页脚本：pause audio → 清 dataset → dispatch `vp-reset` CustomEvent 在 `#audio` 上，
-VinylPlayer 监听 `vp-reset` 重置 UI（封面、文本、按钮）。
+首页 `body` 无 `has-sidebar` class → `body:not(.has-sidebar) .vinyl-app { display: none }`，Sidebar 同理隐藏。
+首页为纯静态欢迎页（引用语 + 自我介绍 + 导航按钮），无脚本，不重置播放器 —— 播放状态跨页保持。
 
 ### VinylPlayer 生命周期
 
 ```
 init() 执行一次（vinylReady 守卫）
-  ├─ wireAudio()        → 所有监听器绑定到 #audio（play/pause/ended/album-change/track-change/vp-reset）
+  ├─ wireAudio()        → 所有监听器绑定到 #audio（play/pause/ended/album-change/track-change）
   ├─ document click      → 委托事件（始终有效）
   ├─ 读 audio.dataset    → 恢复封面/专辑名
   └─ 同 syncPlayingState → 同步播放状态
@@ -194,7 +199,6 @@ init() 执行一次（vinylReady 守卫）
 所有自定义事件在 `#audio` 上：
 - `album-change` ← music 页 dispatch → VinylPlayer 监听到 → 加载专辑
 - `track-change` ← VinylPlayer dispatch → VinylPlayer 监听到 → 更新 UI
-- `vp-reset` ← 首页 dispatch → VinylPlayer 监听 → 清 UI
 
 ### 音乐数据流
 
@@ -216,6 +220,7 @@ src/data/playlist.ts          ← 类型 + getFlatTracks() + getTrackUrl()
 | `tokens.css` | 自定义属性定义（零选择器） | BaseLayout 中 `import` |
 | `reset.css` | 浏览器默认样式清零 | BaseLayout 中 `import` |
 | `global.css` | 全局排版（body/h1-h4/a 基础样式） | BaseLayout 中 `import` |
+| `prose.css` | `.page-body` Markdown 排版（about + 文档详情共享，改一处两页生效） | about / docs/[slug] 中 `import` |
 | 组件 `<style>` | 组件隔离样式（Astro scoped） | 各 .astro 文件内 |
 
 ---
@@ -239,7 +244,6 @@ src/data/playlist.ts          ← 类型 + getFlatTracks() + getTrackUrl()
 ```
 Cloudflare Pages（静态站点）
 ├── HTML/CSS/JS              ← Astro 构建产物
-├── 简历 PDF                  ← public/resume.pdf
 └── favicon.svg               ← public/
 
 Cloudflare R2 ✅（媒体资源）
@@ -265,22 +269,27 @@ VPS（FastAPI，独立服务）
 
 已实现：
 - 项目骨架 + Design Tokens + 全局样式
-- 左侧边栏（7.5rem 固定宽度，导航激活项跟踪）
-- 首页（全屏欢迎页）
+- 左侧边栏（7.5rem 固定宽度，导航激活项跟踪 + 设置面板入口）
+- 首页（纯静态全屏欢迎页：引用语 + 自我介绍 + 导航按钮）
 - 关于我（Content Collections Markdown 渲染，listed: false）
-- 文档系统（列表 + 详情，Shiki 语法高亮，9 篇技术文档）
-- 文档搜索（Pagefind 内嵌下拉，键盘导航，毛玻璃面板）
-- 内容宽度三档调节（窄/中/宽，localStorage 持久化）
-- 设置面板（居中弹出窗口：语言切换 + 宽度控制）
+- 文档系统（列表 + 详情，Shiki 语法高亮，9 篇真实技术文档）
+- 文档详情页右侧目录（TOC rail：构建时静态生成、锚点跳转 + 滚动高亮，毛玻璃卡片，小屏隐藏；正文 80rem 行宽，正文 + rail 组合靠左，大屏右侧留白；点击即时切高亮 + 滚动动画中锁定高亮，末尾章节特判高亮）
+- 文档搜索（Pagefind 内嵌列表页，键盘导航，毛玻璃面板）+ 日期排序切换
+- 设置面板（居中弹出窗口：语言切换）
 - Markdown 渲染增强（h4-h6、kbd、表格斑马纹、外部链接标识、标题锚点、折叠块）
-- 音乐页（专辑架网格 + 黑胶动画 + 播放联动）
-- 摄影页（网格 + 懒加载 + Lightbox）
-- 唱片播放器（persist 持久化，唱片旋转 + 唱臂联动）
+- 音乐页（专辑架网格 + 黑胶动画 + 播放联动，2 张专辑 14 首曲目，`trackNo` 曲序数据层排序）
+- 摄影页（网格 + 懒加载 + Lightbox，3 张照片已上传 R2）
+- 唱片播放器（persist 持久化，唱片旋转 + 唱臂联动，曲名悬停滚动动画）
+- 全局滚动条（Apple 风格浅色细滚动条：token 化 + 双引擎实现，页面与播放器面板统一）
+- Footer 页脚 + skip-link 无障碍跳转
 - i18n 中英文 UI 切换
-- Cloudflare R2 媒体托管 + Pages 部署
+- Cloudflare R2 媒体托管 + Pages 部署（git push main 自动构建）
 
 未实现：
-- Motion spring 动效（页面过渡、手势交互）
+- Motion spring 动效（依赖已装 ^12.11，代码尚未使用）
 - 暗色模式（CSS 变量已预留）
 - 移动端汉堡菜单
+- LRC 歌词展示 UI（数据字段已预留）
 - RSS / sitemap
+
+搁置：简历下载模块（代码与 i18n 文案已移除，如重启需恢复 about 页按钮 + resume.pdf）

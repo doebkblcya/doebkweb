@@ -55,19 +55,21 @@ function isActive(itemHref: string): boolean {
     if (sidebar.dataset.sidebarReady === "1") return;
     sidebar.dataset.sidebarReady = "1";
 
-    var slider = document.getElementById("nav-slider");
-    var navList = document.getElementById("nav-list");
+    var slider = document.getElementById("nav-slider") as HTMLElement | null;
+    var navList = document.getElementById("nav-list") as HTMLElement | null;
 
-    function getItemOffset(item) {
+    function getItemOffset(item: HTMLElement) {
+      if (!slider) return 0;
       return item.offsetTop + (item.offsetHeight - slider.offsetHeight) / 2;
     }
 
-    function moveSliderTo(item) {
+    function moveSliderTo(item: Element | null) {
       if (!slider || !item) return;
-      slider.style.transform = "translateY(" + getItemOffset(item) + "px)";
+      slider.style.transform = "translateY(" + getItemOffset(item as HTMLElement) + "px)";
     }
 
     function moveToActive() {
+      if (!navList) return;
       var active = navList.querySelector(".nav-item.is-active");
       if (active) moveSliderTo(active);
     }
@@ -75,12 +77,13 @@ function isActive(itemHref: string): boolean {
     moveToActive();
 
     // Hover: slider follows cursor
-    navList.addEventListener("mouseover", function (e) {
-      var item = e.target.closest(".nav-item");
+    navList?.addEventListener("mouseover", function (e) {
+      var target = e.target instanceof Element ? e.target : null;
+      var item = target ? target.closest(".nav-item") : null;
       if (item) moveSliderTo(item);
     });
 
-    navList.addEventListener("mouseleave", function () {
+    navList?.addEventListener("mouseleave", function () {
       moveToActive();
     });
 
@@ -95,8 +98,8 @@ function isActive(itemHref: string): boolean {
         var active = href === "/" ? path === "/" : path.startsWith(href);
         links[i].classList.toggle("is-active", active);
       }
-      slider = document.getElementById("nav-slider");
-      navList = document.getElementById("nav-list");
+      slider = document.getElementById("nav-slider") as HTMLElement | null;
+      navList = document.getElementById("nav-list") as HTMLElement | null;
       moveToActive();
     });
   })();

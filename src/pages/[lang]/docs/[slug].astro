@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import "../../../styles/prose.css";
 
 import { ui as zh } from "../../../i18n/zh";
 import { ui as en } from "../../../i18n/en";
@@ -21,36 +22,51 @@ const doc = docs.find((d) => d.slug === slug);
 
 if (!doc) return Astro.redirect(`/${lang}/404/`);
 
-const { Content } = await doc.render();
-
-const wordCount = doc.body.split(/\s+/).length;
-const readingTime = Math.max(1, Math.ceil(wordCount / 300));
+const { Content, headings } = await doc.render();
+const toc = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
 ---
 
 <BaseLayout title={doc.data.title} hideFooter>
   <div class="page">
 
-    <h1 class="page-title">{doc.data.title}</h1>
+    <div class="page-header">
+      <h1 class="page-title">{doc.data.title}</h1>
 
-    <div class="page-meta" data-pagefind-ignore>
-      <time datetime={doc.data.date.toISOString()}>
-        {t.docs.published} {doc.data.date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
-          year: "numeric", month: "long", day: "numeric",
-        })}
-      </time>
-      {doc.data.updated && (
-        <time datetime={doc.data.updated.toISOString()}>
-          · {t.docs.updated} {doc.data.updated.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+      <div class="page-meta" data-pagefind-ignore>
+        <time datetime={doc.data.date.toISOString()}>
+          {t.docs.published} {doc.data.date.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
             year: "numeric", month: "long", day: "numeric",
           })}
         </time>
-      )}
+        {doc.data.updated && (
+          <time datetime={doc.data.updated.toISOString()}>
+            · {t.docs.updated} {doc.data.updated.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+              year: "numeric", month: "long", day: "numeric",
+            })}
+          </time>
+        )}
+      </div>
+
+      <hr class="page-divider" />
     </div>
 
-    <hr class="page-divider" />
+    <div class="docs-layout">
+      <div class="page-body">
+        <Content />
+      </div>
 
-    <div class="page-body">
-      <Content />
+      {toc.length > 0 && (
+        <nav class="toc" id="toc" aria-label={t.docs.toc} data-pagefind-ignore>
+          <p class="toc-title">{t.docs.toc}</p>
+          <ul class="toc-list">
+            {toc.map((h) => (
+              <li class={`toc-item toc-depth-${h.depth}`}>
+                <a class="toc-link" href={`#${h.slug}`} onclick="window.__vt_tocClick(this)">{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </div>
 
     <!-- Pagefind metadata (hidden, for search indexing) -->
@@ -63,10 +79,9 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
     padding: var(--space-16) var(--space-8) var(--space-24);
   }
 
-  .page-title {
-    font-size: var(--text-4xl);
-    font-weight: 700;
-    letter-spacing: var(--tracking-tight);
+  /* 标题区：与正文同宽，左对齐 */
+  .page-header {
+    max-width: 80rem;
   }
 
   .page-meta {
@@ -79,260 +94,184 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 300));
     color: var(--color-text-tertiary);
   }
 
-  .page-divider {
-    width: 100%;
-    height: 1px;
-    border: none;
-    background: var(--color-border);
-    margin: var(--space-10) 0;
+  /* 正文 80rem + 目录 18rem 组合靠左，rail 紧贴正文，大屏右侧留白 */
+  .docs-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    gap: var(--space-8);
+    max-width: calc(80rem + 18rem + var(--space-8));
   }
 
+  /* 排版样式见 prose.css */
   .page-body {
-    max-width: var(--content-width, 64rem);
-    font-size: var(--text-lg);
-    line-height: var(--leading-relaxed);
-    color: var(--color-text-secondary);
+    min-width: 0;
   }
 
-  .page-body :global(h2) {
-    font-size: var(--text-2xl);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-10);
-    margin-bottom: var(--space-4);
+  /* ── TOC rail（毛玻璃卡片）───────────────────── */
+  .toc {
+    position: sticky;
+    top: var(--space-10);
+    align-self: start;
+    max-height: calc(100vh - var(--space-20));
+    overflow-y: auto;
+    padding: var(--space-4);
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
   }
 
-  .page-body :global(h3) {
-    font-size: var(--text-xl);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-8);
+  /* 减少透明度偏好：玻璃降级为纯色卡片 */
+  @media (prefers-reduced-transparency: reduce) {
+    .toc {
+      background: var(--color-bg-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  .toc-title {
     margin-bottom: var(--space-3);
-  }
-
-  .page-body :global(p) {
-    margin-bottom: var(--space-4);
-  }
-
-  .page-body :global(ul),
-  .page-body :global(ol) {
-    margin-bottom: var(--space-4);
-    padding-left: var(--space-6);
-    list-style: disc;
-  }
-
-  .page-body :global(li) {
-    margin-bottom: var(--space-2);
-  }
-
-  /* ── Code blocks (Shiki highlighted) ──────── */
-  .page-body :global(pre) {
-    margin: var(--space-6) 0;
-    padding: var(--space-5) var(--space-6);
-    background: #f6f8fa;
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-lg);
-    overflow-x: auto;
-    font-size: 0.875em;
-    line-height: 1.6;
-  }
-
-  .page-body :global(pre code) {
-    font-family: var(--font-mono);
-    background: none;
-    border: none;
-    padding: 0;
-  }
-
-  /* ── Inline code ───────────────────────────── */
-  .page-body :global(p code),
-  .page-body :global(li code) {
-    padding: 0.15em 0.4em;
-    font-family: var(--font-mono);
-    font-size: 0.875em;
-    color: var(--color-text-primary);
-    background: var(--color-bg-surface-hover);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-sm);
-  }
-
-  /* ── Blockquote ────────────────────────────── */
-  .page-body :global(blockquote) {
-    margin: var(--space-6) 0;
-    padding: var(--space-4) var(--space-6);
-    background: var(--color-bg-surface-hover);
-    border-left: 3px solid var(--color-accent);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    color: var(--color-text-secondary);
-  }
-
-  .page-body :global(blockquote p) {
-    margin-bottom: 0;
-  }
-
-  /* ── Links ─────────────────────────────────── */
-  .page-body :global(a) {
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: opacity 150ms;
-  }
-
-  .page-body :global(a:hover) {
-    opacity: 0.7;
-  }
-
-  /* ── Images ────────────────────────────────── */
-  .page-body :global(img) {
-    max-width: 100%;
-    height: auto;
-    border-radius: var(--radius-lg);
-    margin: var(--space-6) 0;
-  }
-
-  /* ── Tables ────────────────────────────────── */
-  .page-body :global(table) {
-    width: 100%;
-    margin: var(--space-6) 0;
-    border-collapse: collapse;
-    font-size: 0.9375em;
-  }
-
-  .page-body :global(th),
-  .page-body :global(td) {
-    padding: var(--space-3) var(--space-4);
-    text-align: left;
-    border-bottom: 1px solid var(--color-border-light);
-  }
-
-  .page-body :global(th) {
-    font-weight: 600;
-    color: var(--color-text-primary);
-    background: var(--color-bg-surface-hover);
-  }
-
-  .page-body :global(h4) {
-    font-size: var(--text-lg);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-6);
-    margin-bottom: var(--space-2);
-  }
-
-  .page-body :global(h5) {
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin-top: var(--space-5);
-    margin-bottom: var(--space-1);
-  }
-
-  .page-body :global(h6) {
+    padding: 0 var(--space-2);
     font-size: var(--text-sm);
     font-weight: 600;
     color: var(--color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: var(--space-5);
-    margin-bottom: var(--space-1);
   }
 
-  /* ── Keyboard keys ──────────────────────────── */
-  .page-body :global(kbd) {
-    display: inline-block;
-    padding: 0.1em 0.45em;
-    font-family: var(--font-mono);
-    font-size: 0.8em;
-    color: var(--color-text-primary);
-    background: var(--color-bg-page);
-    border: 1px solid var(--color-border);
-    border-bottom-width: 2px;
-    border-radius: var(--radius-sm);
-    line-height: 1.5;
-  }
-
-  /* ── Table zebra ────────────────────────────── */
-  .page-body :global(tr:nth-child(even)) {
-    background: var(--color-bg-page);
-  }
-
-  /* ── External links ─────────────────────────── */
-  .page-body :global(a[href^="http"]:not([href*="doebkblcya.com"]))::after {
-    content: " ↗";
-    font-size: 0.75em;
-    opacity: 0.5;
-  }
-
-  /* ── Heading anchor ─────────────────────────── */
-  .page-body :global(h2),
-  .page-body :global(h3),
-  .page-body :global(h4) {
-    position: relative;
-    scroll-margin-top: var(--space-4);
-  }
-
-  .page-body :global(h2)::before,
-  .page-body :global(h3)::before,
-  .page-body :global(h4)::before {
-    content: "#";
-    position: absolute;
-    left: -1.2em;
-    color: var(--color-text-tertiary);
-    opacity: 0;
-    transition: opacity 150ms;
-    font-weight: 400;
-    font-size: 0.85em;
-  }
-
-  .page-body :global(h2):hover::before,
-  .page-body :global(h3):hover::before,
-  .page-body :global(h4):hover::before {
-    opacity: 0.4;
-  }
-
-  /* ── Details / Summary ──────────────────────── */
-  .page-body :global(details) {
-    margin: var(--space-4) 0;
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-lg);
-  }
-
-  .page-body :global(summary) {
-    font-weight: 600;
-    font-size: var(--text-base);
-    color: var(--color-text-primary);
-    cursor: pointer;
-    padding: var(--space-2) 0;
+  .toc-list {
     list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  .page-body :global(summary)::-webkit-details-marker {
-    display: none;
+  .toc-link {
+    display: block;
+    padding: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition:
+      color 150ms,
+      background 150ms;
   }
 
-  .page-body :global(summary)::before {
-    content: "▸";
-    display: inline-block;
-    margin-right: var(--space-2);
-    transition: transform 150ms;
-    font-size: 0.75em;
-    color: var(--color-text-tertiary);
+  .toc-link:hover {
+    color: var(--color-text-primary);
+    background: var(--color-accent-subtle);
   }
 
-  .page-body :global(details[open]) summary::before {
-    transform: rotate(90deg);
+  .toc-link.is-active {
+    color: var(--color-accent);
+    font-weight: 600;
+    background: var(--color-accent-subtle);
   }
 
-  .page-body :global(details) > :not(summary) {
-    margin-top: var(--space-3);
+  .toc-depth-3 .toc-link {
+    padding-left: var(--space-6);
   }
 
-  .page-body :global(hr) {
-    width: 100%;
-    height: 1px;
-    border: none;
-    background: var(--color-border);
-    margin: var(--space-10) 0;
+  /* 锚点跳转偏移 + 平滑滚动（scroll-margin 见 prose.css） */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html) {
+      scroll-behavior: smooth;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .docs-layout {
+      grid-template-columns: 1fr;
+    }
+    .toc {
+      display: none;
+    }
   }
 </style>
+
+<script is:inline>
+  // TOC 高亮切换（click 与 scroll-spy 共用）。id 为 null 时清除全部高亮。
+  // VT-safe：挂 window，函数内每次取最新 DOM，不依赖闭包。
+  window.__vt_tocSetActive = function (id) {
+    var toc = document.getElementById("toc");
+    if (!toc) return;
+    toc.querySelectorAll(".toc-link").forEach(function (a) {
+      a.classList.toggle("is-active", id !== null && a.getAttribute("href") === "#" + id);
+    });
+  };
+
+  // TOC 点击：滚动交给原生锚点（CSS scroll-behavior 平滑，reduced-motion 由媒体查询降级），
+  // 这里只做两件事：即时切高亮 + 锁定 scroll-spy（滚动动画中不抢高亮，手动滚动后交还）。
+  window.__vt_tocClick = function (link) {
+    var id = link.getAttribute("href").slice(1);
+    var target = document.getElementById(id);
+    if (!target) return;
+    window.__vt_tocClickPending = true;
+    window.__vt_tocSetActive(id); // 立即切高亮，不等滚动
+  };
+
+  // 手动滚动（滚轮/触摸/滚动键）后交还 scroll-spy
+  window.__vt_tocUnlock = function (e) {
+    if (e.type === "keydown" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown", "Home", "End", " "].indexOf(e.key) === -1) return;
+    window.__vt_tocClickPending = false;
+  };
+  document.removeEventListener("wheel", window.__vt_tocUnlock);
+  document.addEventListener("wheel", window.__vt_tocUnlock, { passive: true });
+  document.removeEventListener("touchstart", window.__vt_tocUnlock);
+  document.addEventListener("touchstart", window.__vt_tocUnlock, { passive: true });
+  document.removeEventListener("keydown", window.__vt_tocUnlock);
+  document.addEventListener("keydown", window.__vt_tocUnlock);
+
+  // TOC scroll-spy: highlight current section in the rail.
+  // VT-safe: stored on window.__vt_tocInit, re-bound on astro:after-swap.
+  window.__vt_tocInit = function () {
+    var toc = document.getElementById("toc");
+    if (!toc) return;
+    if (window.__vt_tocObserver) window.__vt_tocObserver.disconnect();
+    window.__vt_tocClickPending = false; // 切页回来不残留锁定
+
+    var targets = document.querySelectorAll(".page-body h2[id], .page-body h3[id]");
+
+    // 回调只报告"状态变化的元素"，所以每次全量扫描带内标题取最顶。
+    // 观察带 = 视口顶部 0~30%（锚点跳转后标题停在 scroll-margin 处，仍可命中）
+    function updateActive() {
+      if (window.__vt_tocClickPending) return; // 点击跳转中保持点击设置的高亮
+      var bandBottom = window.innerHeight * 0.3;
+      var best = null, bestTop = Infinity;
+      var lastTarget = targets[targets.length - 1];
+      var lastVisible = null;
+      targets.forEach(function (h) {
+        var r = h.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < window.innerHeight) lastVisible = h; // 文档序最后一个可见标题
+        if (r.top < bandBottom && r.bottom > 0 && r.top < bestTop) {
+          bestTop = r.top;
+          best = h.id;
+        }
+      });
+      // 末尾特判：最后标题因末尾内容不足顶不进观察带（scroll-margin 对齐不可达），
+      // 滚到文档底部且视口内最后一个可见标题就是文档最后标题 → 直接高亮它
+      var nearBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
+      if (nearBottom && lastVisible === lastTarget) window.__vt_tocSetActive(lastTarget.id);
+      else if (best) window.__vt_tocSetActive(best); // 带内无标题：保持现状，不清空
+    }
+
+    var observer = new IntersectionObserver(updateActive, {
+      rootMargin: "0px 0px -70% 0px",
+      threshold: 0,
+    });
+    targets.forEach(function (h) { observer.observe(h); });
+    window.__vt_tocObserver = observer;
+    updateActive();
+
+    // 兜底：初始无高亮时默认第一项
+    var links = toc.querySelectorAll(".toc-link");
+    if (!toc.querySelector(".toc-link.is-active") && links.length) links[0].classList.add("is-active");
+  };
+
+  document.removeEventListener("astro:after-swap", window.__vt_tocInit);
+  document.addEventListener("astro:after-swap", window.__vt_tocInit);
+  window.__vt_tocInit();
+</script>

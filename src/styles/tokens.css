@@ -29,6 +29,10 @@
   --color-border: #d2d2d7;
   --color-border-light: #e5e5ea;
 
+  /* Scrollbar（Apple 风格：细、浅、无轨道） */
+  --color-scrollbar: rgba(0, 0, 0, 0.18);
+  --color-scrollbar-hover: rgba(0, 0, 0, 0.35);
+
   /* Semantic */
   --color-success: #34c759;
   --color-warning: #ff9500;

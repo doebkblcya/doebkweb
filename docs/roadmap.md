@@ -4,12 +4,13 @@
 
 | 版本 | 状态 | 内容 |
 |---|---|---|
-| v0.1（Demo） | ✅ 完成 | 项目骨架、Design Tokens、i18n、首页 + About + 简历 + 404 |
+| v0.1（Demo） | ✅ 完成 | 项目骨架、Design Tokens、i18n、首页 + About + 404 |
 | v0.2 | ✅ 完成 | 文档系统（列表/详情/分类/归档）、双栏布局、音乐播放器 |
 | v0.3 | ✅ 完成 | Pagefind 搜索、文档卡片化、内容宽度调节、Markdown 渲染增强 |
 | v0.4 | 📋 计划中 | Motion 动效打磨、页面过渡动画 |
 | v1.0 | 📋 计划中 | 正式上线、内容完善、SEO/RSS/sitemap |
 | v1.1 | ✅ 完成 | 音乐 & 摄影（R2 图床、专辑架、黑胶动画、摄影网格 + Lightbox） |
+| v1.2 | ✅ 完成 | 内容迁移与精简（9 篇真实技术文档、组件精简、归档/分类页移除、搜索并入列表页） |
 
 ---
 
@@ -37,7 +38,7 @@
 
 - **页面**
   - 首页：全屏欢迎页（引用语 + 导航按钮 + 渐变入场动画）
-  - About Me：Content Collections Markdown 渲染 + 简历下载
+  - About Me：Content Collections Markdown 渲染
   - 404：大号状态码 + 返回首页链接
   - 根路由 `/` → `/zh/` 301 重定向
 
@@ -145,7 +146,6 @@
 - **内容**
   - About Me 完整内容（技术栈、经历、项目）
   - 至少 3 篇技术文档
-  - 简历 PDF 终稿
 
 - **运维**
   - Nginx 静态文件配置已就绪
@@ -199,7 +199,6 @@
 - **导航更新**
   - 侧边栏新增音乐/摄影链接
   - 首页导航按钮新增音乐/摄影入口
-  - 简历下载移入 About Me 页面，删除独立简历页
 
 - **Cloudflare Pages 部署（代码已就绪，待 Dashboard 创建项目）**
   - 静态站点迁移至 Pages，`git push main` 自动构建部署
@@ -208,16 +207,36 @@
 
 ### 待完成
 
-- **Cloudflare Pages**：Dashboard 创建项目、绑定域名、切 DNS
-- **LRC 歌词展示 UI**（数据字段已预留）
-- **摄影内容填充**（照片上传至 R2 + 缩略图生成）
+- **Cloudflare Pages**：✅ 已完成（Dashboard 创建项目、绑定域名、切 DNS，`git push main` 自动构建部署）
+- **LRC 歌词展示 UI**（数据字段已预留，仍未完成）
+- **摄影内容填充**：🔄 部分完成（3 张照片已上传 R2，`scripts/process-photos.mjs` 就绪，持续添加中）
 
 ---
 
-## 未来方向（v1.2+）
+## v1.2 — 内容迁移与精简（完成）
+
+2026-07-28 重构：demo 内容替换为真实技术文档，删减冗余组件与页面。
+
+### 已完成
+
+- **真实技术文档 9 篇**：ComfyUI FLUX GGUF 部署、FLUX 填图/生图指南、Gyroflow 快速上手、Qwen3-14B Ollama 部署、mustdo ASR 优化、ReActor 换脸指南、VT 故障报告、WSL2 音频 CLI
+- **移除 demo 内容**：`build-a-blog.md`、`hello-world.md`、`linux-notes.md`
+- **组件精简**：删除 Header、RightSidebar、NavCard、ProfileBrief、MusicPlayer、LanguageSwitcher；保留 Sidebar / VinylPlayer / LanguageSettings，新增 Footer
+- **页面精简**：移除归档页 `/docs/archive`、分类页 `/docs/category/*`、独立搜索页 `/search`，Pagefind 搜索并入文档列表页内嵌
+- **摄影**：3 张照片上传 R2（`photos/originals` + `photos/thumbs`），`photos.ts` 增加 `date`（必填）/ `note`（可选）字段
+- **简历模块搁置**：移除 about 页下载按钮、i18n 文案（`resumeDesc`/`downloadResume`）与文档描述，恢复时需重新添加 resume.pdf
+- **文档详情页 TOC + 行宽重做**：右侧目录 rail（`getHeadings()` 构建时静态生成，h2/h3，锚点跳转 + IntersectionObserver 滚动高亮，`__vt_tocInit` VT 安全重绑；毛玻璃卡片样式，`prefers-reduced-transparency` 降级纯色）；标题/正文/横线左对齐，正文行宽 80rem，rail 紧贴正文、大屏右侧留白；删除设置面板三档宽度调节（48/64/80rem 与 localStorage 逻辑）
+- **TOC 交互修复**：点击条目即时切换高亮（onclick 直设，不依赖 scroll-spy 滚动回调）；点击后锁定高亮（滚动动画中 scroll-spy 不抢，滚轮/触摸/滚动键手动滚动解锁）；末尾章节特判（滚到文档底部时高亮最后一个标题，解决末尾内容不足顶不进观察带、高亮滞后一节的结构缺陷）；顺带修复兜底逻辑 `links` 变量 ReferenceError
+- **全局滚动条**：Apple 风格浅色细滚动条——`--color-scrollbar`/`--color-scrollbar-hover` token 化，`scrollbar-width: thin` + `::-webkit-scrollbar` 8px 圆角无轨道、hover 加深；暗色模式自动适配
+- **音乐曲序**：`Track` 接口新增 `trackNo` 字段，数据层按此升序排列（数组书写顺序不承担语义）；fade 与如臨深遠 按官方曲序标注
+- **曲名悬停滚动**：播放器曲目列表标题过长时悬停启动无缝左滚（双份文本 `translateX(-50%)` 12s 循环），移出恢复省略号；溢出判断基于第一份文本宽度（双份结构下整体宽度会误判）；`prefers-reduced-motion` 降级
+- **面板闪关修复**：点击专辑卡片后面板闪开即关（`handleDocClick` 把冒泡点击误判为面板外点击）——`__vt_musicAlbumClick` 加 `e.stopPropagation()` 阻止冒泡
+
+---
+
+## 未来方向（v1.3+）
 
 - 暗色/亮色模式切换
 - 移动端汉堡菜单
 - 文档标签云/热力图
-- 文章内目录（TOC）自动生成
 - 系列文章导航（上一篇/下一篇）

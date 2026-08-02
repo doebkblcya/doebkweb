@@ -45,18 +45,6 @@ const langOptions = [
         })}
       </div>
     </div>
-
-    <div class="settings-divider"></div>
-
-    <!-- Width -->
-    <div class="settings-section">
-      <span class="settings-label">宽度</span>
-      <div class="settings-row">
-        <button class="settings-chip width-option" data-width="narrow">窄</button>
-        <button class="settings-chip width-option is-active" data-width="medium">中</button>
-        <button class="settings-chip width-option" data-width="wide">宽</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -67,22 +55,23 @@ const langOptions = [
     if (container.dataset.langReady === "1") return;
     container.dataset.langReady = "1";
 
-    var toggle = container.querySelector(".lang-toggle");
+    var toggle = container.querySelector<HTMLButtonElement>(".lang-toggle");
     var overlay = document.getElementById("settings-overlay");
-    var modal = document.getElementById("settings-modal");
 
     function open() {
+      if (!overlay || !toggle) return;
       overlay.hidden = false;
       toggle.setAttribute("aria-expanded", "true");
     }
 
     function close() {
+      if (!overlay || !toggle) return;
       overlay.hidden = true;
       toggle.setAttribute("aria-expanded", "false");
     }
 
     toggle?.addEventListener("click", function () {
-      overlay.hidden ? open() : close();
+      if (overlay) overlay.hidden ? open() : close();
     });
 
     // Close on backdrop click
@@ -93,31 +82,6 @@ const langOptions = [
     // Close on Escape
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && overlay && !overlay.hidden) close();
-    });
-
-    // ── Content width ──────────────────────────────
-    var WIDTHS = { narrow: "48rem", medium: "64rem", wide: "80rem" };
-    var widthKey = "doebk-content-width";
-
-    function applyWidth(name) {
-      document.documentElement.style.setProperty("--content-width", WIDTHS[name] || WIDTHS.medium);
-      var btns = document.querySelectorAll(".width-option");
-      btns.forEach(function (b) {
-        b.classList.toggle("is-active", b.dataset.width === name);
-      });
-      try { localStorage.setItem(widthKey, name); } catch (_) {}
-    }
-
-    var saved = null;
-    try { saved = localStorage.getItem(widthKey); } catch (_) {}
-    applyWidth(saved && WIDTHS[saved] ? saved : "medium");
-
-    document.querySelectorAll(".width-option").forEach(function (btn) {
-      btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        applyWidth(btn.dataset.width);
-      });
     });
   })();
 </script>
@@ -202,12 +166,6 @@ const langOptions = [
   .settings-row {
     display: flex;
     gap: 2px;
-  }
-
-  .settings-divider {
-    height: 1px;
-    background: var(--color-border-light);
-    margin: var(--space-4) 0;
   }
 
   /* ── Chips ──────────────────────────────────── */

@@ -5,7 +5,7 @@
 搭建一套纯静态个人网站，无后端服务、无数据库，不包含评论、留言等动态交互功能。
 
 四重定位：
-- **程序员求职个人线上名片**（About Me、简历下载）
+- **程序员求职个人线上名片**（About Me）
 - **自用技术文档知识库**（Markdown 本地管理、全文搜索、Shiki 代码高亮）
 - **唱片架**（黑胶播放器 + 专辑管理 + 跨页持久化播放）
 - **摄影画廊**（响应式网格 + 懒加载 + Lightbox 全屏预览）
@@ -33,10 +33,10 @@
 ---
 title: "文档标题"
 date: 2026-07-23
-updated: 2026-07-23
-category: "frontend"        # 单分类，轻量化体系
+updated: 2026-07-23        # 可选，最近修改日期
 summary: "一句话摘要"
-draft: false               # true = 构建时跳过
+draft: false               # 可选，true = 构建时跳过
+listed: true               # 可选，false = 不出现在文档列表（如 about.md）
 ---
 ```
 
@@ -49,15 +49,14 @@ draft: false               # true = 构建时跳过
 | 页面 | 路由 | 说明 |
 |---|---|---|
 | 首页 | `/` 或 `/[lang]/` | 站点总入口，导航引导 |
-| About Me | `/[lang]/about` | 个人介绍 + 简历下载 |
+| About Me | `/[lang]/about` | 个人介绍 |
 | 音乐 | `/[lang]/music` | 专辑架展示 + 播放联动 |
 | 摄影 | `/[lang]/photos` | 照片网格 + Lightbox 预览 |
-| 文档列表 | `/[lang]/docs` | 全部文档列表 + 精选展示 |
+| 文档列表 | `/[lang]/docs` | 全部文档列表 + 内嵌 Pagefind 搜索 + 排序切换 |
 | 文档详情 | `/[lang]/docs/[slug]` | 单篇文档渲染 |
-| 分类页 | `/[lang]/docs/category/[category]` | 按分类筛选文档 |
-| 时间归档 | `/[lang]/docs/archive` | 按年月归档展示 |
-| 搜索页 | `/[lang]/search` | Pagefind 全文搜索 |
 | 404 | `/[lang]/404` | 自定义错误页面 |
+
+> v1.2 精简：原「分类页 `/docs/category/[category]`」「时间归档 `/docs/archive`」「独立搜索页 `/search`」已移除，搜索并入文档列表页内嵌。
 
 ### i18n 约束
 
@@ -69,7 +68,7 @@ draft: false               # true = 构建时跳过
 
 ## 三、功能取舍标准
 
-- **核心功能必须实现**：页面导航、文档列表/详情、分类、归档、搜索、简历下载
+- **核心功能必须实现**：页面导航、文档列表/详情、内嵌搜索
 - **暂缓开发**：暗色/亮色模式切换（但 CSS 架构预留 design tokens，后续加模式切换成本极低）
 - **顺手集成**：RSS 订阅、sitemap 自动生成
 
@@ -95,6 +94,7 @@ draft: false               # true = 构建时跳过
 | 暗色模式预留 | 颜色 token 按 `:root` 和 `[data-theme="dark"]` 分两层，当前仅实现亮色层 |
 | Spring 动画 | `motion` 库（原 Framer Motion），默认 `damping: 1.0`（无回弹），手势交互时 `damping: ~0.8` |
 | 毛玻璃材质 | `backdrop-filter: blur() saturate()` + 半透明背景 |
+| 滚动条 | Apple 风格浅色细滚动条：token 化（`--color-scrollbar`），细宽圆角无轨道 thumb，hover 加深，暗色模式自动适配 |
 | 排版 | `system-ui` 字体栈；大标题 `letter-spacing: -0.02em` + `line-height: 1.05`；正文 `line-height: 1.5`；所有间距使用 `rem`/`em` |
 | 减少动效 | `@media (prefers-reduced-motion: reduce)` 降级为 opacity 淡入淡出 |
 | 响应式 | 移动优先，breakpoint 以内容自然断点为准（非固定设备宽度） |
@@ -110,15 +110,13 @@ draft: false               # true = 构建时跳过
 
 ### 当前状态
 
-技术文档暂无积累，从零开始。
+已有 9 篇真实技术文档（ComfyUI/FLUX/Gyroflow/Qwen/ASR/ReActor/VT 故障报告/WSL2 音频），存放在 `src/content/docs/`。
 
 ### 空内容降级策略
 
 | 页面 | 空状态表现 |
 |---|---|
 | 文档列表 | 居中提示"暂无文档"，附带引导说明 |
-| 分类页 | 提示"该分类暂无文档" |
-| 时间归档 | 提示"暂无归档文档" |
 | 搜索（无结果） | "未找到匹配的文档" + 搜索建议 |
 | 精选文档区 | 首页不展示该区块，不存在时不渲染 |
 

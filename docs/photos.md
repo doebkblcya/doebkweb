@@ -56,15 +56,17 @@ done
 
 ### 5. 添加数据条目
 
-编辑 `src/data/photos.ts`，为每张照片添加一条记录：
+编辑 `src/data/photos.ts`，为每张照片添加一条记录（`Photo` 接口：`date` 必填，`note` 可选）：
 
 ```ts
 {
   src:   `${R2_PHOTOS}/originals/IMG_0001.jpg`,
   thumb: `${R2_PHOTOS}/thumbs/IMG_0001.webp`,
   alt:   "照片描述",
-  width: 6192,
-  height: 4128,
+  width: 2000,
+  height: 1333,
+  date:  "2026-07-25T19:44:41",
+  note:  "拍摄说明（可选）",
 }
 ```
 

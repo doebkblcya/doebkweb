@@ -23,8 +23,6 @@ export const ui: UIStrings = {
 
   about: {
     title: "关于我",
-    resumeDesc: "如需完整简历，可点击下方按钮下载 PDF 版本。",
-    downloadResume: "下载 PDF 简历",
   },
 
   docs: {
@@ -32,7 +30,7 @@ export const ui: UIStrings = {
     emptyList: "暂无文档",
     published: "发布于",
     updated: "更新于",
-    readingTime: "分钟阅读",
+    toc: "目录",
     sortNewest: "最新",
     sortOldest: "最早",
     searchPlaceholder: "搜索文档…",
