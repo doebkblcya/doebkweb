@@ -1,4 +1,4 @@
-# 🎧 doebkweb
+# doebkweb
 
 > 个人静态技术站点 — 程序员名片 · 技术文档知识库 · 摄影画廊 · 唱片架
 
@@ -12,34 +12,34 @@ Apple Design 风格的纯静态站点,基于 [Astro](https://astro.build) 构建
 
 ---
 
-## ✨ 功能
+## 功能
 
 | 功能 | 说明 |
 |---|---|
-| 📄 **技术文档** | 9 篇真实技术文档,Markdown 内容 + Shiki 语法高亮;右侧目录 rail(滚动高亮)、表格横向滚动、kbd / 折叠块 / 外部链接标识等增强渲染 |
-| 🔍 **全文搜索** | Pagefind 构建时索引,文档列表页内嵌下拉搜索,毛玻璃面板 + 键盘导航(↑↓ / Enter / Esc) |
-| 🎵 **音乐播放器** | 黑胶唱片动画(旋转 + 唱臂联动)、专辑架联动播放;View Transitions 跨页持久化,切页不中断;曲序由数据层 `trackNo` 排序 |
-| 📷 **摄影画廊** | 响应式网格 + 原生懒加载,Lightbox 全屏预览(键盘 ← → / Esc 导航) |
-| 🌐 **双语 UI** | 中 / 英文案,TypeScript 接口约束结构一致;文档内容不翻译,仅 UI 翻译 |
-| 📱 **多端适配** | 桌面完整侧栏,iPad 竖屏保留侧栏,手机(≤640px)汉堡抽屉导航;播放器面板横屏可滚动 |
-| 🎨 **暗色预留** | Design Tokens 单文件换肤,`[data-theme="dark"]` 变量已就绪 |
+| **技术文档** | 9 篇真实技术文档,Markdown 内容 + Shiki 语法高亮;右侧目录 rail(滚动高亮)、表格横向滚动、kbd / 折叠块 / 外部链接标识等增强渲染 |
+| **全文搜索** | Pagefind 构建时索引,文档列表页内嵌下拉搜索,毛玻璃面板 + 键盘导航(↑↓ / Enter / Esc) |
+| **音乐播放器** | 黑胶唱片动画(旋转 + 唱臂联动)、专辑架联动播放;View Transitions 跨页持久化,切页不中断;曲序由数据层 `trackNo` 排序 |
+| **摄影画廊** | 响应式网格 + 原生懒加载,Lightbox 全屏预览(键盘 ← → / Esc 导航) |
+| **双语 UI** | 中 / 英文案,TypeScript 接口约束结构一致;文档内容不翻译,仅 UI 翻译 |
+| **多端适配** | 桌面完整侧栏,iPad 竖屏保留侧栏,手机(≤640px)汉堡抽屉导航;播放器面板横屏可滚动 |
+| **暗色预留** | Design Tokens 单文件换肤,`[data-theme="dark"]` 变量已就绪 |
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 ```bash
 pnpm install        # 安装依赖
 pnpm dev            # 开发服务器 → http://localhost:4321
 pnpm build          # 生产构建 → dist/
-pnpm preview        # 本地预览构建产物（含 Pagefind 搜索）
+pnpm preview        # 本地预览构建产物(含 Pagefind 搜索)
 ```
 
 **部署**:`git push main` → Cloudflare Pages 自动构建分发,媒体资源走 R2 CDN(`cdn.doebkblcya.com`)。
 
 ---
 
-## 🛠 技术栈
+## 技术栈
 
 | 层 | 选型 |
 |---|---|
@@ -52,7 +52,7 @@ pnpm preview        # 本地预览构建产物（含 Pagefind 搜索）
 
 ---
 
-## 📁 目录结构
+## 目录结构
 
 ```
 doebkweb/
@@ -77,7 +77,7 @@ doebkweb/
 
 ---
 
-## 📚 项目文档
+## 项目文档
 
 | 文件 | 内容 |
 |---|---|
@@ -90,6 +90,6 @@ doebkweb/
 
 ---
 
-## 📄 许可
+## 许可
 
 Copyright © 2026 doebkblcya · [个人主页](https://doebkblcya.com) · 未经授权禁止转载
