@@ -49,7 +49,7 @@ doebkweb/
 │   │   └── BaseLayout.astro       #   全局布局骨架（侧边栏 + 内容区 + 页脚）
 │   │
 │   ├── components/                # 可复用组件
-│   │   ├── Sidebar.astro          #   左侧导航栏（7.5rem，导航 + 设置面板入口）
+│   │   ├── Sidebar.astro          #   左侧导航栏（7.5rem，导航 + 设置面板入口；≤640px 变汉堡抽屉）
 │   │   ├── VinylPlayer.astro      #   唱片播放器（迷你碟触发 + 展开面板，View Transition 持久化）
 │   │   ├── LanguageSettings.astro #   语言切换弹窗（居中窗口）
 │   │   └── Footer.astro           #   页脚（hideFooter prop 控制）
@@ -150,7 +150,8 @@ BaseLayout.astro
   ├── 始终渲染（所有页面）：
   │   ├── <audio id="audio" data-astro-transition-persist="audio" />  # 音频元素，跨页持久化
   │   ├── <VinylPlayer data-astro-transition-persist="vinyl-player" /> # 唱片播放器，跨页持久化
-  │   ├── <Sidebar />                    # 始终渲染，首页靠 CSS 隐藏（不再用 hideHeader 条件）
+  │   ├── <Sidebar />                    # 始终渲染，首页靠 CSS 隐藏（不再用 hideHeader 条件）；内含汉堡按钮 nav-trigger + 遮罩 nav-mask（≤640px）
+  │   │                                  #   交互走 inline onclick → window.__vt_toggleNav / __vt_closeNav（VT-safe）
   │   ├── <main><slot /></main>
   │   └── {!hideFooter && <Footer />}    # 页脚，首页隐藏
   └── 首页：body 无 has-sidebar class → Sidebar / VinylPlayer 均 CSS 隐藏
@@ -281,6 +282,7 @@ VPS（FastAPI，独立服务）
 - 摄影页（网格 + 懒加载 + Lightbox，3 张照片已上传 R2）
 - 唱片播放器（persist 持久化，唱片旋转 + 唱臂联动，曲名悬停滚动动画）
 - 全局滚动条（Apple 风格浅色细滚动条：token 化 + 双引擎实现，页面与播放器面板统一）
+- 多端适配（v1.3）：移动端汉堡导航（≤640px 侧栏变抽屉，遮罩/Escape/点链接关闭，VT-safe）、断点 768→640（iPad 竖屏保留侧栏）、播放器面板限高（max-height + 内部滚动，横屏可用）、首页宽度 token 对齐
 - Footer 页脚 + skip-link 无障碍跳转
 - i18n 中英文 UI 切换
 - Cloudflare R2 媒体托管 + Pages 部署（git push main 自动构建）
@@ -288,7 +290,6 @@ VPS（FastAPI，独立服务）
 未实现：
 - Motion spring 动效（依赖已装 ^12.11，代码尚未使用）
 - 暗色模式（CSS 变量已预留）
-- 移动端汉堡菜单
 - LRC 歌词展示 UI（数据字段已预留）
 - RSS / sitemap
 

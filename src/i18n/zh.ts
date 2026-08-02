@@ -13,6 +13,7 @@ export const ui: UIStrings = {
     music: "音乐",
     photos: "摄影",
     github: "GitHub",
+    menu: "菜单",
   },
 
   home: {

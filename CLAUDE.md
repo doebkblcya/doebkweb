@@ -34,6 +34,7 @@ Astro ^5.6 · Motion ^12.11 · Pagefind · Shiki 代码高亮 · Cloudflare Page
 - **媒体资源**：大文件走 R2（`cdn.doebkblcya.com`），小文件放 `public/`
 - **动画**：简单交互用 CSS transition，spring 物理动效用 Motion 库。`prefers-reduced-motion` 降级为 opacity
 - **音乐**：`src/data/music.json` 是唯一数据源，加专辑只改这一个文件（曲序用 `trackNo` 字段，数据层排序，数组书写顺序不承担语义）
+- **响应式**：断点 **640px** 是手机分界（≤640：汉堡抽屉接管侧栏、播放器全宽面板；≥641：完整侧栏）。播放器面板有 `max-height: calc(100vh - var(--space-6))` + 内部滚动限高，勿移除。汉堡交互在 Sidebar.astro（`#nav-trigger` / `#nav-mask`），走 `window.__vt_toggleNav/CloseNav`（inline onclick，VT-safe），切页由 `astro:after-swap` 重置。docs 列表页通栏铺满为设计决定，勿加限宽
 - **View Transitions**：VT 只替换 DOM，不执行 body 内 `<script>` → 切页回来后所有 `addEventListener` 丢失。**所有非 persist 元素的交互必须用 inline HTML 属性。**
   - **`onclick=""`**：页面交互的唯一入口。逻辑全部放在 `window.__vt_xxx` 全局函数中，函数内每次 `document.getElementById` 取最新 DOM，不依赖闭包。
   - **`document` 级监听**（keyboard）：存 `window.__vt_xxx`，每次脚本执行先 `removeEventListener` 旧函数再 `addEventListener` 新函数。

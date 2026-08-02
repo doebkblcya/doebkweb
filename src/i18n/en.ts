@@ -14,6 +14,7 @@ export const ui: UIStrings = {
     music: "Music",
     photos: "Photos",
     github: "GitHub",
+    menu: "Menu",
   },
 
   home: {

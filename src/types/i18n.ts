@@ -17,6 +17,8 @@ export interface NavStrings {
   music: string;
   photos: string;
   github: string;
+  /** 移动端汉堡按钮的 aria-label */
+  menu: string;
 }
 
 export interface HomeStrings {

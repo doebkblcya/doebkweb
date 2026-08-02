@@ -623,7 +623,10 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
       opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
       transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
       visibility 0ms 300ms;
-    overflow: hidden;
+    /* 限高 + 内部滚动：横屏/矮屏(如 667×375)面板超高时内容可到达 */
+    max-height: calc(100vh - var(--space-6));
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .vinyl-panel.open {
@@ -963,7 +966,7 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
   }
 
   /* ── Mobile ─────────────────────────────────────── */
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     .vinyl-app {
       top: var(--space-3);
       right: var(--space-3);

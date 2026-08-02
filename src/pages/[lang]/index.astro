@@ -59,7 +59,8 @@ const navButtons = [
 
   .welcome-inner {
     width: 100%;
-    max-width: 64rem;
+    /* 与宽度 token 统一(64rem == --max-width-wide) */
+    max-width: var(--max-width-wide);
     margin: 0 auto;
   }
 

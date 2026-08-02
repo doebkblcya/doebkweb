@@ -48,7 +48,32 @@ function isActive(itemHref: string): boolean {
   </div>
 </aside>
 
+<!-- Mobile nav: hamburger trigger + mask (≤640px only; 首页由 CSS 隐藏,自带大按钮) -->
+<button
+  class="nav-trigger"
+  id="nav-trigger"
+  aria-label={t.nav.menu}
+  aria-expanded="false"
+  aria-controls="sidebar"
+  onclick="window.__vt_toggleNav()"
+>
+  <span class="nav-trigger-line"></span>
+  <span class="nav-trigger-line"></span>
+  <span class="nav-trigger-line"></span>
+</button>
+<div class="nav-mask" id="nav-mask" onclick="window.__vt_closeNav()" aria-hidden="true"></div>
+
 <script>
+  // Mobile drawer 全局函数类型声明(本组件 script 是纯 TS 处理,需显式声明 window 扩展)
+  declare global {
+    interface Window {
+      __vt_toggleNav: () => void;
+      __vt_closeNav: () => void;
+      __vt_drawerLinkClick?: (e: MouseEvent) => void;
+      __vt_drawerKeydown?: (e: KeyboardEvent) => void;
+    }
+  }
+
   (function () {
     var sidebar = document.getElementById("sidebar");
     if (!sidebar) return;
@@ -76,6 +101,42 @@ function isActive(itemHref: string): boolean {
 
     moveToActive();
 
+    // ── Mobile drawer (≤640px): hamburger trigger + mask ──
+    // VT-safe: inline onclick 入口,window 函数,每次取最新 DOM
+    window.__vt_toggleNav = function () {
+      var sb = document.getElementById("sidebar");
+      if (!sb) return;
+      var open = sb.classList.toggle("is-open");
+      var mask = document.getElementById("nav-mask");
+      var trig = document.getElementById("nav-trigger");
+      if (mask) mask.classList.toggle("is-visible", open);
+      if (trig) trig.setAttribute("aria-expanded", open ? "true" : "false");
+      document.body.classList.toggle("nav-lock", open);
+    };
+    window.__vt_closeNav = function () {
+      var sb = document.getElementById("sidebar");
+      var mask = document.getElementById("nav-mask");
+      var trig = document.getElementById("nav-trigger");
+      if (sb) sb.classList.remove("is-open");
+      if (mask) mask.classList.remove("is-visible");
+      if (trig) trig.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("nav-lock");
+    };
+    // 点击导航链接后关闭抽屉(仅移动端)
+    if (window.__vt_drawerLinkClick) document.removeEventListener("click", window.__vt_drawerLinkClick);
+    window.__vt_drawerLinkClick = function (e: MouseEvent) {
+      if (window.innerWidth > 640) return;
+      var target = e.target instanceof Element ? e.target : null;
+      if (target && target.closest(".nav-item")) window.__vt_closeNav();
+    };
+    document.addEventListener("click", window.__vt_drawerLinkClick);
+    // Escape 关闭抽屉(remove-before-add 防累积)
+    if (window.__vt_drawerKeydown) document.removeEventListener("keydown", window.__vt_drawerKeydown);
+    window.__vt_drawerKeydown = function (e) {
+      if (e.key === "Escape") window.__vt_closeNav();
+    };
+    document.addEventListener("keydown", window.__vt_drawerKeydown);
+
     // Hover: slider follows cursor
     navList?.addEventListener("mouseover", function (e) {
       var target = e.target instanceof Element ? e.target : null;
@@ -88,6 +149,8 @@ function isActive(itemHref: string): boolean {
     });
 
     document.addEventListener("astro:after-swap", function () {
+      // VT 切页:persist 侧栏保留 class,重置抽屉关闭状态
+      window.__vt_closeNav();
       var sb = document.getElementById("sidebar");
       if (!sb) return;
       var path = window.location.pathname.replace(/^\/[a-z]{2}\//, "/");
@@ -184,9 +247,76 @@ function isActive(itemHref: string): boolean {
     flex-shrink: 0;
   }
 
-  @media (max-width: 768px) {
-    .sidebar {
-      display: none;
+  /* ── Mobile nav trigger (hamburger) ──────────── */
+  .nav-trigger {
+    position: fixed;
+    top: var(--space-3);
+    left: var(--space-3);
+    z-index: 120;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .nav-trigger-line {
+    width: 1.25rem;
+    height: 1.5px;
+    background: var(--color-text-primary);
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  /* 遮罩:内容之上(z 95)、侧栏(z 100)之下,点击关闭 */
+  .nav-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+  }
+
+  .nav-mask.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  body.nav-lock {
+    overflow: hidden;
+  }
+
+  /* 640 断点:真手机侧栏变抽屉(汉堡接管);iPad 竖屏(768)保留完整侧栏 */
+  @media (max-width: 640px) {
+    .nav-trigger {
+      display: flex;
     }
+
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      box-shadow: 8px 0 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar.is-open {
+      transform: translateX(0);
+    }
+  }
+
+  /* 首页(body 无 has-sidebar):汉堡与遮罩均隐藏——首页自带大按钮导航 */
+  body:not(.has-sidebar) .nav-trigger,
+  body:not(.has-sidebar) .nav-mask {
+    display: none;
   }
 </style>
