@@ -354,10 +354,26 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
       if (reviewOpen && tracksOpen) toggleTracks();
     }
     function closeSubPanels() { if (tracksOpen) toggleTracks(); if (reviewOpen) toggleReview(); }
+    // 面板弹入/收起:opacity+scale 由 Motion spring 驱动(可中断,快速开关直接转向)。
+    // 动画实现挂 window.__vt_panelAnimate(独立 script 块)——本 script 带 define:vars
+    // 会被内联输出,无法 import 包;动画结束后清 inline 落回 CSS 值。
+    // CSS 已移除这两属性的 transition(见 .vinyl-panel 样式注释),.open class 负责
+    // visibility 瞬时切换与 max-height 限高。
+    function runPanelAnim(panel, open) {
+      var anim = window.__vt_panelAnimate;
+      if (!anim) return;
+      anim(panel, open).finished.then(function () {
+        if (panel) { panel.style.opacity = ""; panel.style.transform = ""; }
+      }).catch(function () {});
+    }
+
     function openPanel() {
       var e = els();
       panelOpen = true;
-      if (e.panel) e.panel.classList.add("open");
+      if (e.panel) {
+        e.panel.classList.add("open");
+        runPanelAnim(e.panel, true);
+      }
       if (e.trigger) e.trigger.classList.add("hidden");
       applyPlayingState(_playing());
       var ctx = _albumCtx();
@@ -366,7 +382,18 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
     function closePanel() {
       var e = els();
       panelOpen = false;
-      if (e.panel) e.panel.classList.remove("open");
+      if (e.panel) {
+        // 先播收起动画,结束后移除 .open(class 移除后 visibility 回 hidden,
+        // CSS 基础态 opacity 0/scale 0.3 与动画终值一致,无跳变)
+        var anim = window.__vt_panelAnimate;
+        if (anim) {
+          anim(e.panel, false).finished.then(function () {
+            if (e.panel && !panelOpen) e.panel.classList.remove("open");
+          }).catch(function () {});
+        } else {
+          e.panel.classList.remove("open");
+        }
+      }
       if (e.trigger) e.trigger.classList.remove("hidden");
       closeSubPanels();
     }
@@ -513,6 +540,27 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
   })();
 </script>
 
+<!-- 面板弹入/收起 spring 动画 —— 独立 script 块:
+     主 script 带 define:vars 会被内联输出(无法 import 包),动画实现放这里挂 window。
+     主 script 同步先执行,用户点击时本函数已就绪;未定义时主 script 退化为瞬时 class 切换 -->
+<script>
+  import { animate, spring } from "motion";
+
+  declare global {
+    interface Window {
+      __vt_panelAnimate?: (panel: HTMLElement, open: boolean) => ReturnType<typeof animate>;
+    }
+  }
+
+  window.__vt_panelAnimate = function (panel, open) {
+    return animate(
+      panel,
+      open ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.3 },
+      { type: spring, stiffness: 380, damping: 32, reduceMotion: true }
+    );
+  };
+</script>
+
 <style>
   /* ── Root container ─────────────────────────────── */
   .vinyl-app {
@@ -619,11 +667,8 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
     visibility: hidden;
     transform: scale(0.3);
     transform-origin: top right;
-    transition:
-      opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      visibility 0ms 300ms;
-    /* 限高 + 内部滚动：横屏/矮屏(如 667×375)面板超高时内容可到达 */
+    /* opacity/transform 由 Motion spring 驱动(JS inline),CSS 只留基础态值,勿加 transition;
+       visibility 由 .open class 瞬时切换;max-height 限高保留 */
     max-height: calc(100vh - var(--space-6));
     overflow-x: hidden;
     overflow-y: auto;
@@ -633,10 +678,6 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
     opacity: 1;
     visibility: visible;
     transform: scale(1);
-    transition:
-      opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      visibility 0ms 0ms;
   }
 
   .panel-inner {

@@ -34,6 +34,12 @@ Astro ^5.6 · Motion ^12.11 · Pagefind · Shiki 代码高亮 · Cloudflare Page
 - **Content Collections**：Markdown 放 `src/content/docs/`，frontmatter 必填 `title`、`date`、`summary`；可选 `updated`、`draft`、`listed`（schema 见 `src/content/config.ts`，无 `category` 字段）
 - **媒体资源**：大文件走 R2（`cdn.doebkblcya.com`），小文件放 `public/`
 - **动画**：简单交互用 CSS transition，spring 物理动效用 Motion 库。`prefers-reduced-motion` 降级为 opacity
+- **Motion 约定**（v1.5，vanilla `motion` 包，import { animate, spring, inView } from "motion"）：
+  - **transform 所有权**：被 JS 动画接管的属性（transform/opacity）必须从该元素 CSS 移除 transition——否则 CSS transition 与 JS 内联值互相干扰。CSS 只留基础态值（首帧正确），JS 动画结束清 inline 落回 CSS
+  - **清理时序**：Motion 完成时终值写回 inline 晚于 `finished` resolve——`finished.then` 里需 `requestAnimationFrame` 延迟一帧再清（否则残留如 `translateX(-100%)` 在桌面断点无 CSS transform 时会移出屏）
+  - **`reduceMotion: true`**（vanilla 选项；`reducedMotion: "user"` 是 React MotionConfig 的 props，vanilla animate 无此字段）——每处动画都加，系统偏好下自动降级为纯 opacity 淡入
+  - **`define:vars` 脚本内联输出，不能 import**——动画逻辑放独立 `<script>` 块（打包 module），主脚本经 `window.__vt_xxx` 桥接调用（例：VinylPlayer 的 `__vt_panelAnimate`）
+  - persist 组件脚本只在首载执行一次；页面级脚本每次 VT 导航重跑 → 入场动画（inView + stagger）天然切页重放
 - **音乐**：`src/data/music.json` 是唯一数据源，加专辑只改这一个文件（曲序用 `trackNo` 字段，数据层排序，数组书写顺序不承担语义）
 - **响应式**：断点 **640px** 是手机分界（≤640：汉堡抽屉接管侧栏、播放器全宽面板；≥641：完整侧栏）。播放器面板有 `max-height: calc(100vh - var(--space-6))` + 内部滚动限高，勿移除。汉堡交互在 Sidebar.astro（`#nav-trigger` / `#nav-mask`），走 `window.__vt_toggleNav/CloseNav`（inline onclick，VT-safe），切页由 `astro:after-swap` 重置。docs 列表页通栏铺满为设计决定，勿加限宽
 - **View Transitions**：VT 只替换 DOM，不执行 body 内 `<script>` → 切页回来后所有 `addEventListener` 丢失。**所有非 persist 元素的交互必须用 inline HTML 属性。**

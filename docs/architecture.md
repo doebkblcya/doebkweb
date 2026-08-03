@@ -256,13 +256,38 @@ src/data/playlist.ts          ← 类型 + getFlatTracks() + getTrackUrl()
 
 | 场景 | 实现 | 参数 |
 |---|---|---|
+| 页面切换过渡 | Astro `transition:animate` 方向感知 slide+fade（自定义 `@keyframes vt-*`，forwards 右滑入/backwards 左滑入，`BaseLayout.astro` frontmatter `vtTransition`） | new 0.38s `cubic-bezier(0.16,1,0.3,1)`，old 0.28s ease-out，±24px |
+| 结构性动画（抽屉/面板/设置弹窗） | Motion `animate` + `spring`（JS 驱动 transform/opacity） | `{ type: spring, stiffness: 380, damping: 32, reduceMotion: true }` |
+| 内容入场（列表页） | Motion `inView` + 手动 stagger 延迟（`0.15 + idx * 0.06/0.08/0.05`） | `visualDuration: 0.55, bounce: 0.1`，初始态 JS 设（opacity 0 + translateY(10px)） |
+| 首页入场 | CSS `@keyframes fadeUp/fadeIn`（stagger 延迟写死） | 800/600/500ms `cubic-bezier(0.16,1,0.3,1)` |
 | 链接/按钮 hover | CSS `transition` | 150ms ease |
-| 按钮 press | CSS `transform: scale(0.97)` | — |
-| 卡片 hover | CSS `scale(1.01)` + `box-shadow` | 150ms |
-| 导航当前项 | 静态 `is-active` class（颜色） | — |
-| 页面切换动画 | Motion 库（后续） | damping 1.0, response 0.3s |
-| 滚动视差/手势 | Motion 库（后续） | damping 0.8, response 0.3s |
-| 减少动效 | `@media (prefers-reduced-motion)` | opacity 渐变降级 |
+| 卡片 hover / 黑胶滑出 | CSS `transition`（hover 微交互 CSS 更稳） | 150-500ms cubic-bezier |
+| 循环动画（黑胶 spin/曲名滚动/EQ） | CSS `@keyframes` | — |
+| 减少动效 | Motion `reduceMotion: true`（降级为 opacity 淡入）+ CSS `@media (prefers-reduced-motion: reduce)` 兜底（含 `::view-transition-*` 禁用） | — |
+
+### Motion 架构（v1.5）
+
+```
+import { animate, spring, inView } from "motion"   ← vanilla API，非 React
+
+transform 所有权:  JS 动画接管的属性(transform/opacity) → CSS 移除 transition,
+                 只留基础态值;动画结束清 inline 落回 CSS 值
+清理时序:         Motion 终值写回 inline 晚于 finished resolve →
+                 finished.then 里 requestAnimationFrame 延迟一帧再清
+reduceMotion:     true —— 系统偏好下自动禁用 transform 动画(保留 opacity)
+
+脚本层:
+  BaseLayout.astro    transition:animate={vtTransition} + @keyframes vt-*(is:global)
+  Sidebar.astro       __vt_toggleNav / __vt_closeNav(instant) → navTo() Motion spring
+  VinylPlayer.astro   __vt_panelAnimate(独立 script 块,window 桥接)——主 script 带
+                      define:vars 内联输出无法 import,动画实现放独立块
+  LanguageSettings    open()/close() → animate(modal) spring,finished 后再设 hidden
+  三个列表页          独立 <script> 块:JS 设初始态 → inView 触发 → stagger 延迟
+```
+
+**define:vars 陷阱**：带 `define:vars` 的 script 会被 Astro 内联输出（非 module），**静态 import 会报 "Cannot use import statement outside a module"**——动画代码必须放独立 `<script>` 块（打包为 module），经 `window.__vt_xxx` 桥接。
+
+**脚本执行模型**：persist 组件（Sidebar/VinylPlayer/LanguageSettings）脚本只在首载执行一次（dataset 守卫），动画闭包注册到 `window.__vt_*` 跨页有效；页面级脚本每次 VT 导航重跑 → 入场动画切页重放。
 
 ---
 
@@ -314,8 +339,9 @@ VPS（FastAPI，独立服务）
 - Cloudflare R2 媒体托管 + Pages 部署（git push main 自动构建）
 
 未实现：
-- Motion spring 动效（依赖已装 ^12.11，代码尚未使用）
 - LRC 歌词展示 UI（数据字段已预留）
 - RSS / sitemap
+- 滚动视差/drag（刻意不做：装饰性，违背 Apple 克制原则；TOC 高亮已有 IntersectionObserver）
+- 迷你碟→大碟 morph（v1.5 评估后搁置，见 roadmap 未来方向）
 
 搁置：简历下载模块（代码与 i18n 文案已移除，如重启需恢复 about 页按钮 + resume.pdf）

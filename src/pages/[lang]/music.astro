@@ -197,6 +197,37 @@ const dataJson = JSON.stringify({
   };
 </script>
 
+<!-- 内容入场:独立 script 块(define:vars 脚本被视为 inline,不能 import/TS 注解)。
+     作用于外层 .album-sleeve,不干扰内部黑胶滑出的 hover transform;
+     每次 VT 导航重跑 → 切页后入场动画重放 -->
+<script>
+  import { animate, inView, spring } from "motion";
+
+  (function () {
+    var sleeves: HTMLElement[] = Array.prototype.slice.call(document.querySelectorAll(".album-sleeve"));
+    if (!sleeves.length) return;
+    // JS 设初始态(无 JS 时内容保持可见);每卡片进入视口触发一次,
+    // 延迟按原顺序递增形成交错;reduced-motion 降级为淡入(跳过位移)
+    sleeves.forEach(function (el) {
+      el.style.opacity = "0";
+      el.style.transform = "translateY(10px)";
+    });
+    inView(".album-sleeve", function (el) {
+      var card = el as HTMLElement;
+      var idx = sleeves.indexOf(card);
+      animate(card, { opacity: 1, y: 0 }, {
+        type: spring, visualDuration: 0.55, bounce: 0.1,
+        delay: 0.15 + Math.max(idx, 0) * 0.08,
+        reduceMotion: true,
+      }).finished.then(function () {
+        card.style.opacity = "";
+        card.style.transform = "";
+      }).catch(function () {});
+      return function () {}; // 触发一次后取消观察
+    });
+  })();
+</script>
+
 <style>
   /* ── Toolbar ─────────────────────────────────── */
   .toolbar {

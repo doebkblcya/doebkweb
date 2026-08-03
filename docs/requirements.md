@@ -70,7 +70,7 @@ listed: true               # 可选，false = 不出现在文档列表（如 abo
 
 - **核心功能必须实现**：页面导航、文档列表/详情、内嵌搜索
 - **暂缓开发**：RSS 订阅、sitemap 自动生成
-- **已实现**：暗色/亮色模式切换（三段式 浅色/深色/自动，v1.4）
+- **已实现**：暗色/亮色模式切换（三段式 浅色/深色/自动，v1.4）；动效打磨（Motion spring 结构性动画 + 方向感知页面过渡 + 列表页入场，v1.5）
 
 ---
 
@@ -92,7 +92,7 @@ listed: true               # 可选，false = 不出现在文档列表（如 abo
 |---|---|
 | 整体可换肤 | CSS 自定义属性（design tokens）集中管理颜色、间距、字体、阴影 |
 | 暗色模式 | 颜色 token 按 `:root` 和 `[data-theme="dark"]` 分两层；三段式切换（浅色/深色/自动），localStorage 记忆 + 跟随系统 |
-| Spring 动画 | `motion` 库（原 Framer Motion），默认 `damping: 1.0`（无回弹），手势交互时 `damping: ~0.8` |
+| Spring 动画 | `motion` 库 vanilla API（`animate`/`spring`/`inView`，v1.5 落地）；结构性动画 `{ type: spring, stiffness: 380, damping: 32, reduceMotion: true }`，入场动画 `visualDuration: 0.55, bounce: 0.1` |
 | 毛玻璃材质 | `backdrop-filter: blur() saturate()` + 半透明背景 |
 | 滚动条 | Apple 风格浅色细滚动条：token 化（`--color-scrollbar`），细宽圆角无轨道 thumb，hover 加深，暗色模式自动适配 |
 | 排版 | `system-ui` 字体栈；大标题 `letter-spacing: -0.02em` + `line-height: 1.05`；正文 `line-height: 1.5`；所有间距使用 `rem`/`em` |

@@ -11,6 +11,7 @@
 | v1.2 | ✅ 完成 | 内容迁移与精简（9 篇真实技术文档、组件精简、归档/分类页移除、搜索并入列表页） |
 | v1.3 | ✅ 完成 | 多端适配（移动端汉堡导航、断点 640、播放器面板限高、宽度 token 对齐） |
 | v1.4 | ✅ 完成 | 三段式主题切换（浅色/深色/自动：侧栏快捷按钮 + 设置面板分段控件、Shiki 双主题、VT 兼容） |
+| v1.5 | ✅ 完成 | 动效打磨（Motion spring 结构性动画：抽屉/播放器面板/设置弹窗；方向感知页面过渡；列表页入场动画；reduced-motion 降级） |
 
 > 说明：v0.4（Motion 动效）与 v1.0（正式上线）从未独立成版本——部署上线实际随 v1.1 完成，动效/SEO 等未做内容并入「未来方向」。
 
@@ -226,13 +227,31 @@
 
 ---
 
-## 未来方向（v1.5+）
+## v1.5 — 动效打磨（完成）
 
-- 动效打磨（Motion 库，依赖已装 ^12.11 未使用：spring 物理、页面过渡）
+2026-08-03 实施。范围（用户确认）：页面切换过渡 + 结构性动画 spring 化 + 内容入场；滚动视差明确不做。
+
+### 已完成
+
+- **页面切换过渡**：Astro `transition:animate` 方向感知 slide+fade——自定义 `@keyframes vt-in/out-forward/backward`（±24px，new 0.38s `cubic-bezier(0.16,1,0.3,1)` / old 0.28s ease-out），前进右滑入、后退左滑入；persist 元素不参与 root 动画；`prefers-reduced-motion` 下 `::view-transition-*` 禁用
+- **结构性动画 spring 化**（Motion vanilla `animate` + `spring`，`{ stiffness: 380, damping: 32, reduceMotion: true }`，可中断可反转）：
+  - 汉堡抽屉滑入/滑出（`__vt_toggleNav` / `__vt_closeNav(instant)`；after-swap 走 instant 不播动画）
+  - 播放器面板弹入/收起（`__vt_panelAnimate` 独立 script 块桥接——主 script 带 define:vars 内联输出无法 import）
+  - 设置面板 modal 弹出/关闭（动画结束才设 hidden）
+- **内容入场**：docs/music/photos 三列表页 `inView` + stagger 延迟（JS 设初始态 opacity 0 + translateY(10px)，动画结束清 inline；排序/搜索重排不重放；reduced-motion 降级为淡入）
+- **transform 所有权约定**：JS 接管属性的 CSS transition 移除，只留基础态值；`finished.then` 内 rAF 延迟一帧清理（Motion 终值写回晚于 resolve，避免残留 transform 在桌面断点移出侧栏）
+- **验证**：Playwright 实测过渡动画激活（vt-in/out）、抽屉/面板/设置 spring 中间值与终态、入场 0→1、reduced-motion 降级（入场淡入 + 过渡禁用）、桌面断点 resize 侧栏可见、v1.4 主题回归；`astro check` 0 errors；console 0 errors
+
+---
+
+## 未来方向（v1.6+）
+
 - 真实内容填充（摄影/音乐/技术文档持续补充）
 - LRC 歌词展示 UI（数据字段已预留）
 - RSS 订阅 + `sitemap.xml` + SEO meta 完善（原 v1.0 计划内容，未动）
+- 迷你碟→大碟 morph 形变动画（v1.5 调研发现缺失，评估后搁置：跨元素形变复杂度高，超出当次范围）
 
 **明确不做**：
+- ~~滚动视差 / drag~~（决策：纯装饰，违背 Apple 克制原则；TOC 高亮已有 IntersectionObserver，2026-08-03）
 - ~~文档标签云/热力图~~（决策：文档规模小，标签体系收益低，2026-08-03）
 - ~~系列文章导航（上一篇/下一篇）~~（决策：文档相互独立、非系列化，2026-08-03）

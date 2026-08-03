@@ -66,6 +66,8 @@ const langOptions = [
 </div>
 
 <script>
+  import { animate, spring } from "motion";
+
   (function () {
     var container = document.getElementById("lang-settings");
     if (!container) return;
@@ -74,17 +76,41 @@ const langOptions = [
 
     var toggle = container.querySelector<HTMLButtonElement>(".lang-toggle");
     var overlay = document.getElementById("settings-overlay");
+    var modal = document.getElementById("settings-modal");
+
+    // 弹窗 pop:modal 的 opacity/scale/y 由 Motion spring 驱动(可中断,快速开关直接转向)。
+    // CSS 只留基础态值与 :not([hidden]) 目标值、无 transition(见 .settings-modal 样式注释);
+    // 动画结束清 inline 落回 CSS 目标值。overlay 背景淡入仍由 CSS transition 负责。
+    var MODAL_SPRING = { type: spring, stiffness: 380, damping: 32, reduceMotion: true };
+    var modalAnim: ReturnType<typeof animate> | null = null;
 
     function open() {
       if (!overlay || !toggle) return;
       overlay.hidden = false;
       toggle.setAttribute("aria-expanded", "true");
+      if (modal) {
+        if (modalAnim) modalAnim.stop();
+        modalAnim = animate(modal, { opacity: 1, scale: 1, y: 0 }, MODAL_SPRING);
+        modalAnim.finished.then(function () {
+          if (modal && overlay && !overlay.hidden) { modal.style.opacity = ""; modal.style.transform = ""; }
+        }).catch(function () {});
+      }
     }
 
     function close() {
       if (!overlay || !toggle) return;
-      overlay.hidden = true;
       toggle.setAttribute("aria-expanded", "false");
+      if (modal) {
+        if (modalAnim) modalAnim.stop();
+        modalAnim = animate(modal, { opacity: 0, scale: 0.95, y: 8 }, MODAL_SPRING);
+        modalAnim.finished.then(function () {
+          // 动画结束再隐藏 overlay(若期间被重开则 finished 已中断,不会走到这里)
+          if (overlay) overlay.hidden = true;
+          if (modal) { modal.style.opacity = ""; modal.style.transform = ""; }
+        }).catch(function () {});
+      } else {
+        overlay.hidden = true;
+      }
     }
 
     toggle?.addEventListener("click", function () {
@@ -158,11 +184,14 @@ const langOptions = [
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
+    opacity: 0;
     transform: scale(0.95) translateY(8px);
-    transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    /* opacity/transform 由 Motion spring 驱动(JS inline),
+       本块为基础态值、下块为打开态目标值,均无 transition */
   }
 
   .settings-overlay:not([hidden]) .settings-modal {
+    opacity: 1;
     transform: scale(1) translateY(0);
   }
 
