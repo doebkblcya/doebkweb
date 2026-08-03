@@ -13,6 +13,7 @@
 | v1.4 | ✅ 完成 | 三段式主题切换（浅色/深色/自动：侧栏快捷按钮 + 设置面板分段控件、Shiki 双主题、VT 兼容） |
 | v1.5 | ✅ 完成 | 动效打磨（Motion spring 结构性动画：抽屉/播放器面板/设置弹窗；方向感知页面过渡；列表页入场动画；reduced-motion 降级） |
 | v1.5.1 | ✅ 完成 | 移动端修复 + VT 监听器审计（汉堡抽屉切页残留、汉堡图标隐藏、iOS 100dvh、i18n 切换、设置弹窗 VT-safe） |
+| v1.6 | ✅ 完成 | 媒体 CLI + R2 immutable 迁移（media 四子命令、photos.json 化、57 对象带缓存头、Microcastle 专辑） |
 
 > 说明：v0.4（Motion 动效）与 v1.0（正式上线）从未独立成版本——部署上线实际随 v1.1 完成，动效/SEO 等未做内容并入「未来方向」。
 
@@ -263,7 +264,26 @@
 
 ---
 
-## 未来方向（v1.6+）
+## v1.6 — 媒体 CLI + R2 immutable 迁移（完成）
+
+2026-08-03 实施。
+
+### 已完成
+
+- **R2 immutable 缓存迁移**：57 个对象（3 专辑音乐 + 6 照片）全部重传并带 `cache-control: public, max-age=31536000, immutable`；边缘缓存 HIT 实测（GET 二次请求）；验证方法修正——**R2 自定义域 HEAD 请求恒 DYNAMIC**（R2 特性），缓存状态必须读 GET 响应头；`.lrc`（text/plain）不在 Cloudflare 默认缓存扩展名列表，回源 32B 无成本，接受不缓存
+- **media CLI**（`scripts/media.mjs`，`pnpm media`）：
+  - `photos <RAW目录>`：exiftool 提取 + sharp 转码（断点续传）→ 上传 → photos.json 条目自动生成（宽高/拍摄日期从 EXIF）
+  - `album <专辑目录>`：music-metadata 读 ID3（标题/艺术家/曲序 TRCK）→ 封面（目录已有 > ncm/ID3 内嵌）统一压缩 1000px q80 → 上传 → 新专辑自动生成 music.json 草稿（交互确认）
+  - `ncm <文件|目录>`：Node 原生解密（AES-128-ECB + XOR + RC4 变体，基于 taurusxin/ncmdump，MIT 注明来源）——实测 ncm 解密产物**自带完整 ID3（含 TRCK 曲序）**；封面区数据提取落盘 cover.jpg；`--remove` 可选删除源文件；无 ffmpeg 依赖
+  - `review`：札记编辑（交互式 + 参数式），写回 music.json / photos.json
+  - 上传核心：v4 API 直传（fetch 不走代理，直连）+ 并发 6 + 重试 ×2 + 流式 body + 上传后自动验证（200/cache-control/content-length/HIT，`.lrc` 跳过 HIT 断言）
+- **摄影数据 JSON 化**：`src/data/photos.json`（数据源）+ `photos.ts`（类型薄导出层）
+- **新专辑 Microcastle（Deerhunter）**：12 首 ncm 解密 → 上传，music.json 条目自动生成（曲序/lrc 全自动）
+- **文档**：新增 `docs/upload.md` 上传指南（媒体 CLI + 文档 git 流程，替代 photos.md）；deployment.md 上传流程改 CLI 主路径 + wrangler 兜底
+
+---
+
+## 未来方向（v1.7+）
 
 - 真实内容填充（摄影/音乐/技术文档持续补充）
 - LRC 歌词展示 UI（数据字段已预留）

@@ -90,24 +90,38 @@ echo 'export CLOUDFLARE_API_TOKEN="你的token"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### 上传文件
+### 上传文件（media CLI，主路径）
 
-**本地准备**：将文件放入 `_r2-upload/` 目录（已加入 `.gitignore`，不提交到 git）。
+本地准备：媒体文件放入 `_r2-upload/` 目录（已加入 `.gitignore`，不提交到 git）。
 
-**CLI 上传（wrangler）**：
+**音乐专辑**（ncm 或 mp3 源）：
+
+```bash
+# ncm 源：解密为 mp3（--remove 可选：成功后删除源 ncm）
+pnpm media ncm _r2-upload/music/<专辑名>/ --out _r2-upload/music/<专辑名>/ --remove
+
+# 上传专辑：读 ID3（曲序/标题/艺术家）→ 封面从 ncm 封面区/ID3 提取压缩 → 上传 → 自动验证
+pnpm media album _r2-upload/music/<专辑名>/
+```
+
+- 新专辑自动生成 `src/data/music.json` 条目（交互确认）；已有专辑只上传不动数据
+- 专辑名 = 目录名（R2 键名前缀）
+- lrc 按歌名自动匹配；`review` 札记用 `pnpm media review --music <专辑名> "文字"` 录入
+
+**照片**：`pnpm media photos <RAW目录>`（详见 `docs/upload.md`）
+
+**缓存头**：所有上传默认带 `cache-control: public, max-age=31536000, immutable`（内容变 → 换文件名上传，见 immutable 纪律）。上传后自动 HEAD 验证（200 + 缓存头 + 边缘缓存 HIT）。
+
+### 上传文件（wrangler 兜底）
+
+如需绕过 CLI 直接操作 R2：
 
 ```bash
 # 关键：需要 --remote 标志 + 关闭代理（代理会拖慢大文件上传）
 unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
 
-# 上传单个文件
-wrangler r2 object put doebkweb/music/<专辑>/<文件名> --file=./原文件 --remote
-
-# 批量上传专辑
-cd _r2-upload/music/<专辑名>/
-for f in *.mp3 *.lrc *.JPG; do
-  wrangler r2 object put "doebkweb/music/<专辑名>/$f" --file="$f" --remote
-done
+wrangler r2 object put "doebkweb/music/<专辑>/<文件>" --file=./原文件 --remote \
+  --cache-control "public, max-age=31536000, immutable"
 ```
 
 > **注意**：不带 `--remote` 时 wrangler 走本地模拟模式，文件不会到达远端 R2。上传大文件必须关闭代理环境变量。

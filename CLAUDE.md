@@ -1,6 +1,6 @@
 # CLAUDE.md — doebkweb
 
-个人静态技术站点：求职名片 + 技术文档知识库。Astro 静态生成，Apple Design 风格。
+个人静态技术站点 — 程序员名片 · 技术文档知识库 · 摄影画廊 · 唱片架。Astro 静态生成，Apple Design 风格。
 
 **CLAUDE.md 保持简洁，详细文档在 `docs/` 目录下。**
 
@@ -57,4 +57,4 @@ Astro ^5.6 · Motion ^12.11 · Pagefind · Shiki 代码高亮 · Cloudflare Page
 | `docs/architecture.md` | 目录结构、路由、数据流、CSS 层级、事件总线 |
 | `docs/deployment.md` | 本地开发、Pages 部署、R2 上传、DNS、故障排查 |
 | `docs/roadmap.md` | 版本历史、已完成功能、待开发计划 |
-| `docs/photos.md` | 照片处理脚本、上传流程、R2 路径规范 |
+| `docs/upload.md` | 上传指南：媒体 CLI（photos/album/ncm/review）+ 文档 git 流程 |

@@ -321,10 +321,21 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
 
     function _wireVolume() {
       var e = els(), a = _audio(); if (!a) return;
+      // 默认音量 0.7，localStorage["doebk-volume"] 持久化用户调整（与主题存储模式一致）
+      var vol = 0.7;
+      try {
+        var saved = localStorage.getItem("doebk-volume");
+        if (saved !== null) {
+          var sv = parseFloat(saved);
+          if (!Number.isNaN(sv) && sv >= 0 && sv <= 1) vol = sv;
+        }
+      } catch { /* 隐私模式 */ }
+      a.volume = vol;
       if (e.volumeSlider) {
         e.volumeSlider.addEventListener("input", function () {
           var v = parseInt(e.volumeSlider.value, 10) / 100;
           if (a) { a.volume = v; a.muted = false; }
+          try { localStorage.setItem("doebk-volume", String(v)); } catch { /* 忽略 */ }
           syncVolumeUI();
         });
       }
@@ -1007,7 +1018,13 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
     background: var(--color-bg-surface-hover);
     border-radius: var(--radius-md);
     white-space: pre-wrap;
+    /* 札记引文样式：斜体衬线 + 双引号 + 居中 */
+    font-style: italic;
+    font-family: Georgia, "Songti SC", "Noto Serif SC", serif;
+    text-align: center;
   }
+  .review-text::before { content: "“"; }
+  .review-text::after { content: "”"; }
 
   /* ── Spin animation ─────────────────────────────── */
   @keyframes spin {

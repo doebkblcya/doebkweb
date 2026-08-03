@@ -1,0 +1,27 @@
+[
+  {
+    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05672.jpg",
+    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05672.webp",
+    "alt": "DSC05672",
+    "width": 2000,
+    "height": 1333,
+    "date": "2026-07-25T19:44:41",
+    "note": "test"
+  },
+  {
+    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05674.jpg",
+    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05674.webp",
+    "alt": "DSC05674",
+    "width": 2000,
+    "height": 1333,
+    "date": "2026-07-25T19:45:25"
+  },
+  {
+    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05681.jpg",
+    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05681.webp",
+    "alt": "DSC05681",
+    "width": 2000,
+    "height": 1333,
+    "date": "2026-07-25T19:45:54"
+  }
+]

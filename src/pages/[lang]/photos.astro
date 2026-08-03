@@ -378,6 +378,14 @@ const noNoteI18n = t.photos.noNote;
     padding: 0 var(--space-4);
     min-height: 1.5em;
   }
+  /* 札记引文样式（占位文案不加引号）：斜体衬线 + 双引号 + 大字号 */
+  .lightbox-caption:not(.is-placeholder) {
+    font-style: italic;
+    font-family: Georgia, "Songti SC", "Noto Serif SC", serif;
+    font-size: var(--text-lg);
+  }
+  .lightbox-caption:not(.is-placeholder)::before { content: "“"; }
+  .lightbox-caption:not(.is-placeholder)::after { content: "”"; }
 
   .lightbox-caption.is-placeholder {
     color: rgba(255, 255, 255, 0.2);
