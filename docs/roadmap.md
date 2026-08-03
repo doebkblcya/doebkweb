@@ -14,6 +14,7 @@
 | v1.5 | ✅ 完成 | 动效打磨（Motion spring 结构性动画：抽屉/播放器面板/设置弹窗；方向感知页面过渡；列表页入场动画；reduced-motion 降级） |
 | v1.5.1 | ✅ 完成 | 移动端修复 + VT 监听器审计（汉堡抽屉切页残留、汉堡图标隐藏、iOS 100dvh、i18n 切换、设置弹窗 VT-safe） |
 | v1.6 | ✅ 完成 | 媒体 CLI + R2 immutable 迁移（media 四子命令、photos.json 化、57 对象带缓存头、Microcastle 专辑） |
+| v1.7 | ✅ 完成 | S3 multipart 上传、照片墙 + 札记搜索、播放器/CLI 修复批次、sitemap + SEO meta |
 
 > 说明：v0.4（Motion 动效）与 v1.0（正式上线）从未独立成版本——部署上线实际随 v1.1 完成，动效/SEO 等未做内容并入「未来方向」。
 
@@ -283,14 +284,33 @@
 
 ---
 
-## 未来方向（v1.7+）
+## v1.7 — S3 multipart 上传 + 照片墙/札记搜索 + 修复批次（完成）
+
+2026-08-04 实施。
+
+### 已完成
+
+- **媒体 CLI 上传迁移 S3 API**：v4 API 无 multipart 且单连接被 BDP 限制（~1MB/s）——上传改走 S3（`r2.cloudflarestorage.com`，手写 SigV4 签名零依赖）；>5MB 文件 multipart 分片（5MB/片并发上传）突破单连接瓶颈；新凭证 `CLOUDFLARE_R2_ACCESS_KEY_ID/SECRET_ACCESS_KEY`（R2 → Manage R2 API Tokens）；签名修复：header 名小写化（Content-Type 大写曾致 SignatureDoesNotMatch）+ AWS URI 编码（`!'()*` 必须 %XX）
+- **验证修复**：lrc（text/plain）被 CF 压缩后 HEAD 无 content-length（undici Accept-Encoding）——长度改从 GET Range 206 的 `Content-Range` 解析（不受压缩影响），14/14 lrc 复核通过
+- **photos 支持 JPG**：输入识别 RAW/JPG——RAW exiftool 提取内嵌 JPEG、JPG 直接压缩；竖图逻辑（小图 rotate 像素、大图保留标签、宽高交换）两种输入统一；交互模式扫描含 RAW/JPG 的目录
+- **album 自动 ncm 转换**：纯 ncm 目录（约定不混杂）询问后就地转换 + 删除源，再继续专辑流程
+- **photos.json note 字段恒存在**：生成/清空都写空串（曾 delete 字段导致结构不齐）
+- **照片页**：照片墙视图（`display: contents` 打破日期分组 → 单 grid 连续铺满，前满尾空、图片不放大）+ 时间线切换（默认墙、localStorage 记忆、切换 stagger 淡入重放，样式仿 music 排序控件）；札记搜索（music 同款搜索框，按 note 实时过滤 + 无结果提示）；toolbar 布局与 music 严格一致（搜索前、切换后）
+- **播放器**：唱臂百分比定位（相对唱片 wrap，pivot 恒在右缘外侧等比——修复移动端比例失衡 + 暂停悬臂）；黑胶滑出动画 `@media (hover: hover)` 限定（触屏含平板无 hover 粘滞）；`:active` 去左移只留缩放按压反馈
+- **修复批次**：设置弹窗 VT 切页后困在抽屉（sidebar transform 是 fixed 包含块——open() 时提升 overlay 到 body，inline onclick 兜底不依赖脚本重跑）；侧栏滑块切页瞬时定位（新 DOM 无 inline transform 会从顶部滑下）；摄影札记占位文案与真实札记字体字号统一；搜索框占位文案「搜索摄影札记…」/「Search photo notes…」
+- **sitemap + SEO meta**：`@astrojs/sitemap` 构建自动生成（zh/en 全 URL）；BaseLayout 输出 canonical + og:type/title/description/url/locale；各页专属 description（about/music/photos/docs 文案 + 文档详情用 frontmatter summary）；og:image/twitter:card/JSON-LD/RSS 明确不做
+- **文档**：README/upload.md/deployment.md/architecture.md 同步（S3 凭证、multipart、照片 JPG、照片墙功能表）；CLAUDE.md 补「跨页共享组件脚本 VT 后不重跑」约定
+
+---
+
+## 未来方向（v1.8+）
 
 - 真实内容填充（摄影/音乐/技术文档持续补充）
 - LRC 歌词展示 UI（数据字段已预留）
-- RSS 订阅 + `sitemap.xml` + SEO meta 完善（原 v1.0 计划内容，未动）
-- 迷你碟→大碟 morph 形变动画（v1.5 调研发现缺失，评估后搁置：跨元素形变复杂度高，超出当次范围）
 
 **明确不做**：
 - ~~滚动视差 / drag~~（决策：纯装饰，违背 Apple 克制原则；TOC 高亮已有 IntersectionObserver，2026-08-03）
 - ~~文档标签云/热力图~~（决策：文档规模小，标签体系收益低，2026-08-03）
 - ~~系列文章导航（上一篇/下一篇）~~（决策：文档相互独立、非系列化，2026-08-03）
+- ~~迷你碟→大碟 morph 形变动画~~（决策：跨元素形变复杂度高、收益低，2026-08-04）
+- ~~RSS 订阅~~（决策：个人站读者面窄，订阅收益低，2026-08-04）

@@ -24,10 +24,12 @@ export const ui: UIStrings = {
 
   about: {
     title: "关于我",
+    description: "关于 doebkblcya — 全栈工程师、技术写作者的个人介绍",
   },
 
   docs: {
     title: "文档",
+    description: "技术文档知识库 — 部署、工具链与开发实践",
     emptyList: "暂无文档",
     published: "发布于",
     updated: "更新于",
@@ -44,6 +46,7 @@ export const ui: UIStrings = {
 
   music: {
     title: "音乐",
+    description: "唱片架 — 黑胶风格音乐播放器与专辑收藏",
     emptyList: "暂无音乐",
     sortAlbum: "专辑名",
     sortArtist: "歌手",
@@ -53,8 +56,13 @@ export const ui: UIStrings = {
 
   photos: {
     title: "摄影",
+    description: "摄影画廊 — 照片墙与拍摄札记",
     emptyList: "暂无照片，敬请期待。",
     noNote: "暂无札记",
+    viewTimeline: "时间线",
+    viewWall: "照片墙",
+    searchPlaceholder: "搜索摄影札记…",
+    noResults: "无结果",
   },
 
   notFound: {

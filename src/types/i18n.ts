@@ -29,10 +29,12 @@ export interface HomeStrings {
 
 export interface AboutStrings {
   title: string;
+  description: string;
 }
 
 export interface DocStrings {
   title: string;
+  description: string;
   emptyList: string;
   published: string;
   updated: string;
@@ -49,6 +51,7 @@ export interface DocStrings {
 
 export interface MusicStrings {
   title: string;
+  description: string;
   emptyList: string;
   sortAlbum: string;
   sortArtist: string;
@@ -58,8 +61,13 @@ export interface MusicStrings {
 
 export interface PhotosStrings {
   title: string;
+  description: string;
   emptyList: string;
   noNote: string;
+  viewTimeline: string;
+  viewWall: string;
+  searchPlaceholder: string;
+  noResults: string;
 }
 
 export interface NotFoundStrings {

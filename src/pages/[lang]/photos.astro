@@ -27,7 +27,7 @@ const photosJson = JSON.stringify(photos);
 const noNoteI18n = t.photos.noNote;
 ---
 
-<BaseLayout title={t.photos.title} hideFooter>
+<BaseLayout title={t.photos.title} description={t.photos.description} hideFooter>
   <div class="page">
     <h1 class="page-title">{t.photos.title}</h1>
     <hr class="page-divider" />
@@ -44,7 +44,34 @@ const noNoteI18n = t.photos.noNote;
         <p>{t.photos.emptyList}</p>
       </div>
     ) : (
-      <div id="photo-grid">
+      <>
+      <!-- Toolbar:札记搜索在前(弹性占左)+ 视图切换在后(靠右),仿照 music 搜索/排序布局 -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            id="photo-search"
+            class="search-input"
+            type="search"
+            placeholder={t.photos.searchPlaceholder}
+            autocomplete="off"
+            oninput="window.__vt_photoSearch(this.value)"
+          />
+        </div>
+        <div class="view-toggle" role="group" aria-label={lang === "zh" ? "照片显示方式" : "Photo view"}>
+          <svg class="view-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+          <button class="view-option is-active" data-view="wall" onclick="window.__vt_photoView(this, 'wall')">{t.photos.viewWall}</button>
+          <span class="view-sep" aria-hidden="true">·</span>
+          <button class="view-option" data-view="timeline" onclick="window.__vt_photoView(this, 'timeline')">{t.photos.viewTimeline}</button>
+        </div>
+      </div>
+
+      <div id="photo-grid" class="is-wall">
         {groups.map((group) => (
           <section class="photo-group">
             <h2 class="photo-group-date">{group.dateLabel}</h2>
@@ -64,6 +91,8 @@ const noNoteI18n = t.photos.noNote;
           </section>
         ))}
       </div>
+      <div class="no-results" id="photo-no-results" hidden>{t.photos.noResults}</div>
+      </>
     )}
   </div>
 
@@ -94,6 +123,52 @@ const noNoteI18n = t.photos.noNote;
 <script define:vars={{ photosJson, noNoteI18n }}>
   var PHOTOS = JSON.parse(photosJson);
   var NO_NOTE = noNoteI18n;
+
+  var VIEW_KEY = "doebk-photo-view";
+
+  window.__vt_photoView = function (btn, view) {
+    var grid = document.getElementById("photo-grid");
+    if (!grid) return;
+    var btns = document.querySelectorAll(".view-option");
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove("is-active");
+    btn.classList.add("is-active");
+    grid.classList.toggle("is-wall", view === "wall");
+    try { localStorage.setItem(VIEW_KEY, view); } catch (e) {}
+    // 切换重放入场动画(stagger 淡入,与时间线入场一致;独立脚本经 window 桥接)
+    if (window.__vt_photoReplay) window.__vt_photoReplay();
+  };
+
+  // 按札记(note)文本过滤照片;无札记的照片不匹配;显示/隐藏由 inline style 控制
+  window.__vt_photoSearch = function (val) {
+    var q = (val || "").trim().toLowerCase();
+    var grid = document.getElementById("photo-grid");
+    var noRes = document.getElementById("photo-no-results");
+    if (!grid) return;
+    var items = grid.querySelectorAll(".photo-item");
+    var shown = 0;
+    for (var i = 0; i < items.length; i++) {
+      var idx = parseInt(items[i].getAttribute("data-index") || "-1", 10);
+      var p = PHOTOS[idx];
+      var note = p && p.note ? p.note.toLowerCase() : "";
+      var match = !q || note.indexOf(q) !== -1;
+      items[i].style.display = match ? "" : "none";
+      if (match) shown++;
+    }
+    if (noRes) noRes.hidden = shown !== 0;
+  };
+
+  // 恢复上次选择(切页/刷新保持;页面独有脚本 VT 后重跑,每次进页应用)
+  // 默认照片墙:HTML 初始即 is-wall,仅当存储为 timeline 时切回
+  (function () {
+    var view = "wall";
+    try { if (localStorage.getItem(VIEW_KEY) === "timeline") view = "timeline"; } catch (e) {}
+    var grid = document.getElementById("photo-grid");
+    var btns = document.querySelectorAll(".view-option");
+    if (grid) grid.classList.toggle("is-wall", view === "wall");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle("is-active", btns[i].getAttribute("data-view") === view);
+    }
+  })();
 
   window.__vt_openPhoto = function (e, link) {
     e.preventDefault();
@@ -164,6 +239,12 @@ const noNoteI18n = t.photos.noNote;
 <script>
   import { animate, inView, spring } from "motion";
 
+  declare global {
+    interface Window {
+      __vt_photoReplay: () => void;
+    }
+  }
+
   (function () {
     var items: HTMLElement[] = Array.prototype.slice.call(document.querySelectorAll(".photo-item"));
     if (!items.length) return;
@@ -186,6 +267,27 @@ const noNoteI18n = t.photos.noNote;
       }).catch(function () {});
       return function () {}; // 触发一次后取消观察
     });
+
+    // 视图切换重放:全部照片重新 stagger 淡入(与时间线入场一致)。
+    // 主脚本(define:vars 内联,不能 import)经 window 桥接调用
+    window.__vt_photoReplay = function () {
+      var all: HTMLElement[] = Array.prototype.slice.call(document.querySelectorAll(".photo-item"));
+      if (!all.length) return;
+      all.forEach(function (el) {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(10px)";
+      });
+      all.forEach(function (el, idx) {
+        animate(el, { opacity: 1, y: 0 }, {
+          type: spring, visualDuration: 0.55, bounce: 0.1,
+          delay: 0.1 + idx * 0.05,
+          reduceMotion: true,
+        }).finished.then(function () {
+          el.style.opacity = "";
+          el.style.transform = "";
+        }).catch(function () {});
+      });
+    };
   })();
 </script>
 
@@ -214,6 +316,128 @@ const noNoteI18n = t.photos.noNote;
 
   .empty-state p {
     font-size: var(--text-lg);
+  }
+
+  /* ── Toolbar (参考 music) ──────────────────────── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-10);
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+    max-width: 320px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--color-text-tertiary);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 14px 8px 36px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--color-bg-page);
+    font-size: var(--text-sm);
+    color: var(--color-text-primary);
+    outline: none;
+    transition: background 200ms, box-shadow 200ms;
+    font-family: inherit;
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-tertiary);
+  }
+
+  .search-input:focus {
+    background: var(--color-bg-surface);
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+  }
+
+  /* WebKit search input reset */
+  .search-input::-webkit-search-decoration,
+  .search-input::-webkit-search-cancel-button,
+  .search-input::-webkit-search-results-button,
+  .search-input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+  }
+
+  /* ── No results ───────────────────────────────── */
+  .no-results {
+    text-align: center;
+    padding: var(--space-16) 0;
+    color: var(--color-text-tertiary);
+  }
+
+  /* ── View toggle (与 music .sort-group 严格一致:无自身 margin,间距由 .toolbar 统一) ── */
+  .view-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .view-icon {
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+
+  .view-option {
+    padding: 4px 6px;
+    border: none;
+    background: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    transition: color 150ms;
+    white-space: nowrap;
+  }
+
+  .view-option:hover {
+    color: var(--color-text-secondary);
+  }
+
+  .view-option.is-active {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .view-sep {
+    color: var(--color-border);
+    font-size: var(--text-sm);
+    user-select: none;
+  }
+
+  /* ── 照片墙:display:contents 打破日期分组,所有照片进入同一个连续 grid——
+         auto-fill 自动均分行宽,前面行填满、尾行留空、图片大小一致不放大 ── */
+  #photo-grid.is-wall {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+
+  #photo-grid.is-wall .photo-group,
+  #photo-grid.is-wall .photo-grid-inner {
+    display: contents;
+  }
+
+  #photo-grid.is-wall .photo-group-date {
+    display: none;
   }
 
   /* ── Photo group ────────────────────────────────── */
@@ -390,6 +614,9 @@ const noNoteI18n = t.photos.noNote;
   .lightbox-caption.is-placeholder {
     color: rgba(255, 255, 255, 0.2);
     font-style: italic;
+    /* 与真实札记同字体字号,切换时视觉不跳变(引号除外:占位不加) */
+    font-family: Georgia, "Songti SC", "Noto Serif SC", serif;
+    font-size: var(--text-lg);
   }
 
   /* ── Mobile ────────────────────────────────────── */
@@ -398,6 +625,12 @@ const noNoteI18n = t.photos.noNote;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: var(--space-2);
     }
+
+    #photo-grid.is-wall {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var(--space-2);
+    }
+
 
     .lightbox-prev { left: var(--space-2); }
     .lightbox-next { right: var(--space-2); }

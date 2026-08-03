@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 /**
  * 给 markdown 渲染出的 <table> 包一层 .table-wrap 横向滚动容器，
@@ -44,6 +45,8 @@ function rehypeDropLeadingH1() {
 export default defineConfig({
   site: 'https://www.doebkblcya.com',
   output: 'static',
+  // 构建时自动生成 sitemap-index.xml(含 zh/en 双语言 URL)
+  integrations: [sitemap()],
   markdown: {
     shikiConfig: {
       themes: {

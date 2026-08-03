@@ -176,6 +176,166 @@
           "lrc": "Deerhunter - Twilight At Carbon Lake.lrc"
         }
       ]
+    },
+    {
+      "name": "Funeral",
+      "artist": "Arcade Fire",
+      "review": "",
+      "meta": {},
+      "tracks": [
+        {
+          "trackNo": 1,
+          "title": "Neighborhood #1 (Tunnels)",
+          "file": "Arcade Fire - Neighborhood #1 (Tunnels).mp3",
+          "lrc": "Arcade Fire - Neighborhood #1 (Tunnels).lrc"
+        },
+        {
+          "trackNo": 2,
+          "title": "Neighborhood #2 (Laika)",
+          "file": "Arcade Fire - Neighborhood #2 (Laika).mp3",
+          "lrc": "Arcade Fire - Neighborhood #2 (Laika).lrc"
+        },
+        {
+          "trackNo": 3,
+          "title": "Une Année Sans Lumiere",
+          "file": "Arcade Fire - Une Année Sans Lumiere.mp3",
+          "lrc": "Arcade Fire - Une Année Sans Lumiere.lrc"
+        },
+        {
+          "trackNo": 4,
+          "title": "Neighborhood #3 (Power Out)",
+          "file": "Arcade Fire - Neighborhood #3 (Power Out).mp3",
+          "lrc": "Arcade Fire - Neighborhood #3 (Power Out).lrc"
+        },
+        {
+          "trackNo": 5,
+          "title": "Neighborhood #4 (7 Kettles)",
+          "file": "Arcade Fire - Neighborhood #4 (7 Kettles).mp3",
+          "lrc": "Arcade Fire - Neighborhood #4 (7 Kettles).lrc"
+        },
+        {
+          "trackNo": 6,
+          "title": "Crown Of Love",
+          "file": "Arcade Fire - Crown Of Love.mp3",
+          "lrc": "Arcade Fire - Crown Of Love.lrc"
+        },
+        {
+          "trackNo": 7,
+          "title": "Wake Up",
+          "file": "Arcade Fire - Wake Up.mp3",
+          "lrc": "Arcade Fire - Wake Up.lrc"
+        },
+        {
+          "trackNo": 8,
+          "title": "Haiti",
+          "file": "Arcade Fire - Haiti.mp3",
+          "lrc": "Arcade Fire - Haiti.lrc"
+        },
+        {
+          "trackNo": 9,
+          "title": "Rebellion (Lies)",
+          "file": "Arcade Fire - Rebellion (Lies).mp3",
+          "lrc": "Arcade Fire - Rebellion (Lies).lrc"
+        },
+        {
+          "trackNo": 10,
+          "title": "In The Backseat",
+          "file": "Arcade Fire - In The Backseat.mp3",
+          "lrc": "Arcade Fire - In The Backseat.lrc"
+        },
+        {
+          "trackNo": 11,
+          "title": "My Buddy(Alvino Rey Orchestra)",
+          "file": "Arcade Fire - My Buddy(Alvino Rey Orchestra).mp3",
+          "lrc": "Arcade Fire - My Buddy(Alvino Rey Orchestra).lrc"
+        },
+        {
+          "trackNo": 12,
+          "title": "Neighborhood #3 (Power Out)(August Session)",
+          "file": "Arcade Fire - Neighborhood #3 (Power Out)(August Session).mp3",
+          "lrc": "Arcade Fire - Neighborhood #3 (Power Out)(August Session).lrc"
+        },
+        {
+          "trackNo": 13,
+          "title": "Brazil",
+          "file": "Arcade Fire - Brazil.mp3",
+          "lrc": "Arcade Fire - Brazil.lrc"
+        },
+        {
+          "trackNo": 14,
+          "title": "Neighborhood #3 (Power Out) (Live at the Great American Music Hall)",
+          "file": "Arcade Fire - Neighborhood #3 (Power Out) (Live at the Great American Music Hall).mp3",
+          "lrc": "Arcade Fire - Neighborhood #3 (Power Out) (Live at the Great American Music Hall).lrc"
+        }
+      ]
+    },
+    {
+      "name": "Ants From Up There",
+      "artist": "Black Country, New Road",
+      "review": "",
+      "meta": {},
+      "tracks": [
+        {
+          "trackNo": 1,
+          "title": "Intro",
+          "file": "Black Country, New Road - Intro.mp3",
+          "lrc": "Black Country, New Road - Intro.lrc"
+        },
+        {
+          "trackNo": 2,
+          "title": "Chaos Space Marine",
+          "file": "Black Country, New Road - Chaos Space Marine.mp3",
+          "lrc": "Black Country, New Road - Chaos Space Marine.lrc"
+        },
+        {
+          "trackNo": 3,
+          "title": "Concorde",
+          "file": "Black Country, New Road - Concorde.mp3",
+          "lrc": "Black Country, New Road - Concorde.lrc"
+        },
+        {
+          "trackNo": 4,
+          "title": "Bread Song",
+          "file": "Black Country, New Road - Bread Song.mp3",
+          "lrc": "Black Country, New Road - Bread Song.lrc"
+        },
+        {
+          "trackNo": 5,
+          "title": "Good Will Hunting",
+          "file": "Black Country, New Road - Good Will Hunting.mp3",
+          "lrc": "Black Country, New Road - Good Will Hunting.lrc"
+        },
+        {
+          "trackNo": 6,
+          "title": "Haldern",
+          "file": "Black Country, New Road - Haldern.mp3",
+          "lrc": "Black Country, New Road - Haldern.lrc"
+        },
+        {
+          "trackNo": 7,
+          "title": "Mark’s Theme",
+          "file": "Black Country, New Road - Mark’s Theme.mp3",
+          "lrc": "Black Country, New Road - Mark’s Theme.lrc"
+        },
+        {
+          "trackNo": 8,
+          "title": "The Place Where He Inserted the Blade",
+          "file": "Black Country, New Road - The Place Where He Inserted the Blade.mp3",
+          "lrc": "Black Country, New Road - The Place Where He Inserted the Blade.lrc"
+        },
+        {
+          "trackNo": 9,
+          "title": "Snow Globes",
+          "file": "Black Country, New Road - Snow Globes.mp3",
+          "lrc": "Black Country, New Road - Snow Globes.lrc"
+        },
+        {
+          "trackNo": 10,
+          "title": "Basketball Shoes",
+          "file": "Black Country, New Road - Basketball Shoes.mp3",
+          "lrc": "Black Country, New Road - Basketball Shoes.lrc"
+        }
+      ]
     }
   ]
 }

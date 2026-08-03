@@ -90,27 +90,29 @@ echo 'export CLOUDFLARE_API_TOKEN="你的token"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
+> media CLI 主路径需要 **R2 S3 凭证**（`CLOUDFLARE_R2_ACCESS_KEY_ID` / `CLOUDFLARE_R2_SECRET_ACCESS_KEY`，创建见 `docs/upload.md`），wrangler 兜底仍用 API Token。
+
 ### 上传文件（media CLI，主路径）
 
 本地准备：媒体文件放入 `_r2-upload/` 目录（已加入 `.gitignore`，不提交到 git）。
 
-**音乐专辑**（ncm 或 mp3 源）：
+**音乐专辑**（全 mp3 或全 ncm 目录）：
 
 ```bash
-# ncm 源：解密为 mp3（--remove 可选：成功后删除源 ncm）
-pnpm media ncm _r2-upload/music/<专辑名>/ --out _r2-upload/music/<专辑名>/ --remove
-
-# 上传专辑：读 ID3（曲序/标题/艺术家）→ 封面从 ncm 封面区/ID3 提取压缩 → 上传 → 自动验证
+# 上传专辑：全 ncm 时自动询问转换 → 读 ID3（曲序/标题/艺术家）→ 封面压缩 → 上传 → 自动验证
 pnpm media album _r2-upload/music/<专辑名>/
+
+# 单独转换 ncm（批量/保留源场景；--remove 可选：成功后删除源 ncm）
+pnpm media ncm _r2-upload/music/<专辑名>/ --out _r2-upload/music/<专辑名>/ --remove
 ```
 
 - 新专辑自动生成 `src/data/music.json` 条目（交互确认）；已有专辑只上传不动数据
 - 专辑名 = 目录名（R2 键名前缀）
 - lrc 按歌名自动匹配；`review` 札记用 `pnpm media review --music <专辑名> "文字"` 录入
 
-**照片**：`pnpm media photos <RAW目录>`（详见 `docs/upload.md`）
+**照片**：`pnpm media photos <照片目录>`——RAW 提取或 JPG 直接压缩 → 大图/小图 → 上传（详见 `docs/upload.md`）
 
-**缓存头**：所有上传默认带 `cache-control: public, max-age=31536000, immutable`（内容变 → 换文件名上传，见 immutable 纪律）。上传后自动 HEAD 验证（200 + 缓存头 + 边缘缓存 HIT）。
+**缓存头**：所有上传默认带 `cache-control: public, max-age=31536000, immutable`（内容变 → 换文件名上传，见 immutable 纪律）。上传走 S3 API（>5MB multipart 分片并发），上传后自动验证（HEAD + GET Range 边缘缓存 HIT）。
 
 ### 上传文件（wrangler 兜底）
 

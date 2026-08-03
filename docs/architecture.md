@@ -69,7 +69,7 @@ doebkweb/
 │
 ├── docs/                          # 项目文档（本文件所在目录）
 ├── scripts/
-│   └── process-photos.mjs         # 照片处理脚本（RAW → 2000px JPEG + 480px WebP）
+│   └── media.mjs                  # 媒体 CLI（音乐/照片处理、S3 上传、札记）
 ├── astro.config.mjs               # Astro 配置（i18n + Shiki）
 ├── tsconfig.json                  # TypeScript 配置
 ├── package.json                   # 依赖与脚本

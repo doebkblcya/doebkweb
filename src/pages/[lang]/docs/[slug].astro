@@ -26,7 +26,7 @@ const { Content, headings } = await doc.render();
 const toc = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
 ---
 
-<BaseLayout title={doc.data.title} hideFooter>
+<BaseLayout title={doc.data.title} description={doc.data.summary} hideFooter>
   <div class="page">
 
     <div class="page-header">

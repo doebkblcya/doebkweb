@@ -17,28 +17,28 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
   <!-- Expanded panel -->
   <div class="vinyl-panel" id="vinyl-panel">
     <div class="panel-inner">
-      <!-- Tonearm -->
-      <div class="tonearm" id="tonearm">
-        <svg width="120" height="180" viewBox="0 0 120 180" fill="none">
-          <!-- Pivot base at top-right of disc -->
-          <rect x="85" y="22" width="30" height="20" rx="5" fill="#636366"/>
-          <rect x="90" y="16" width="20" height="9" rx="3" fill="#7a7a7e"/>
-          <!-- Counterweight -->
-          <circle cx="100" cy="32" r="9" fill="#48484a"/>
-          <!-- Arm: from pivot extending down-left toward record surface -->
-          <line x1="100" y1="35" x2="24" y2="148" stroke="#aeaeb2" stroke-width="5" stroke-linecap="round"/>
-          <!-- Headshell at record end -->
-          <g transform="translate(10, 135) rotate(-10)">
-            <rect x="0" y="0" width="30" height="14" rx="3" fill="#1d1d1f"/>
-            <rect x="4" y="3" width="22" height="2.5" rx="1" fill="#333"/>
-            <!-- Stylus needle pointing onto record -->
-            <line x1="22" y1="14" x2="24" y2="20" stroke="#86868b" stroke-width="1.5" stroke-linecap="round"/>
-          </g>
-        </svg>
-      </div>
-
       <!-- Album cover disc -->
       <div class="player-disc-wrap" id="player-disc-wrap">
+        <!-- Tonearm(absolute 相对 wrap:百分比定位,唱片缩小时自动等比,pivot 保持在唱片右缘外侧) -->
+        <div class="tonearm" id="tonearm">
+          <svg width="120" height="180" viewBox="0 0 120 180" fill="none">
+            <!-- Pivot base at top-right of disc -->
+            <rect x="85" y="22" width="30" height="20" rx="5" fill="#636366"/>
+            <rect x="90" y="16" width="20" height="9" rx="3" fill="#7a7a7e"/>
+            <!-- Counterweight -->
+            <circle cx="100" cy="32" r="9" fill="#48484a"/>
+            <!-- Arm: from pivot extending down-left toward record surface -->
+            <line x1="100" y1="35" x2="24" y2="148" stroke="#aeaeb2" stroke-width="5" stroke-linecap="round"/>
+            <!-- Headshell at record end -->
+            <g transform="translate(10, 135) rotate(-10)">
+              <rect x="0" y="0" width="30" height="14" rx="3" fill="#1d1d1f"/>
+              <rect x="4" y="3" width="22" height="2.5" rx="1" fill="#333"/>
+              <!-- Stylus needle pointing onto record -->
+              <line x1="22" y1="14" x2="24" y2="20" stroke="#86868b" stroke-width="1.5" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+
         <div class="player-disc" id="player-disc">
           <!-- Groove rings -->
           <div class="disc-grooves"></div>
@@ -807,10 +807,13 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
   /* ── Tonearm ────────────────────────────────────── */
   .tonearm {
     position: absolute;
-    top: -6px;
-    left: 175px;
-    width: 120px;
-    height: 180px;
+    /* 相对唱片 wrap 等比(120/200=60%,180/200=90%):
+       左 55% 顶 -15% 使 pivot 恒在唱片右缘外侧同比例(唱片右缘外 5%,桌面 10px/移动 7.5px)——
+       PC/iPad 视口右缘唱臂留足余量,唱片缩放自动等比 */
+    width: 60%;
+    height: 90%;
+    left: 55%;
+    top: -15%;
     z-index: 3;
     /* Pivot at (100, 35) in SVG coords → 83.3% 19.4% of element */
     transform-origin: 83.3% 19.4%;
@@ -1045,22 +1048,19 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
     }
 
     .vinyl-panel {
-      width: calc(100vw - 2rem);
-      right: -12px;
-      top: -12px;
+      /* 手机端唱片机居中显示(fixed 脱离 vinyl-app 右上角定位;
+         面板动画纯 opacity,transform 仅做居中定位,无所有权冲突) */
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(calc(100vw - 2rem), 420px);
+      right: auto;
     }
 
     .player-disc-wrap {
       width: 150px;
       height: 150px;
-    }
-
-    .tonearm {
-      width: 90px;
-      height: 135px;
-      top: -5px;
-      left: 131px;
-      transform-origin: 83.3% 19.4%;
     }
 
     .player-tracks.open {

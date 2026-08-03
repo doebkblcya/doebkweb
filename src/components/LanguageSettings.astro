@@ -86,6 +86,7 @@ const langOptions = [
     if (container.dataset.langReady === "1") return;
     container.dataset.langReady = "1";
 
+
     // window 函数每次取最新 DOM(即使脚本未重跑,首载版本也操作当前元素)
     function getOverlay() { return document.getElementById("settings-overlay"); }
     function getModal() { return document.getElementById("settings-modal"); }
@@ -104,6 +105,11 @@ const langOptions = [
       var overlay = getOverlay();
       var toggle = getToggle();
       if (!overlay || !toggle) return;
+      // overlay 设计上应渲染在 root level(fixed inset 0 全屏遮罩),但组件位于 sidebar 内;
+      // 移动端抽屉的 transform 会成为 fixed 后代的包含块,弹窗被困在抽屉里。
+      // 不能依赖脚本重跑做提升:Sidebar 组件脚本跨页同 src,module 去重,Vt 后不重跑——
+      // 每次打开都保证 overlay 在 body 层(open 由 inline onclick 触发,点击必执行)
+      if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
       overlay.hidden = false;
       toggle.setAttribute("aria-expanded", "true");
       var modal = getModal();

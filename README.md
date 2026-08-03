@@ -19,7 +19,8 @@ Apple Design 风格的纯静态站点,基于 [Astro](https://astro.build) 构建
 | **技术文档** | 9 篇真实技术文档,Markdown 内容 + Shiki 语法高亮;右侧目录 rail(滚动高亮)、表格横向滚动、kbd / 折叠块 / 外部链接标识等增强渲染 |
 | **全文搜索** | Pagefind 构建时索引,文档列表页内嵌下拉搜索,毛玻璃面板 + 键盘导航(↑↓ / Enter / Esc) |
 | **音乐播放器** | 黑胶唱片动画(旋转 + 唱臂联动)、专辑架联动播放;View Transitions 跨页持久化,切页不中断;曲序由数据层 `trackNo` 排序 |
-| **摄影画廊** | 响应式网格 + 原生懒加载,Lightbox 全屏预览(键盘 ← → / Esc 导航) |
+| **摄影画廊** | 照片墙(默认)/ 时间线双视图切换,札记全文搜索;Lightbox 全屏预览(键盘 ← → / Esc 导航),竖图方向自动处理 |
+| **媒体工作流** | `pnpm media` CLI 统一管理音乐/照片:RAW/JPG 处理、ncm 解密、S3 multipart 分片上传 + 自动验证、札记录入 |
 | **双语 UI** | 中 / 英文案,TypeScript 接口约束结构一致;文档内容不翻译,仅 UI 翻译 |
 | **多端适配** | 桌面完整侧栏,iPad 竖屏保留侧栏,手机(≤640px)汉堡抽屉导航;播放器面板横屏可滚动 |
 | **三段式主题** | 浅色 / 深色 / 自动(跟随系统),侧栏太阳月亮快捷切换 + 设置面板分段控件;localStorage 记忆,View Transitions 切页不闪 |
@@ -71,8 +72,8 @@ doebkweb/
 │   ├── data/                  # music.json(唯一数据源)/ playlist.ts / photos.ts
 │   ├── i18n/                  # zh.ts / en.ts(UIStrings 接口约束)
 │   └── styles/                # tokens.css(Design Tokens)/ reset / global / prose
-├── docs/                      # 项目文档(需求/架构/路线图/部署/照片)
-├── scripts/process-photos.mjs # 照片处理(RAW → JPEG + WebP)
+├── docs/                      # 项目文档(需求/架构/路线图/部署/上传)
+├── scripts/media.mjs          # 媒体 CLI(音乐/照片处理、上传、札记)
 └── public/                    # 静态资源
 ```
 
@@ -86,7 +87,7 @@ doebkweb/
 | [`docs/architecture.md`](docs/architecture.md) | 目录结构、路由、数据流、CSS 层级、事件总线 |
 | [`docs/roadmap.md`](docs/roadmap.md) | 版本历史(按完成顺序)、未来方向 |
 | [`docs/deployment.md`](docs/deployment.md) | 本地开发、Pages 部署、R2 上传、故障排查 |
-| [`docs/photos.md`](docs/photos.md) | 照片处理脚本、上传流程、R2 路径规范 |
+| [`docs/upload.md`](docs/upload.md) | 上传指南:media CLI(音乐/照片)+ 文档 git 流程 |
 | [`CLAUDE.md`](CLAUDE.md) | AI 协作约定(View Transitions / 响应式 / 音乐数据) |
 
 ---

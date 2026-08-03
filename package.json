@@ -11,6 +11,7 @@
     "media": "node scripts/media.mjs"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
     "astro": "^5.6.9",
     "motion": "^12.11.0",
     "music-metadata": "^11.14.0"

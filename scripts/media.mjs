@@ -12,20 +12,21 @@
  *   pnpm media review --photo <src|序号> [文本]
  *
  * 环境变量:
- *   CLOUDFLARE_API_TOKEN  必填（R2 上传/删除）
- *   CLOUDFLARE_ACCOUNT_ID 可选（缺省用项目账号）
+ *   CLOUDFLARE_R2_ACCESS_KEY_ID / CLOUDFLARE_R2_SECRET_ACCESS_KEY  必填（S3 上传凭证）
+ *   CLOUDFLARE_ACCOUNT_ID  可选（缺省用项目账号）
  *
  * 约定:
  *   - 所有上传带 immutable 缓存头（内容变 → URL 变）
- *   - 上传直连（fetch 不走系统代理），并发 6，失败重试 ×2
+ *   - 上传走 S3 API（sigv4 签名直连，不走系统代理）；>5MB 文件 multipart 分片并发，
+ *     突破单连接 BDP 限制（v4 API 无 multipart 且单连接被 CF 排队）；失败重试 ×2
  *   - 上传后自动 HEAD 验证（200 + cache-control + HIT + content-length）
  */
 
-import { readdir, readFile, writeFile, mkdir, stat, rename, unlink } from "node:fs/promises";
+import { readdir, readFile, writeFile, mkdir, stat, rename, unlink, open } from "node:fs/promises";
 import { existsSync, createReadStream } from "node:fs";
 import { join, extname, basename, dirname, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
-import { createDecipheriv } from "node:crypto";
+import { createDecipheriv, createHash, createHmac } from "node:crypto";
 import { createInterface } from "node:readline";
 import { pathToFileURL } from "node:url";
 import sharp from "sharp";
@@ -35,11 +36,20 @@ import { parseFile } from "music-metadata";
 
 const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || "1207beba12dc5a9e110255877b4d48d9";
 const BUCKET = "doebkweb";
-const R2_API = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/r2/buckets/${BUCKET}/objects`;
 const CDN = "https://cdn.doebkblcya.com";
 const CACHE = "public, max-age=31536000, immutable";
+// perl(exiftool) 在系统未生成对应 locale 时会刷屏警告(LC_CTYPE 为空 + LANG 不存在)
+// ——强制 C locale,不影响 exiftool 功能
+const EXIFTOOL_ENV = { ...process.env, LC_ALL: "C" };
 const CONCURRENCY = 6;
-const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+
+// ── S3 上传(v4 API 不支持 multipart,大文件分片走 S3 签名 API 并发上传) ──
+// 凭证:Cloudflare 控制台 R2 → Manage R2 API Tokens → Create API token(对象读+写)
+const S3_HOST = `${ACCOUNT_ID}.r2.cloudflarestorage.com`;
+const S3_ENDPOINT = `https://${S3_HOST}`;
+const S3_ACCESS_KEY = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
+const S3_SECRET_KEY = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
+const PART_SIZE = 5 * 1024 * 1024; // multipart 最小分片 5MB(最后一片可小)
 
 const MUSIC_JSON = new URL("../src/data/music.json", import.meta.url);
 const PHOTOS_JSON = new URL("../src/data/photos.json", import.meta.url);
@@ -61,9 +71,13 @@ const encKey = (key) => key.split("/").map(encodeURIComponent).join("/");
 const log = (...a) => console.log(...a);
 const warn = (...a) => console.error("⚠", ...a);
 
-function requireToken() {
-  if (!TOKEN) {
-    console.error("错误: 未设置 CLOUDFLARE_API_TOKEN");
+// 上传走 S3 API(sigv4),需要 R2 S3 凭证
+function requireS3() {
+  if (!S3_ACCESS_KEY || !S3_SECRET_KEY) {
+    console.error(
+      "错误: 缺少 R2 S3 凭证。请在 Cloudflare 控制台 R2 → Manage R2 API Tokens → Create API token(对象读+写),\n" +
+      "并设置环境变量 CLOUDFLARE_R2_ACCESS_KEY_ID / CLOUDFLARE_R2_SECRET_ACCESS_KEY"
+    );
     process.exit(1);
   }
 }
@@ -117,21 +131,116 @@ async function pick(ask, question, count, { allowBack = false } = {}) {
 }
 
 // ── 上传 + 验证 ───────────────────────────────────────────
+// 上传走 S3 API(sigv4 签名):v4 API 无 multipart,大文件分片并发才能突破
+// 单连接 BDP 限制(~1MB/s);单连接被 CF 排队时并发分片是唯一加速途径
 
-async function uploadOne(key, filePath) {
+// AWS URI 编码:unreserved 之外全部 %XX(encodeURIComponent 不编码 !'()* 等,S3 要求编码)
+function awsUriEncode(s) {
+  return encodeURIComponent(s).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+}
+
+function s3Sign(method, path, query, payloadHash, extraHeaders = {}) {
+  // AWS SigV4 签名(R2 region 固定 "auto")
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const scope = `${dateStamp}/auto/s3/aws4_request`;
+  const canonicalQuery = Object.keys(query)
+    .sort()
+    .map((k) => `${awsUriEncode(k)}=${awsUriEncode(query[k])}`)
+    .join("&");
+  // header 名一律小写(AWS 规范:canonical/signed headers 用小写,Content-Type 原样大写会算错签名)
+  const allHeaders = { host: S3_HOST, "x-amz-content-sha256": payloadHash, "x-amz-date": amzDate, ...extraHeaders };
+  const norm = {};
+  for (const k of Object.keys(allHeaders)) norm[k.toLowerCase()] = allHeaders[k];
+  const signedHeaders = Object.keys(norm).sort().join(";");
+  const canonicalHeaders = Object.keys(norm)
+    .sort()
+    .map((k) => `${k}:${norm[k]}`)
+    .join("\n") + "\n";
+  const canonicalRequest = [method, path, canonicalQuery, canonicalHeaders, signedHeaders, payloadHash].join("\n");
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, scope, createHash("sha256").update(canonicalRequest).digest("hex")].join("\n");
+  const kDate = createHmac("sha256", `AWS4${S3_SECRET_KEY}`).update(dateStamp).digest();
+  const kRegion = createHmac("sha256", kDate).update("auto").digest();
+  const kService = createHmac("sha256", kRegion).update("s3").digest();
+  const kSigning = createHmac("sha256", kService).update("aws4_request").digest();
+  const signature = createHmac("sha256", kSigning).update(stringToSign).digest("hex");
+  return {
+    authorization: `AWS4-HMAC-SHA256 Credential=${S3_ACCESS_KEY}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+    amzDate,
+    signedHeaders,
+  };
+}
+
+// S3 路径:/bucket/key(每段 AWS URI 编码;中文/引号/括号等特殊字符必须编码)
+function s3Path(key) {
+  return `/${BUCKET}/${key.split("/").map(awsUriEncode).join("/")}`;
+}
+
+async function s3Fetch(method, key, query, bodyBuf, extraHeaders = {}) {
+  const path = s3Path(key);
+  const payloadHash = createHash("sha256").update(bodyBuf || "").digest("hex");
+  const sig = s3Sign(method, path, query, payloadHash, extraHeaders);
+  const url = `${S3_ENDPOINT}${path}${Object.keys(query).length ? "?" + new URLSearchParams(query) : ""}`;
+  return fetch(url, {
+    method,
+    headers: {
+      ...extraHeaders,
+      "x-amz-content-sha256": payloadHash,
+      "x-amz-date": sig.amzDate,
+      Authorization: sig.authorization,
+    },
+    body: bodyBuf || undefined,
+  });
+}
+
+async function s3UploadOne(key, filePath, mime) {
+  // ≤5MB 单 PUT(读入内存 hash 签名)
+  const body = await readFile(filePath);
+  return s3Fetch("PUT", key, {}, body, { "Content-Type": mime, "Cache-Control": CACHE });
+}
+
+async function s3UploadMultipart(key, filePath, size, mime) {
+  // Initiate → UploadPart(并发) → Complete;分片 5MB,最后一片剩余
+  const initRes = await s3Fetch("POST", key, { uploads: "" }, null, { "Content-Type": mime, "Cache-Control": CACHE });
+  if (!initRes.ok) return initRes;
+  const initXml = await initRes.text();
+  const uploadId = (initXml.match(/<UploadId>([^<]+)<\/UploadId>/) || [])[1];
+  if (!uploadId) return { ok: false, status: initRes.status, error: `Initiate 无 uploadId: ${initXml.slice(0, 120)}` };
+
+  const parts = [];
+  const fh = await open(filePath, "r");
+  try {
+    const buf = Buffer.alloc(PART_SIZE);
+    let partNumber = 0;
+    while (true) {
+      const { bytesRead } = await fh.read(buf, 0, PART_SIZE, partNumber * PART_SIZE);
+      if (bytesRead === 0) break;
+      partNumber++;
+      const chunk = buf.subarray(0, bytesRead);
+      const res = await s3Fetch("PUT", key, { partNumber: String(partNumber), uploadId }, chunk);
+      if (!res.ok) return { ok: false, status: res.status, error: `UploadPart ${partNumber}: ${(await res.text()).slice(0, 120)}` };
+      const etag = (res.headers.get("etag") || "").replace(/"/g, "");
+      if (!etag) return { ok: false, status: res.status, error: `UploadPart ${partNumber} 无 etag` };
+      parts.push({ partNumber, etag });
+    }
+  } finally {
+    await fh.close();
+  }
+  // Complete:XML 列出各分片
+  const xml = `<CompleteMultipartUpload>${parts
+    .map((p) => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>&quot;${p.etag}&quot;</ETag></Part>`)
+    .join("")}</CompleteMultipartUpload>`;
+  return s3Fetch("POST", key, { uploadId }, Buffer.from(xml), { "Content-Type": "application/xml" });
+}
+
+async function uploadOne(key, filePath, size) {
   const mime = MIME[extname(filePath).toLowerCase()] || "application/octet-stream";
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const res = await fetch(`${R2_API}/${encKey(key)}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${TOKEN}`,
-          "Content-Type": mime,
-          "cache-control": CACHE,
-        },
-        body: createReadStream(filePath),
-        duplex: "half",
-      });
+      const res = size > PART_SIZE
+        ? await s3UploadMultipart(key, filePath, size, mime)
+        : await s3UploadOne(key, filePath, mime);
       if (res.ok) return { key, ok: true };
       if (res.status === 429 || res.status >= 500) {
         if (attempt < 3) { await sleep(attempt * 1000); continue; }
@@ -147,15 +256,19 @@ async function uploadOne(key, filePath) {
 async function verifyHead(key, expectedSize, expectHits = true) {
   try {
     const url = `${CDN}/${encKey(key)}`;
-    // HEAD: 断言 200 + cache-control + content-length（R2 自定义域 HEAD 恒 DYNAMIC，不做 HIT 判断）
+    // HEAD: 断言 200 + cache-control（R2 自定义域 HEAD 恒 DYNAMIC，不做 HIT 判断）。
+    // 注意:undici fetch 默认 Accept-Encoding 使 text/plain 被 CF 压缩(chunked) → HEAD 无 content-length,
+    // 长度改从 GET Range 206 的 Content-Range 解析(总大小不受压缩影响)
     const head = await fetch(url, { method: "HEAD" });
     const cc = head.headers.get("cache-control") || "";
-    const len = head.headers.get("content-length");
     // GET Range ×2: 首次回源，二次应 HIT（.lrc 为 text/plain，不在 Cloudflare 默认缓存扩展名列表，跳过 HIT 断言）
     const g1 = await fetch(url, { headers: { Range: "bytes=0-0" } });
     await sleep(250);
     const g2 = await fetch(url, { headers: { Range: "bytes=0-0" } });
     const hits = expectHits ? g2.headers.get("cf-cache-status") === "HIT" : true;
+    // 206 响应的 Content-Range 形如 bytes 0-0/1015,末尾为对象总大小
+    const cr = (g1.headers.get("content-range") || "").match(/\/\s*(\d+)$/);
+    const len = cr ? cr[1] : null;
     const ok = head.status === 200 && cc.includes("immutable") && String(len) === String(expectedSize) && hits;
     return { key, ok, status: head.status, len, hits, cc: cc ? "✓" : "✗" };
   } catch (e) {
@@ -164,13 +277,16 @@ async function verifyHead(key, expectedSize, expectHits = true) {
 }
 
 export async function uploadAndVerify(files) {
-  // files: [{ key, path }]
-  requireToken();
+  // files: [{ key, path, size }]
+  requireS3();
   const t0 = Date.now();
-  log(`\n上传 ${files.length} 个文件（并发 ${CONCURRENCY}，直连）...`);
-  const results = await runConcurrent(files, ({ key, path }) => uploadOne(key, path));
+  const totalBytes = files.reduce((s, f) => s + f.size, 0) / 1024 / 1024; // MB
+  log(`\n上传 ${files.length} 个文件（并发 ${CONCURRENCY}，S3 直连，>5MB 分片并发）...`);
+  const results = await runConcurrent(files, ({ key, path, size }) => uploadOne(key, path, size));
   const failed = results.filter((r) => !r.ok);
   for (const r of failed) warn(`上传失败: ${r.key} ${r.error || r.status}`);
+  // 吞吐只按上传阶段计时——验证是网络往返等待(无数据传输),计入分母会把数字稀释
+  const uploadMs = Date.now() - t0;
 
   log(`验证 ${results.filter((r) => r.ok).length} 个已上传对象（HEAD ×2）...`);
   const checks = await runConcurrent(
@@ -183,27 +299,41 @@ export async function uploadAndVerify(files) {
   }
   for (const r of bad) warn(`验证失败: ${r.key} ${r.error || `status=${r.status} len=${r.len} cc=${r.cc} hit=${r.hits}`}`);
 
+  const verifyMs = Date.now() - t0 - uploadMs;
+  const fmt = (ms) => (ms / 1000).toFixed(1);
   if (failed.length || bad.length) {
-    warn(`\n${failed.length} 上传失败 + ${bad.length} 验证失败（总耗时 ${((Date.now() - t0) / 1000).toFixed(1)}s）`);
+    warn(`\n${failed.length} 上传失败 + ${bad.length} 验证失败（上传 ${fmt(uploadMs)}s，验证 ${fmt(verifyMs)}s，总耗时 ${fmt(uploadMs + verifyMs)}s）`);
     process.exitCode = 1;
   } else {
-    log(`\n全部完成 ✓（总耗时 ${((Date.now() - t0) / 1000).toFixed(1)}s，吞吐 ${((files.reduce((s, f) => s + f.size, 0) / 1024 / 1024) / ((Date.now() - t0) / 1000)).toFixed(1)} MB/s）`);
+    log(`\n全部完成 ✓（上传 ${fmt(uploadMs)}s 吞吐 ${(totalBytes / (uploadMs / 1000)).toFixed(1)} MB/s，验证 ${fmt(verifyMs)}s，总耗时 ${fmt(uploadMs + verifyMs)}s）`);
   }
 }
 
-// ── photos: RAW → 大图/缩略图 → 上传 → photos.json ────────
+// ── photos: RAW/JPG → 大图/缩略图 → 上传 → photos.json ──────
+// RAW → exiftool 提取内嵌 JPEG;JPG → 直接压缩;统一输出 originals/thumbs
 
 const FULL_WIDTH = 2000;
 const FULL_QUALITY = 85;
 const THUMB_WIDTH = 480;
 const THUMB_QUALITY = 80;
+const PHOTO_EXTS = new Set([...RAW_EXTS, ".jpg", ".jpeg"]);
+
+// EXIF Orientation → 顺时针旋转角度（sharp .rotate 参数）。
+// 相机竖拍:6 = Rotate 90 CW, 8 = Rotate 270 CW;3 = 180°。
+// 2/4/5/7 是镜像翻转,仅旋转无法表达,忽略(索尼竖拍只出 6/8)
+function exifToAngle(o) {
+  if (o === 3) return 180;
+  if (o === 6) return 90;
+  if (o === 8) return 270;
+  return 0;
+}
 
 async function cmdPhotos(args) {
   const noUpload = args.includes("--no-upload");
   let inputDir = args.find((a) => !a.startsWith("--"));
   let interactive = false;
   if (!inputDir) {
-    // 交互模式：扫描 _r2-upload/photos/ 下含 RAW 的目录
+    // 交互模式：扫描 _r2-upload/photos/ 下含 RAW/JPG 的目录
     interactive = true;
     const base = "_r2-upload/photos";
     const sub = [];
@@ -211,13 +341,13 @@ async function cmdPhotos(args) {
       for (const d of await readdir(base)) {
         const p = join(base, d);
         try {
-          if ((await stat(p)).isDirectory() && (await readdir(p)).some((f) => RAW_EXTS.has(extname(f).toLowerCase()))) sub.push(d);
+          if ((await stat(p)).isDirectory() && (await readdir(p)).some((f) => PHOTO_EXTS.has(extname(f).toLowerCase()))) sub.push(d);
         } catch { /* 忽略 */ }
       }
     } catch { /* 目录不存在 */ }
-    if (!sub.length) { warn(`未找到含 RAW 的目录（扫描 ${base}/）`); return; }
+    if (!sub.length) { warn(`未找到含 RAW/JPG 的目录（扫描 ${base}/）`); return; }
     const { rl, ask } = createPrompter();
-    log("选择 RAW 目录:");
+    log("选择照片目录:");
     sub.forEach((d, i) => log(`  [${i + 1}] ${base}/${d}`));
     const sel = await pick(ask, `选择 [1-${sub.length}, q 退出]: `, sub.length);
     rl.close();
@@ -230,15 +360,15 @@ async function cmdPhotos(args) {
     process.exit(1);
   }
   try {
-    execFileSync("exiftool", ["-ver"], { stdio: "pipe" });
+    execFileSync("exiftool", ["-ver"], { stdio: "pipe", env: EXIFTOOL_ENV });
   } catch {
     console.error("未找到 exiftool。请先安装: sudo pacman -S perl-image-exiftool");
     process.exit(1);
   }
 
-  const rawFiles = (await readdir(inputDir)).filter((f) => RAW_EXTS.has(extname(f).toLowerCase()));
+  const rawFiles = (await readdir(inputDir)).filter((f) => PHOTO_EXTS.has(extname(f).toLowerCase()));
   if (rawFiles.length === 0) {
-    log("未找到 RAW 文件，退出");
+    log("未找到 RAW/JPG 文件，退出");
     return;
   }
 
@@ -248,7 +378,7 @@ async function cmdPhotos(args) {
   await mkdir(originalsDir, { recursive: true });
   await mkdir(thumbsDir, { recursive: true });
 
-  log(`\n处理 ${rawFiles.length} 个 RAW 文件 → ${workDir}`);
+  log(`\n处理 ${rawFiles.length} 个照片文件（${rawFiles.filter((f) => RAW_EXTS.has(extname(f).toLowerCase())).length} RAW + ${rawFiles.filter((f) => !RAW_EXTS.has(extname(f).toLowerCase())).length} JPG）→ ${workDir}`);
   const newPhotos = [];
   for (let i = 0; i < rawFiles.length; i++) {
     const file = rawFiles[i];
@@ -257,20 +387,27 @@ async function cmdPhotos(args) {
     const fullOut = join(originalsDir, `${name}.jpg`);
     const thumbOut = join(thumbsDir, `${name}.webp`);
     const pct = `[${i + 1}/${rawFiles.length}]`;
+    const isRaw = RAW_EXTS.has(extname(file).toLowerCase());
 
     if (existsSync(fullOut) && existsSync(thumbOut)) {
       log(`${pct} ${file} → 已存在，跳过`);
     } else {
-      process.stdout.write(`${pct} ${file} → extract JPEG ... `);
+      process.stdout.write(`${pct} ${file} → ${isRaw ? "extract JPEG" : "压缩 JPG"} ... `);
       let jpgBuf = null;
       try {
-        for (const tag of ["JpgFromRaw", "PreviewImage", "ThumbnailImage"]) {
-          try {
-            const buf = execFileSync("exiftool", ["-b", `-${tag}`, inputPath], { maxBuffer: 50 * 1024 * 1024 });
-            if (buf && buf.length > (jpgBuf ? jpgBuf.length : 1000)) jpgBuf = buf;
-          } catch { /* 忽略 */ }
+        if (isRaw) {
+          // RAW:exiftool 提取内嵌 JPEG(最大的一张)
+          for (const tag of ["JpgFromRaw", "PreviewImage", "ThumbnailImage"]) {
+            try {
+              const buf = execFileSync("exiftool", ["-b", `-${tag}`, inputPath], { maxBuffer: 50 * 1024 * 1024, env: EXIFTOOL_ENV });
+              if (buf && buf.length > (jpgBuf ? jpgBuf.length : 1000)) jpgBuf = buf;
+            } catch { /* 忽略 */ }
+          }
+          if (!jpgBuf || jpgBuf.length < 1000) throw new Error("RAW 中未找到内嵌 JPEG");
+        } else {
+          // JPG:源文件直接作为输入(sharp 压缩)
+          jpgBuf = await readFile(inputPath);
         }
-        if (!jpgBuf || jpgBuf.length < 1000) throw new Error("RAW 中未找到内嵌 JPEG");
 
         process.stdout.write("resize ... ");
         if (!existsSync(fullOut)) {
@@ -278,10 +415,18 @@ async function cmdPhotos(args) {
             .resize({ width: FULL_WIDTH, height: FULL_WIDTH, fit: "inside", withoutEnlargement: true })
             .jpeg({ quality: FULL_QUALITY, mozjpeg: true })
             .toFile(fullOut);
-          execFileSync("exiftool", ["-tagsfromfile", inputPath, "-all:all", "-overwrite_original", fullOut], { stdio: "pipe" });
+          execFileSync("exiftool", ["-tagsfromfile", inputPath, "-all:all", "-overwrite_original", fullOut], { stdio: "pipe", env: EXIFTOOL_ENV });
         }
         if (!existsSync(thumbOut)) {
+          // 显式按 RAW 的 EXIF orientation 旋转:内嵌 JPEG 无该标签,.rotate() 无参无效;
+          // webp 不保留 orientation,不旋转竖图会横着显示(大图靠 exiftool 复制的标签正常,勿动)
+          let angle = 0;
+          try {
+            const o = execFileSync("exiftool", ["-s3", "-Orientation#", inputPath], { encoding: "utf8", env: EXIFTOOL_ENV }).trim();
+            if (o) angle = exifToAngle(parseInt(o, 10));
+          } catch { /* 无标签保持 0 */ }
           await sharp(jpgBuf)
+            .rotate(angle)
             .resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: "inside", withoutEnlargement: true })
             .webp({ quality: THUMB_QUALITY })
             .toFile(thumbOut);
@@ -298,9 +443,12 @@ async function cmdPhotos(args) {
     const existing = photos.some((p) => p.src.endsWith(`/originals/${name}.jpg`));
     if (!existing) {
       const meta = await sharp(fullOut).metadata();
+      // 竖拍(orientation 5-8)时 meta 是像素尺寸(横),显示尺寸需交换宽高——thumb 已按标签旋转,JSON 应与显示一致
+      const rot = meta.orientation || 1;
+      const isRotated = rot >= 5 && rot <= 8;
       let date = new Date().toISOString().slice(0, 19);
       try {
-        const iso = execFileSync("exiftool", ["-s3", "-DateTimeOriginal", fullOut], { encoding: "utf8" }).trim();
+        const iso = execFileSync("exiftool", ["-s3", "-DateTimeOriginal", fullOut], { encoding: "utf8", env: EXIFTOOL_ENV }).trim();
         if (iso) {
           const d = new Date(iso.replace(":", "-").replace(":", "-").replace(/\s/, "T"));
           if (!Number.isNaN(d.getTime())) date = d.toISOString().slice(0, 19);
@@ -310,9 +458,11 @@ async function cmdPhotos(args) {
         src: `${CDN}/photos/originals/${name}.jpg`,
         thumb: `${CDN}/photos/thumbs/${name}.webp`,
         alt: name,
-        width: meta.width,
-        height: meta.height,
+        width: isRotated ? meta.height : meta.width,
+        height: isRotated ? meta.width : meta.height,
         date,
+        // note 字段恒存在(无札记为空串)——review 直接更新,字段结构保持一致
+        note: "",
       });
     }
   }
@@ -383,11 +533,25 @@ async function cmdAlbum(args) {
   }
 
   const albumName = basename(resolve(dir));
-  const files = await readdir(dir);
-  const mp3s = files.filter((f) => extname(f).toLowerCase() === ".mp3").sort();
-  const lrcs = new Set(files.filter((f) => extname(f).toLowerCase() === ".lrc"));
+  let files = await readdir(dir);
+  let mp3s = files.filter((f) => extname(f).toLowerCase() === ".mp3").sort();
+  let lrcs = new Set(files.filter((f) => extname(f).toLowerCase() === ".lrc"));
+  // 专辑约定:要么全 mp3 要么全 ncm(不混杂)。纯 ncm → 询问就地转换
+  const ncms = files.filter((f) => extname(f).toLowerCase() === ".ncm");
+  if (ncms.length > 0) {
+    if (!(await confirm(`检测到 ${ncms.length} 个 ncm 文件，是否转换为 mp3`))) {
+      warn("已取消（可先运行 pnpm media ncm 转换）");
+      return;
+    }
+    log(`转换 ${ncms.length} 个 ncm → mp3 ...`);
+    await cmdNcm([dir, "--out", dir, "--remove"]);
+    // 转换后重新扫描
+    files = await readdir(dir);
+    mp3s = files.filter((f) => extname(f).toLowerCase() === ".mp3").sort();
+    lrcs = new Set(files.filter((f) => extname(f).toLowerCase() === ".lrc"));
+  }
   if (mp3s.length === 0) {
-    warn("目录中没有 mp3（ncm 请先运行 pnpm media ncm）");
+    warn("目录中没有 mp3");
     return;
   }
 
@@ -649,7 +813,7 @@ async function cmdReview(args) {
     const photo = photos.find((p) => p.src.includes(key) || String(photos.indexOf(p) + 1) === key);
     if (!photo) { warn(`未找到照片: ${key}`); process.exit(1); }
     if (text.trim()) photo.note = text.trim();
-    else delete photo.note;
+    else photo.note = ""; // 清空也写空串,note 字段恒存在
     await writeFile(PHOTOS_JSON, JSON.stringify(photos, null, 2) + "\n");
     log(text.trim() ? `✓ 已设置 ${photo.alt} 札记` : `✓ 已清空 ${photo.alt} 札记`);
     return;

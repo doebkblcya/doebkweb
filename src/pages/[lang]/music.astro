@@ -37,7 +37,7 @@ const dataJson = JSON.stringify({
 });
 ---
 
-<BaseLayout title={t.music.title} hideFooter>
+<BaseLayout title={t.music.title} description={t.music.description} hideFooter>
   <div class="page">
     <h1 class="page-title">{t.music.title}</h1>
     <hr class="page-divider" />
@@ -461,21 +461,25 @@ const dataJson = JSON.stringify({
     display: none;
   }
 
-  /* ── Hover: vinyl slides out ───────────────────── */
-  .sleeve-card:hover .vinyl-disc {
-    transform: translateX(36%);
-    opacity: 1;
+  /* ── Hover: vinyl slides out (仅 hover 能力设备——鼠标/触控板;
+         触屏含平板无 hover 粘滞问题,黑胶滑出会卡住不回去,故全部禁用) ── */
+  @media (hover: hover) {
+    .sleeve-card:hover .vinyl-disc {
+      transform: translateX(36%);
+      opacity: 1;
+    }
+
+    .sleeve-card:hover .sleeve-cover {
+      transform: translateX(-14%);
+      box-shadow:
+        0 8px 40px rgba(0,0,0,0.25),
+        0 0 0 1px rgba(0,0,0,0.06);
+    }
   }
 
-  .sleeve-card:hover .sleeve-cover {
-    transform: translateX(-14%);
-    box-shadow:
-      0 8px 40px rgba(0,0,0,0.25),
-      0 0 0 1px rgba(0,0,0,0.06);
-  }
-
+  /* 按压反馈:仅缩放,无左移——触屏点击激活 :active,带 translateX 会让手机端点专辑时左移 */
   .sleeve-card:active .sleeve-cover {
-    transform: translateX(-14%) scale(0.98);
+    transform: scale(0.98);
     transition: transform 100ms;
   }
 

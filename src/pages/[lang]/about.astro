@@ -14,7 +14,7 @@ const about = await getEntry("docs", "about");
 const { Content } = await about!.render();
 ---
 
-<BaseLayout title={t.about.title} hideFooter>
+<BaseLayout title={t.about.title} description={t.about.description} hideFooter>
   <div class="page">
     <div class="page-header">
       <h1 class="page-title">{t.about.title}</h1>

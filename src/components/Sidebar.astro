@@ -120,14 +120,27 @@ function isActive(itemHref: string): boolean {
       slider.style.transform = "translateY(" + getItemOffset(item as HTMLElement) + "px)";
     }
 
-    function moveToActive() {
+    function moveToActive(instant?: boolean) {
       var navList = getNavList();
       if (!navList) return;
       var active = navList.querySelector(".nav-item.is-active");
-      if (active) moveSliderTo(active);
+      if (!active) return;
+      var slider = getSlider();
+      if (!slider) return;
+      var y = getItemOffset(active as HTMLElement);
+      if (instant) {
+        // VT 交换后新 DOM 滑块无 inline transform(CSS 态 = 顶部),
+        // 直接赋值会触发 CSS transition 从顶部滑下——先禁过渡定位,reflow 后再恢复
+        slider.style.transition = "none";
+        slider.style.transform = "translateY(" + y + "px)";
+        void slider.offsetHeight;
+        slider.style.transition = "";
+      } else {
+        slider.style.transform = "translateY(" + y + "px)";
+      }
     }
 
-    moveToActive();
+    moveToActive(true);
 
     // ── Mobile drawer (≤640px): hamburger trigger + mask ──
     // VT-safe: inline onclick 入口,window 函数,每次取最新 DOM
@@ -324,7 +337,8 @@ function isActive(itemHref: string): boolean {
         var active = href === "/" ? path === "/" : path.startsWith(href);
         links[i].classList.toggle("is-active", active);
       }
-      moveToActive();
+      // 新 DOM 滑块无初值,瞬时定位(带过渡会从顶部滑下)
+      moveToActive(true);
     };
     document.addEventListener("astro:after-swap", window.__vt_afterSwap);
   })();

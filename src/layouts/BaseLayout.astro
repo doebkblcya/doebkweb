@@ -53,6 +53,13 @@ const vtTransition = {
     <meta name="description" content={pageDescription} />
     <title>{pageTitle}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- SEO:canonical 防重复收录;og 基础 meta(无图,分享卡片显示标题+描述) -->
+    <link rel="canonical" href={Astro.url.origin + Astro.url.pathname} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={Astro.url.origin + Astro.url.pathname} />
+    <meta property="og:locale" content={lang === "zh" ? "zh_CN" : "en_US"} />
     <!-- Theme bootstrap — FOUC 防护：首帧渲染前同步设置 html[data-theme]。
          只读 localStorage + matchMedia，幂等，VT 下重复执行无害。
          localStorage key 与 __vt_setTheme 保持一致（见 CLAUDE.md 约定）。 -->

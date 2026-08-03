@@ -25,10 +25,12 @@ export const ui: UIStrings = {
 
   about: {
     title: "About",
+    description: "About doebkblcya — full-stack engineer and technical writer",
   },
 
   docs: {
     title: "Docs",
+    description: "Technical knowledge base — deployments, toolchains, and dev practices",
     emptyList: "No documents yet",
     published: "Published",
     updated: "Updated",
@@ -45,6 +47,7 @@ export const ui: UIStrings = {
 
   music: {
     title: "Music",
+    description: "Record shelf — vinyl-style music player and album collection",
     emptyList: "No music yet",
     sortAlbum: "Album",
     sortArtist: "Artist",
@@ -54,8 +57,13 @@ export const ui: UIStrings = {
 
   photos: {
     title: "Photos",
+    description: "Photo gallery — photo wall and shooting notes",
     emptyList: "No photos yet. Stay tuned.",
     noNote: "No notes yet",
+    viewTimeline: "Timeline",
+    viewWall: "Wall",
+    searchPlaceholder: "Search photo notes…",
+    noResults: "No results",
   },
 
   notFound: {
