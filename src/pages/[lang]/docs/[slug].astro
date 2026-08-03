@@ -112,7 +112,9 @@ const toc = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
     position: sticky;
     top: var(--space-10);
     align-self: start;
+    /* iOS Safari:100vh 含地址栏,改用 dvh 动态视口(旧浏览器 fallback 在前) */
     max-height: calc(100vh - var(--space-20));
+    max-height: calc(100dvh - var(--space-20));
     overflow-y: auto;
     padding: var(--space-4);
     background: var(--glass-bg);

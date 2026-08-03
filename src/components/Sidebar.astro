@@ -26,7 +26,9 @@ function isActive(itemHref: string): boolean {
 }
 ---
 
-<aside class="sidebar" id="sidebar" transition:persist="sidebar">
+<!-- 不 persist:侧栏文案/href 随语言渲染,VT 交换必须重建(切语言后 persist 会保留旧语言 DOM);
+     重建后状态由 astro:after-swap 兜底:抽屉复位/滑块定位/主题恢复 -->
+<aside class="sidebar" id="sidebar">
   <nav class="sidebar-nav" aria-label="Main navigation">
     <ul class="nav-list" id="nav-list">
       <div class="nav-slider" id="nav-slider"></div>
@@ -92,29 +94,34 @@ function isActive(itemHref: string): boolean {
       __vt_toggleTheme: () => void;
       __vt_applyTheme: () => void;
       __vt_systemThemeListener: () => void;
+      __vt_afterSwap: () => void;
+      __vt_navHover: (e: MouseEvent) => void;
+      __vt_navLeave: (e: MouseEvent) => void;
     }
   }
 
   (function () {
     var sidebar = document.getElementById("sidebar");
     if (!sidebar) return;
-    if (sidebar.dataset.sidebarReady === "1") return;
-    sidebar.dataset.sidebarReady = "1";
 
-    var slider = document.getElementById("nav-slider") as HTMLElement | null;
-    var navList = document.getElementById("nav-list") as HTMLElement | null;
+    // 滑块函数内部每次取最新 DOM(document 委托与 after-swap 共用,侧栏重建后闭包变量会过时)
+    function getSlider() { return document.getElementById("nav-slider") as HTMLElement | null; }
+    function getNavList() { return document.getElementById("nav-list") as HTMLElement | null; }
 
     function getItemOffset(item: HTMLElement) {
+      var slider = getSlider();
       if (!slider) return 0;
       return item.offsetTop + (item.offsetHeight - slider.offsetHeight) / 2;
     }
 
     function moveSliderTo(item: Element | null) {
+      var slider = getSlider();
       if (!slider || !item) return;
       slider.style.transform = "translateY(" + getItemOffset(item as HTMLElement) + "px)";
     }
 
     function moveToActive() {
+      var navList = getNavList();
       if (!navList) return;
       var active = navList.querySelector(".nav-item.is-active");
       if (active) moveSliderTo(active);
@@ -132,6 +139,9 @@ function isActive(itemHref: string): boolean {
     function navTo(sb: HTMLElement | null, target: string) {
       if (!sb) return;
       if (navAnim) navAnim.stop();
+      // 显式 from:is-open class 切换无 transition 瞬时生效,CSS 已是目标值,
+      // Motion 读当前值会读到目标值导致 from==to 无动画——先设 inline 初值再动画
+      sb.style.transform = target === "translateX(0px)" ? "translateX(-100%)" : "translateX(0px)";
       navAnim = animate(sb, { transform: target }, NAV_SPRING);
       navAnim.finished.then(function () {
         // Motion 完成时会把终值写回 inline style(晚于 finished resolve),
@@ -161,9 +171,14 @@ function isActive(itemHref: string): boolean {
       if (sb) {
         sb.classList.remove("is-open");
         if (instant) {
-          // VT 切页复位:不播动画,直接落回 CSS 基础态
-          if (navAnim) navAnim.stop();
+          // VT 切页复位:不播动画,直接落回 CSS 基础态。
+          // 勿用 stop():它把当前中间值异步写回 inline(晚于同步清空,盖回残留,实测侧栏停在中途),
+          // 用 cancel()(取消,不写回当前值)再延迟一帧清一次,兜住任何异步写回
+          if (navAnim) navAnim.cancel();
           sb.style.transform = "";
+          requestAnimationFrame(function () {
+            if (sb && !sb.classList.contains("is-open")) sb.style.transform = "";
+          });
         } else {
           navTo(sb, "translateX(-100%)");
         }
@@ -271,19 +286,31 @@ function isActive(itemHref: string): boolean {
 
     window.__vt_applyTheme();
 
-    // Hover: slider follows cursor
-    navList?.addEventListener("mouseover", function (e) {
+    // Hover: slider follows cursor。document 级委托 + remove-before-add:
+    // 侧栏每页重建,元素级 addEventListener 会绑到旧元素(与齿轮同源问题)
+    if (window.__vt_navHover) document.removeEventListener("mouseover", window.__vt_navHover);
+    window.__vt_navHover = function (e: MouseEvent) {
       var target = e.target instanceof Element ? e.target : null;
-      var item = target ? target.closest(".nav-item") : null;
+      if (!target || !target.closest("#nav-list")) return;
+      var item = target.closest(".nav-item");
       if (item) moveSliderTo(item);
-    });
-
-    navList?.addEventListener("mouseleave", function () {
+    };
+    document.addEventListener("mouseover", window.__vt_navHover);
+    // mouseout 冒泡(mouseleave 不冒泡,无法委托):relatedTarget 不在列表内才算移出
+    if (window.__vt_navLeave) document.removeEventListener("mouseout", window.__vt_navLeave);
+    window.__vt_navLeave = function (e: MouseEvent) {
+      var target = e.target instanceof Element ? e.target : null;
+      if (!target || !target.closest("#nav-list")) return;
+      var rt = e.relatedTarget instanceof Element ? e.relatedTarget : null;
+      if (rt && rt.closest("#nav-list")) return;
       moveToActive();
-    });
+    };
+    document.addEventListener("mouseout", window.__vt_navLeave);
 
-    document.addEventListener("astro:after-swap", function () {
-      // VT 切页:persist 侧栏保留 class,重置抽屉关闭状态(instant:不播关闭动画)
+    // 侧栏不再 persist,脚本每次 VT 交换后重跑(remove-before-add 防监听器累积)
+    if (window.__vt_afterSwap) document.removeEventListener("astro:after-swap", window.__vt_afterSwap);
+    window.__vt_afterSwap = function () {
+      // VT 切页:重置抽屉关闭状态(instant:不播关闭动画)
       window.__vt_closeNav(true);
       // 恢复主题属性(交换清掉了 html 的 data-theme/data-theme-mode)
       window.__vt_applyTheme();
@@ -297,10 +324,9 @@ function isActive(itemHref: string): boolean {
         var active = href === "/" ? path === "/" : path.startsWith(href);
         links[i].classList.toggle("is-active", active);
       }
-      slider = document.getElementById("nav-slider") as HTMLElement | null;
-      navList = document.getElementById("nav-list") as HTMLElement | null;
       moveToActive();
-    });
+    };
+    document.addEventListener("astro:after-swap", window.__vt_afterSwap);
   })();
 </script>
 
@@ -311,10 +337,15 @@ function isActive(itemHref: string): boolean {
     left: 0;
     width: 7.5rem;
     height: 100vh;
+    /* iOS Safari:100vh 含地址栏高度,底部(主题切换/设置)被遮不可见。
+       dvh 动态视口随地址栏展开/收起实时适配,底部图标始终在可视区内 */
+    height: 100dvh;
     z-index: 100;
     display: flex;
     flex-direction: column;
     padding: var(--space-6) var(--space-3);
+    /* iPhone 全面屏底部 home indicator 避让(桌面环境 env() = 0,无影响) */
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
     border-right: 1px solid var(--color-border-light);
     background: var(--color-bg-page);
     overflow: hidden;
@@ -446,6 +477,8 @@ function isActive(itemHref: string): boolean {
     backdrop-filter: var(--glass-blur);
     cursor: pointer;
     padding: 0;
+    /* 抽屉打开时淡出隐藏(见 media query 内 [aria-expanded="true"] 规则) */
+    transition: opacity 200ms ease;
   }
 
   .nav-trigger-line {
@@ -480,6 +513,16 @@ function isActive(itemHref: string): boolean {
   @media (max-width: 640px) {
     .nav-trigger {
       display: flex;
+    }
+
+    /* 抽屉打开时汉堡图标淡出隐藏;关闭时立即恢复(visibility 的延迟 transition
+       只写在 true 态:visible→hidden 等淡出完再隐藏,hidden→visible 立即)。
+       aria-expanded 由 __vt_toggleNav/__vt_closeNav 维护,VT 切页复位自动还原 */
+    .nav-trigger[aria-expanded="true"] {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 200ms ease, visibility 0s linear 200ms;
     }
 
     .sidebar {

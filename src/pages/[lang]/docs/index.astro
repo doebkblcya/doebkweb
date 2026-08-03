@@ -633,7 +633,10 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
     }
   };
 
+  // remove-before-add:页面级脚本每次 VT 导航重跑,防监听器累积
+  document.removeEventListener("click", window.__vt_docs_onClick);
   document.addEventListener("click", window.__vt_docs_onClick);
+  document.removeEventListener("keydown", window.__vt_docs_onKeydown);
   document.addEventListener("keydown", window.__vt_docs_onKeydown);
 
   // ═══ Init Pagefind ══════════════════════════════

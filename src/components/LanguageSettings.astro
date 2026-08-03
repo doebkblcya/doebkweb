@@ -16,7 +16,8 @@ const langOptions = [
 ---
 
 <div class="lang-settings" id="lang-settings">
-  <button class="lang-toggle" aria-label={t.common.settings} aria-expanded="false">
+  <!-- inline onclick(VT-safe):侧栏每页重建,元素级 addEventListener 会绑到旧元素导致新元素点不了 -->
+  <button class="lang-toggle" aria-label={t.common.settings} aria-expanded="false" onclick="window.__vt_toggleSettings()">
     <svg class="gear-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -24,9 +25,10 @@ const langOptions = [
   </button>
 </div>
 
-<!-- Settings modal — rendered at root level for centered overlay -->
-<div class="settings-overlay" id="settings-overlay" hidden>
-  <div class="settings-modal" id="settings-modal">
+<!-- Settings modal — rendered at root level for centered overlay。
+     onclick 关闭遮罩;弹窗内部 stopPropagation 防冒泡误关 -->
+<div class="settings-overlay" id="settings-overlay" hidden onclick="window.__vt_closeSettings()">
+  <div class="settings-modal" id="settings-modal" onclick="event.stopPropagation()">
     <!-- Language -->
     <div class="settings-section">
       <span class="settings-label">语言</span>
@@ -68,15 +70,29 @@ const langOptions = [
 <script>
   import { animate, spring } from "motion";
 
+  // 齿轮/遮罩点击经 inline onclick 走 window 函数(VT-safe,CLAUDE.md 约定):
+  // 侧栏每页重建,元素级 addEventListener 绑在旧元素上,新元素点击无监听
+  declare global {
+    interface Window {
+      __vt_toggleSettings: () => void;
+      __vt_closeSettings: () => void;
+      __vt_settingsKeydown: (e: KeyboardEvent) => void;
+    }
+  }
+
   (function () {
     var container = document.getElementById("lang-settings");
     if (!container) return;
     if (container.dataset.langReady === "1") return;
     container.dataset.langReady = "1";
 
-    var toggle = container.querySelector<HTMLButtonElement>(".lang-toggle");
-    var overlay = document.getElementById("settings-overlay");
-    var modal = document.getElementById("settings-modal");
+    // window 函数每次取最新 DOM(即使脚本未重跑,首载版本也操作当前元素)
+    function getOverlay() { return document.getElementById("settings-overlay"); }
+    function getModal() { return document.getElementById("settings-modal"); }
+    function getToggle() {
+      var ls = document.getElementById("lang-settings");
+      return ls ? ls.querySelector<HTMLButtonElement>(".lang-toggle") : null;
+    }
 
     // 弹窗 pop:modal 的 opacity/scale/y 由 Motion spring 驱动(可中断,快速开关直接转向)。
     // CSS 只留基础态值与 :not([hidden]) 目标值、无 transition(见 .settings-modal 样式注释);
@@ -85,11 +101,18 @@ const langOptions = [
     var modalAnim: ReturnType<typeof animate> | null = null;
 
     function open() {
+      var overlay = getOverlay();
+      var toggle = getToggle();
       if (!overlay || !toggle) return;
       overlay.hidden = false;
       toggle.setAttribute("aria-expanded", "true");
+      var modal = getModal();
       if (modal) {
         if (modalAnim) modalAnim.stop();
+        // 显式初值:CSS :not([hidden]) 无 transition 已瞬时到终值(scale 1/opacity 1),
+        // Motion 读当前值会读到终值导致 from==to 无动画——先设 inline 初值再动画
+        modal.style.opacity = "0";
+        modal.style.transform = "scale(0.95) translateY(8px)";
         modalAnim = animate(modal, { opacity: 1, scale: 1, y: 0 }, MODAL_SPRING);
         modalAnim.finished.then(function () {
           if (modal && overlay && !overlay.hidden) { modal.style.opacity = ""; modal.style.transform = ""; }
@@ -98,8 +121,11 @@ const langOptions = [
     }
 
     function close() {
+      var overlay = getOverlay();
+      var toggle = getToggle();
       if (!overlay || !toggle) return;
       toggle.setAttribute("aria-expanded", "false");
+      var modal = getModal();
       if (modal) {
         if (modalAnim) modalAnim.stop();
         modalAnim = animate(modal, { opacity: 0, scale: 0.95, y: 8 }, MODAL_SPRING);
@@ -113,19 +139,23 @@ const langOptions = [
       }
     }
 
-    toggle?.addEventListener("click", function () {
-      if (overlay) overlay.hidden ? open() : close();
-    });
+    // inline onclick 入口:齿轮 toggle,遮罩关闭
+    window.__vt_toggleSettings = function () {
+      var overlay = getOverlay();
+      if (!overlay) return;
+      overlay.hidden ? open() : close();
+    };
+    window.__vt_closeSettings = function () {
+      close();
+    };
 
-    // Close on backdrop click
-    overlay?.addEventListener("click", function (e) {
-      if (e.target === overlay) close();
-    });
-
-    // Close on Escape
-    document.addEventListener("keydown", function (e) {
+    // Close on Escape(remove-before-add:侧栏每次切页重建,脚本重跑,防监听器累积)
+    if (window.__vt_settingsKeydown) document.removeEventListener("keydown", window.__vt_settingsKeydown);
+    window.__vt_settingsKeydown = function (e: KeyboardEvent) {
+      var overlay = getOverlay();
       if (e.key === "Escape" && overlay && !overlay.hidden) close();
-    });
+    };
+    document.addEventListener("keydown", window.__vt_settingsKeydown);
   })();
 </script>
 

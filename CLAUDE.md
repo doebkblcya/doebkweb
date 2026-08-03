@@ -36,16 +36,17 @@ Astro ^5.6 · Motion ^12.11 · Pagefind · Shiki 代码高亮 · Cloudflare Page
 - **动画**：简单交互用 CSS transition，spring 物理动效用 Motion 库。`prefers-reduced-motion` 降级为 opacity
 - **Motion 约定**（v1.5，vanilla `motion` 包，import { animate, spring, inView } from "motion"）：
   - **transform 所有权**：被 JS 动画接管的属性（transform/opacity）必须从该元素 CSS 移除 transition——否则 CSS transition 与 JS 内联值互相干扰。CSS 只留基础态值（首帧正确），JS 动画结束清 inline 落回 CSS
+  - **class 切换与动画时序**：CSS 无 transition 时 class 切换瞬时生效（如 `.open` 置终值），Motion 读当前值会读到**目标值**导致 from==to 无动画（打开动画硬切）——动画前必须先设 inline 初值（显式 from），动画结束清 inline 落回 class。面板/抽屉/设置弹窗均踩过此坑（v1.5 修复）
   - **清理时序**：Motion 完成时终值写回 inline 晚于 `finished` resolve——`finished.then` 里需 `requestAnimationFrame` 延迟一帧再清（否则残留如 `translateX(-100%)` 在桌面断点无 CSS transform 时会移出屏）
   - **`reduceMotion: true`**（vanilla 选项；`reducedMotion: "user"` 是 React MotionConfig 的 props，vanilla animate 无此字段）——每处动画都加，系统偏好下自动降级为纯 opacity 淡入
   - **`define:vars` 脚本内联输出，不能 import**——动画逻辑放独立 `<script>` 块（打包 module），主脚本经 `window.__vt_xxx` 桥接调用（例：VinylPlayer 的 `__vt_panelAnimate`）
   - persist 组件脚本只在首载执行一次；页面级脚本每次 VT 导航重跑 → 入场动画（inView + stagger）天然切页重放
 - **音乐**：`src/data/music.json` 是唯一数据源，加专辑只改这一个文件（曲序用 `trackNo` 字段，数据层排序，数组书写顺序不承担语义）
-- **响应式**：断点 **640px** 是手机分界（≤640：汉堡抽屉接管侧栏、播放器全宽面板；≥641：完整侧栏）。播放器面板有 `max-height: calc(100vh - var(--space-6))` + 内部滚动限高，勿移除。汉堡交互在 Sidebar.astro（`#nav-trigger` / `#nav-mask`），走 `window.__vt_toggleNav/CloseNav`（inline onclick，VT-safe），切页由 `astro:after-swap` 重置。docs 列表页通栏铺满为设计决定，勿加限宽
+- **响应式**：断点 **640px** 是手机分界（≤640：汉堡抽屉接管侧栏、播放器全宽面板；≥641：完整侧栏）。播放器面板有 `max-height: calc(100dvh - var(--space-6))`（vh fallback 在前）+ 内部滚动限高，勿移除。汉堡交互在 Sidebar.astro（`#nav-trigger` / `#nav-mask`），走 `window.__vt_toggleNav/CloseNav`（inline onclick，VT-safe），切页由 `astro:after-swap` 重置。iOS Safari 全高元素（sidebar/播放器面板/TOC）用 `100dvh`（100vh 含地址栏，底部内容被遮）。docs 列表页通栏铺满为设计决定，勿加限宽
 - **View Transitions**：VT 只替换 DOM，不执行 body 内 `<script>` → 切页回来后所有 `addEventListener` 丢失。**所有非 persist 元素的交互必须用 inline HTML 属性。**
   - **`onclick=""`**：页面交互的唯一入口。逻辑全部放在 `window.__vt_xxx` 全局函数中，函数内每次 `document.getElementById` 取最新 DOM，不依赖闭包。
-  - **`document` 级监听**（keyboard）：存 `window.__vt_xxx`，每次脚本执行先 `removeEventListener` 旧函数再 `addEventListener` 新函数。
-  - **persist 组件**（VinylPlayer、Sidebar）：`dataset.ready` 防重入。每页都必须渲染（首页用 CSS 隐藏）。
+  - **元素级 `addEventListener` 一律禁止**（非 persist 元素）——齿轮/遮罩/navList hover 均踩过（v1.5.1）：侧栏每页重建后监听器绑在旧元素，新元素点击无响应（用户实测"刷新才能恢复"）。交互必须 inline onclick + window 函数；document 级监听（keyboard/after-swap 等）存 `window.__vt_xxx`，每次脚本执行先 `removeEventListener` 旧函数再 `addEventListener` 新函数，否则累积。**去掉某元素的 persist 时，必须 grep 审计该子树内所有元素级 addEventListener**。
+  - **persist 组件**（VinylPlayer）：`dataset.ready` 防重入。每页都必须渲染（首页用 CSS 隐藏）。**Sidebar 不 persist**——文案/href 随语言渲染，persist 会保留旧语言 DOM 导致切语言不更新；VT 交换重建侧栏，状态由 `astro:after-swap` 兜底（抽屉复位/滑块定位/主题恢复）。
   - `pnpm dev` 无法测试 Pagefind 搜索，需 `pnpm build && pnpm preview`
 
 ## 详细文档
