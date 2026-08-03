@@ -46,7 +46,12 @@ export default defineConfig({
   output: 'static',
   markdown: {
     shikiConfig: {
-      theme: "github-light",
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
+      // 只输出 CSS 变量(--shiki-bg / --shiki-dark-bg …),由 prose.css 按 html[data-theme] 切换
+      defaultColor: false,
     },
     rehypePlugins: [rehypeTableWrap, rehypeDropLeadingH1],
   },

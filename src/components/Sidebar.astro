@@ -44,6 +44,21 @@ function isActive(itemHref: string): boolean {
   </nav>
 
   <div class="sidebar-bottom">
+    <!-- 主题快捷切换:图标显示目标状态(深色→太阳,浅色→月亮),显隐由 CSS [data-theme] 控制 -->
+    <button
+      class="theme-toggle"
+      id="theme-toggle"
+      aria-label={t.theme.toggle}
+      onclick="window.__vt_toggleTheme()"
+    >
+      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
     <LanguageSettings t={t} currentPath={currentPath} />
   </div>
 </aside>
@@ -71,6 +86,10 @@ function isActive(itemHref: string): boolean {
       __vt_closeNav: () => void;
       __vt_drawerLinkClick?: (e: MouseEvent) => void;
       __vt_drawerKeydown?: (e: KeyboardEvent) => void;
+      __vt_setTheme: (mode: "light" | "dark" | "auto") => void;
+      __vt_toggleTheme: () => void;
+      __vt_applyTheme: () => void;
+      __vt_systemThemeListener: () => void;
     }
   }
 
@@ -137,6 +156,90 @@ function isActive(itemHref: string): boolean {
     };
     document.addEventListener("keydown", window.__vt_drawerKeydown);
 
+    // ── Theme:三段式 浅色/深色/自动 ──
+    // 状态模型(与 BaseLayout head 内联脚本一致,见 CLAUDE.md):
+    //   localStorage["doebk-theme"] = light|dark|auto(缺省 auto,仅用户显式选择时写入)
+    //   html[data-theme]      = 有效主题(驱动全部 CSS)
+    //   html[data-theme-mode] = 用户模式(驱动 chips 高亮)
+    var THEME_KEY = "doebk-theme";
+
+    function resolveEffective(mode: "light" | "dark" | "auto"): "light" | "dark" {
+      if (mode === "auto") {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      return mode;
+    }
+
+    function syncThemeUI() {
+      var doc = document.documentElement;
+      var mode = doc.getAttribute("data-theme-mode") || "auto";
+      var chips = document.querySelectorAll<HTMLElement>(".theme-chip");
+      for (var i = 0; i < chips.length; i++) {
+        chips[i].classList.toggle("is-active", chips[i].getAttribute("data-mode") === mode);
+      }
+      // 移动端浏览器地址栏配色跟随主题(VT 交换 head 后 meta 会消失,必要时重建)
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("name", "theme-color");
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", doc.getAttribute("data-theme") === "dark" ? "#000000" : "#f5f5f7");
+    }
+
+    // 系统主题变化:仅更新有效主题,不动 localStorage 与模式
+    window.__vt_systemThemeListener = function () {
+      var doc = document.documentElement;
+      if (doc.getAttribute("data-theme-mode") !== "auto") return;
+      doc.setAttribute("data-theme", resolveEffective("auto"));
+      syncThemeUI();
+    };
+
+    function attachSystemListener() {
+      var mql = window.matchMedia("(prefers-color-scheme: dark)");
+      if (mql.addEventListener) {
+        mql.removeEventListener("change", window.__vt_systemThemeListener);
+        mql.addEventListener("change", window.__vt_systemThemeListener);
+      }
+    }
+
+    // 唯一状态变更入口:chips / 侧栏按钮 / head 脚本共用
+    window.__vt_setTheme = function (mode) {
+      if (mode !== "light" && mode !== "dark" && mode !== "auto") return;
+      try {
+        localStorage.setItem(THEME_KEY, mode);
+      } catch (e) {}
+      var doc = document.documentElement;
+      doc.setAttribute("data-theme", resolveEffective(mode));
+      doc.setAttribute("data-theme-mode", mode);
+      syncThemeUI();
+      if (mode === "auto") attachSystemListener();
+    };
+
+    // 侧栏按钮:按有效主题取反,显式写回 light/dark
+    window.__vt_toggleTheme = function () {
+      var doc = document.documentElement;
+      var effective = doc.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      window.__vt_setTheme(effective === "dark" ? "light" : "dark");
+    };
+
+    // 读存储 → 应用(html 属性 + UI 同步)。首帧由 head 内联脚本完成,
+    // 这里负责 init 与 VT 交换后恢复——Astro 交换会把 html 属性同步成新文档的,运行时属性会被清掉
+    window.__vt_applyTheme = function () {
+      var mode: "light" | "dark" | "auto" = "auto";
+      try {
+        var s = localStorage.getItem(THEME_KEY);
+        if (s === "light" || s === "dark") mode = s;
+      } catch (e) {}
+      var doc = document.documentElement;
+      doc.setAttribute("data-theme", resolveEffective(mode));
+      doc.setAttribute("data-theme-mode", mode);
+      syncThemeUI();
+      if (mode === "auto") attachSystemListener();
+    };
+
+    window.__vt_applyTheme();
+
     // Hover: slider follows cursor
     navList?.addEventListener("mouseover", function (e) {
       var target = e.target instanceof Element ? e.target : null;
@@ -151,6 +254,8 @@ function isActive(itemHref: string): boolean {
     document.addEventListener("astro:after-swap", function () {
       // VT 切页:persist 侧栏保留 class,重置抽屉关闭状态
       window.__vt_closeNav();
+      // 恢复主题属性(交换清掉了 html 的 data-theme/data-theme-mode)
+      window.__vt_applyTheme();
       var sb = document.getElementById("sidebar");
       if (!sb) return;
       var path = window.location.pathname.replace(/^\/[a-z]{2}\//, "/");
@@ -240,11 +345,54 @@ function isActive(itemHref: string): boolean {
     font-weight: 600;
   }
 
-  /* ── Bottom / Settings ──────────────────────────── */
+  /* ── Bottom / Theme + Settings ──────────────────── */
   .sidebar-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
     padding-bottom: 0;
     overflow: visible;
     flex-shrink: 0;
+  }
+
+  /* 主题快捷按钮:样式与 .lang-toggle(齿轮) 一致,图标显示目标状态 */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    background: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    color: var(--color-text-tertiary);
+    transition: color 200ms, background 200ms;
+  }
+
+  .theme-toggle:hover {
+    color: var(--color-text-primary);
+    background: var(--color-accent-subtle);
+  }
+
+  /* 深色显示太阳(点击切浅色),浅色显示月亮(点击切深色)。
+     :global([data-theme=…]) 指 html 属性——不加 :global 会被 Astro 追加
+     data-astro-cid 前缀(html 上没有该属性),选择器永不匹配 */
+  .theme-toggle .icon-sun {
+    display: none;
+  }
+
+  .theme-toggle .icon-moon {
+    display: block;
+  }
+
+  :global([data-theme="dark"]) .theme-toggle .icon-sun {
+    display: block;
+  }
+
+  :global([data-theme="dark"]) .theme-toggle .icon-moon {
+    display: none;
   }
 
   /* ── Mobile nav trigger (hamburger) ──────────── */

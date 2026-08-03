@@ -65,6 +65,14 @@ export const ui: UIStrings = {
     backHome: "Back Home",
   },
 
+  theme: {
+    appearance: "Appearance",
+    light: "Light",
+    dark: "Dark",
+    auto: "Auto",
+    toggle: "Toggle appearance",
+  },
+
   common: {
     skipToContent: "Skip to content",
     settings: "Settings",

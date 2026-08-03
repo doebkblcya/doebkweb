@@ -69,6 +69,16 @@ export interface NotFoundStrings {
 }
 
 
+export interface ThemeStrings {
+  /** 设置面板「外观」分段控件 section 标签 */
+  appearance: string;
+  light: string;
+  dark: string;
+  auto: string;
+  /** 侧栏太阳/月亮按钮的 aria-label */
+  toggle: string;
+}
+
 export interface CommonStrings {
   skipToContent: string;
   settings: string;
@@ -83,5 +93,6 @@ export interface UIStrings {
   music: MusicStrings;
   photos: PhotosStrings;
   notFound: NotFoundStrings;
+  theme: ThemeStrings;
   common: CommonStrings;
 }

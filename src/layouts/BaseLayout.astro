@@ -38,6 +38,32 @@ const r2Base = "https://cdn.doebkblcya.com/music";
     <meta name="description" content={pageDescription} />
     <title>{pageTitle}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Theme bootstrap — FOUC 防护：首帧渲染前同步设置 html[data-theme]。
+         只读 localStorage + matchMedia，幂等，VT 下重复执行无害。
+         localStorage key 与 __vt_setTheme 保持一致（见 CLAUDE.md 约定）。 -->
+    <script is:inline>
+      (function () {
+        var key = "doebk-theme";
+        var stored = null;
+        try {
+          stored = localStorage.getItem(key);
+        } catch (e) {}
+        var mode = stored === "light" || stored === "dark" ? stored : "auto";
+        var theme =
+          mode === "auto"
+            ? window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light"
+            : mode;
+        var doc = document.documentElement;
+        doc.setAttribute("data-theme", theme);
+        doc.setAttribute("data-theme-mode", mode);
+        var meta = document.createElement("meta");
+        meta.name = "theme-color";
+        meta.content = theme === "dark" ? "#000000" : "#f5f5f7";
+        document.head.appendChild(meta);
+      })();
+    </script>
     <ViewTransitions />
   </head>
   <body class={!hideHeader ? "has-sidebar" : ""}>
@@ -65,7 +91,7 @@ const r2Base = "https://cdn.doebkblcya.com/music";
     z-index: 1000;
     padding: var(--space-2) var(--space-4);
     background: var(--color-accent);
-    color: #fff;
+    color: var(--color-text-on-accent);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
     font-weight: 500;

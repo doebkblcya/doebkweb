@@ -10,6 +10,7 @@
 | v1.1 | ✅ 完成 | 音乐 & 摄影（R2 图床、专辑架、黑胶动画、摄影网格 + Lightbox）、Cloudflare Pages 上线 |
 | v1.2 | ✅ 完成 | 内容迁移与精简（9 篇真实技术文档、组件精简、归档/分类页移除、搜索并入列表页） |
 | v1.3 | ✅ 完成 | 多端适配（移动端汉堡导航、断点 640、播放器面板限高、宽度 token 对齐） |
+| v1.4 | ✅ 完成 | 三段式主题切换（浅色/深色/自动：侧栏快捷按钮 + 设置面板分段控件、Shiki 双主题、VT 兼容） |
 
 > 说明：v0.4（Motion 动效）与 v1.0（正式上线）从未独立成版本——部署上线实际随 v1.1 完成，动效/SEO 等未做内容并入「未来方向」。
 
@@ -209,9 +210,24 @@
 
 ---
 
-## 未来方向（v1.4+）
+## v1.4 — 三段式主题切换（完成）
 
-- 暗色/亮色模式切换（tokens 已预留 `[data-theme="dark"]`）
+2026-08-03 实施。
+
+### 已完成
+
+- **状态模型**：`localStorage["doebk-theme"]`（light/dark/auto，缺省 auto）+ `<html data-theme>`（有效主题，驱动 CSS）+ `<html data-theme-mode>`（用户模式，驱动 UI 高亮）
+- **FOUC 防护**：BaseLayout head 内联脚本首帧前同步设属性 + meta theme-color；Shiki 代码块改用 `themes: {light, dark}` + `defaultColor: false`，prose.css 按 `[data-theme]` 属性切换
+- **切换入口**：侧栏太阳/月亮按钮（图标显示目标状态，`__vt_toggleTheme`）+ 设置面板「外观」分段控件（`__vt_setTheme`，chips 复用语言切换样式）
+- **系统跟随**：auto 模式下 matchMedia 监听系统主题变化（remove-before-add 防累积），仅更新有效主题不污染用户选择
+- **VT 兼容**：交换会清掉 html 运行时属性且 head 内联脚本不重跑 → `__vt_applyTheme` 挂在 persist 侧栏的 `astro:after-swap` 恢复；meta theme-color 交换后重建
+- **暗色色板**：Apple 风格（纯黑底 #000 + 表面 #1c1c1e，accent 反转白色），新增 `--color-text-on-accent` token（替换 skip-link / VinylPlayer action-btn 硬编码 #fff）
+- **验证**：Playwright 实测属性切换、重载持久化、VT 切页保持、chips 联动、Shiki 明暗色值；`astro check` 0 errors
+
+---
+
+## 未来方向（v1.5+）
+
 - 动效打磨（Motion 库，依赖已装 ^12.11 未使用：spring 物理、页面过渡）
 - 真实内容填充（摄影/音乐/技术文档持续补充）
 - LRC 歌词展示 UI（数据字段已预留）

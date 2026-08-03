@@ -22,7 +22,7 @@ Apple Design 风格的纯静态站点,基于 [Astro](https://astro.build) 构建
 | **摄影画廊** | 响应式网格 + 原生懒加载,Lightbox 全屏预览(键盘 ← → / Esc 导航) |
 | **双语 UI** | 中 / 英文案,TypeScript 接口约束结构一致;文档内容不翻译,仅 UI 翻译 |
 | **多端适配** | 桌面完整侧栏,iPad 竖屏保留侧栏,手机(≤640px)汉堡抽屉导航;播放器面板横屏可滚动 |
-| **暗色预留** | Design Tokens 单文件换肤,`[data-theme="dark"]` 变量已就绪 |
+| **三段式主题** | 浅色 / 深色 / 自动(跟随系统),侧栏太阳月亮快捷切换 + 设置面板分段控件;localStorage 记忆,View Transitions 切页不闪 |
 
 ---
 
@@ -47,7 +47,7 @@ pnpm preview        # 本地预览构建产物(含 Pagefind 搜索)
 | 语言 | TypeScript ^5.8(`@astrojs/check` 类型检查) |
 | 动画 | Motion ^12.11(依赖就绪,spring 物理动效规划中) |
 | 搜索 | Pagefind ^1.5.2(构建时索引,零运行时开销) |
-| 代码高亮 | Shiki(github-light 主题) |
+| 代码高亮 | Shiki 双主题(github-light / github-dark,按 `html[data-theme]` 切换) |
 | 部署 | Cloudflare Pages + R2 媒体托管(`cdn.doebkblcya.com`) |
 
 ---

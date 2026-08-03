@@ -28,7 +28,8 @@ Astro ^5.6 · Motion ^12.11 · Pagefind · Shiki 代码高亮 · Cloudflare Page
 ## 关键约定
 
 - **纯静态输出**，无后端，无数据库
-- **Design Tokens**：`src/styles/tokens.css` 管所有颜色/间距/字体，换肤只改这一个文件。`:root` = 亮色，`[data-theme="dark"]` 预留暗色
+- **Design Tokens**：`src/styles/tokens.css` 管所有颜色/间距/字体，换肤只改这一个文件。`:root` = 亮色，`[data-theme="dark"]` = 暗色
+- **主题（三段式 浅色/深色/自动）**：状态 = `localStorage["doebk-theme"]`（light/dark/auto，缺省 auto）+ `<html data-theme>`（有效主题，驱动 CSS）+ `<html data-theme-mode>`（用户模式，驱动 UI）。FOUC 防护在 BaseLayout head 内联脚本（首帧前设属性，VT 下不重跑）；状态变更唯一入口 `window.__vt_setTheme(mode)`（Sidebar persist 脚本定义，写存储 + 属性 + `syncThemeUI` chips/图标联动 + auto 挂 matchMedia 监听）。**VT 交换会清掉 html 运行时属性**——`astro:after-swap` 处理器里调 `__vt_applyTheme()` 恢复（勿移除）。组件 scoped 样式里引用 `[data-theme="dark"]` 必须用 `:global()` 包裹（否则被加 astro-cid 前缀永不匹配）；Shiki 双主题 `defaultColor: false` 只出 `--shiki-light/dark*` 变量，切换 CSS 在 prose.css
 - **i18n**：`src/types/i18n.ts` 定义 `UIStrings` 接口 → `zh.ts` / `en.ts` 实现。文档内容不翻译，只翻译 UI 文案
 - **Content Collections**：Markdown 放 `src/content/docs/`，frontmatter 必填 `title`、`date`、`summary`；可选 `updated`、`draft`、`listed`（schema 见 `src/content/config.ts`，无 `category` 字段）
 - **媒体资源**：大文件走 R2（`cdn.doebkblcya.com`），小文件放 `public/`

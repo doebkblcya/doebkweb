@@ -2,9 +2,10 @@
  * Design Tokens — Apple-style
  *
  * Architecture:
- *   :root              — Light mode (current)
- *   [data-theme="dark"] — Dark mode (reserved, to be filled later)
+ *   :root               — Light mode
+ *   [data-theme="dark"] — Dark mode
  *
+ * html[data-theme] 由 head 内联脚本 + window.__vt_setTheme 维护（见 CLAUDE.md）。
  * Naming convention: --{category}-{name}[-{modifier}]
  */
 
@@ -24,6 +25,7 @@
   --color-accent: #1d1d1f;
   --color-accent-hover: #000000;
   --color-accent-subtle: rgba(0, 0, 0, 0.06);
+  --color-text-on-accent: #ffffff;
 
   /* Border */
   --color-border: #d2d2d7;
@@ -112,5 +114,41 @@
   --press-scale: 0.97;
 }
 
-/* ── Dark Mode (reserved) ──────────────────────────────────── */
-/* [data-theme="dark"] { } */
+/* ── Dark Mode ─────────────────────────────────────────────── */
+/* Apple 风格暗色：纯黑页面底 + 深灰表面，accent 反转成白色 */
+[data-theme="dark"] {
+  /* Page & Surface */
+  --color-bg-page: #000000;
+  --color-bg-surface: #1c1c1e;
+  --color-bg-surface-hover: #242426;
+
+  /* Text */
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #98989d;
+  --color-text-tertiary: #6e6e73;
+
+  /* Accent（反转：黑 → 白，配 text-on-accent 深色字） */
+  --color-accent: #f5f5f7;
+  --color-accent-hover: #ffffff;
+  --color-accent-subtle: rgba(255, 255, 255, 0.08);
+  --color-text-on-accent: #1d1d1f;
+
+  /* Border */
+  --color-border: #48484a;
+  --color-border-light: #3a3a3c;
+
+  /* Scrollbar */
+  --color-scrollbar: rgba(255, 255, 255, 0.2);
+  --color-scrollbar-hover: rgba(255, 255, 255, 0.4);
+
+  /* Semantic（iOS 暗色变体） */
+  --color-success: #30d158;
+  --color-warning: #ffd60a;
+  --color-error: #ff453a;
+
+  /* Glass Material */
+  --glass-bg: rgba(28, 28, 30, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.12);
+
+  /* Shadows 保持黑色系——暗底上依然成立 */
+}

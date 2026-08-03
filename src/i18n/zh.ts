@@ -63,6 +63,14 @@ export const ui: UIStrings = {
     backHome: "返回首页",
   },
 
+  theme: {
+    appearance: "外观",
+    light: "浅色",
+    dark: "深色",
+    auto: "自动",
+    toggle: "切换外观",
+  },
+
   common: {
     skipToContent: "跳至内容",
     settings: "设置",

@@ -113,7 +113,7 @@
 .page-body pre {
   margin: var(--space-6) 0;
   padding: var(--space-5) var(--space-6);
-  background: #f6f8fa;
+  /* 背景交由 Shiki 双主题 CSS 变量管理(见下方 .astro-code 规则),勿在此硬编码 */
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
   overflow-x: auto;
@@ -270,4 +270,20 @@
   border: none;
   background: var(--color-border);
   margin: var(--space-10) 0;
+}
+
+/* ── Shiki 双主题切换 ──────────────────────── */
+/* astro.config.mjs 配置 defaultColor:false:pre/span 内联 style 只声明
+   --shiki-light/--shiki-dark 自定义属性,color/background 由本文件声明,
+   因此无需 !important。按 html[data-theme] 属性切换(而非 media query)。 */
+.astro-code,
+.astro-code span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+[data-theme="dark"] .astro-code,
+[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
 }

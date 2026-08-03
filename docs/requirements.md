@@ -69,8 +69,8 @@ listed: true               # 可选，false = 不出现在文档列表（如 abo
 ## 三、功能取舍标准
 
 - **核心功能必须实现**：页面导航、文档列表/详情、内嵌搜索
-- **暂缓开发**：暗色/亮色模式切换（但 CSS 架构预留 design tokens，后续加模式切换成本极低）
-- **顺手集成**：RSS 订阅、sitemap 自动生成
+- **暂缓开发**：RSS 订阅、sitemap 自动生成
+- **已实现**：暗色/亮色模式切换（三段式 浅色/深色/自动，v1.4）
 
 ---
 
@@ -91,7 +91,7 @@ listed: true               # 可选，false = 不出现在文档列表（如 abo
 | 设计诉求 | 实现方式 |
 |---|---|
 | 整体可换肤 | CSS 自定义属性（design tokens）集中管理颜色、间距、字体、阴影 |
-| 暗色模式预留 | 颜色 token 按 `:root` 和 `[data-theme="dark"]` 分两层，当前仅实现亮色层 |
+| 暗色模式 | 颜色 token 按 `:root` 和 `[data-theme="dark"]` 分两层；三段式切换（浅色/深色/自动），localStorage 记忆 + 跟随系统 |
 | Spring 动画 | `motion` 库（原 Framer Motion），默认 `damping: 1.0`（无回弹），手势交互时 `damping: ~0.8` |
 | 毛玻璃材质 | `backdrop-filter: blur() saturate()` + 半透明背景 |
 | 滚动条 | Apple 风格浅色细滚动条：token 化（`--color-scrollbar`），细宽圆角无轨道 thumb，hover 加深，暗色模式自动适配 |

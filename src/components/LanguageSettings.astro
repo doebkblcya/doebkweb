@@ -45,6 +45,23 @@ const langOptions = [
         })}
       </div>
     </div>
+
+    <!-- Appearance:三段式 浅色/深色/自动。is-active 由 __vt_setTheme → syncThemeUI 维护 -->
+    <div class="settings-section theme-section">
+      <span class="settings-label">{t.theme.appearance}</span>
+      <div class="settings-row">
+        {["light", "dark", "auto"].map((mode) => (
+          <button
+            type="button"
+            class="settings-chip theme-chip"
+            data-mode={mode}
+            onclick={`window.__vt_setTheme('${mode}')`}
+          >
+            {t.theme[mode as keyof typeof t.theme] as string}
+          </button>
+        ))}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -154,6 +171,10 @@ const langOptions = [
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .theme-section {
+    margin-top: var(--space-5);
   }
 
   .settings-label {

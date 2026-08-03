@@ -8,6 +8,16 @@ body {
   line-height: var(--leading-normal);
   color: var(--color-text-primary);
   background-color: var(--color-bg-page);
+  /* 主题切换平滑过渡;减少动效偏好下关闭(见文件末尾) */
+  transition: background-color var(--duration-normal) ease,
+    color var(--duration-normal) ease;
+}
+
+/* 减少动效:主题切换降级为瞬时 */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────── */

@@ -98,21 +98,47 @@ doebkweb/
 ## Design Tokens 架构
 
 ```
-:root {                        ← 当前：亮色模式
+:root {                        ← 亮色模式
   --color-bg-page: #f5f5f7
   --color-bg-surface: #ffffff
   --color-text-primary: #1d1d1f
   --color-accent: #1d1d1f      ← 黑色 accent（Apple 风格）
+  --color-text-on-accent: #ffffff
   --glass-bg: rgba(255,255,255,0.72)
   ...
 }
 
-[data-theme="dark"] {          ← 预留：暗色模式（空实现）
-  /* 后续补充 */
+[data-theme="dark"] {          ← 暗色模式（Apple 风格：纯黑底 + 深灰表面，accent 反转为白色）
+  --color-bg-page: #000000
+  --color-bg-surface: #1c1c1e
+  --color-text-primary: #f5f5f7
+  --color-accent: #f5f5f7
+  --color-text-on-accent: #1d1d1f
+  --glass-bg: rgba(28,28,30,0.72)
+  ...
 }
 ```
 
 **换肤方式**：修改 `tokens.css` 中的 CSS 自定义属性值即可整体更换品牌色、字体、间距。不涉及组件代码改动。
+
+### 主题切换架构（三段式：浅色 / 深色 / 自动）
+
+```
+状态模型:
+  localStorage["doebk-theme"]   = "light" | "dark" | "auto"(缺省 auto,仅显式选择时写入)
+  <html data-theme>             = "light" | "dark"(有效主题,驱动全部 CSS)
+  <html data-theme-mode>        = "light" | "dark" | "auto"(用户模式,驱动 chips/图标 UI)
+
+脚本层:
+  BaseLayout head 内联脚本      FOUC 防护:首帧前读存储 → 解析有效主题 → 设两个属性 + meta theme-color
+  Sidebar.astro(persist 组件)   window.__vt_setTheme(mode)   唯一状态变更入口(写存储 + 属性 + UI 同步)
+                               window.__vt_toggleTheme()     侧栏按钮:按有效主题取反
+                               window.__vt_applyTheme()      读存储 → 应用;init 与 astro:after-swap 调用
+                               matchMedia 监听               auto 模式下系统主题变化 → 仅更新 data-theme
+  LanguageSettings.astro        设置面板「外观」分段控件 → onclick 调 __vt_setTheme
+```
+
+**VT 兼容要点**：Astro 交换文档时会把 `<html>` 属性同步成新文档的（运行时属性被清掉），head 内联脚本也不会在交换后重跑——因此主题恢复挂在 persist 侧栏的 `astro:after-swap` 处理器里（`__vt_applyTheme`），交换后同步重新应用，首个渲染帧前完成，无闪烁。
 
 ---
 
@@ -289,7 +315,6 @@ VPS（FastAPI，独立服务）
 
 未实现：
 - Motion spring 动效（依赖已装 ^12.11，代码尚未使用）
-- 暗色模式（CSS 变量已预留）
 - LRC 歌词展示 UI（数据字段已预留）
 - RSS / sitemap
 
