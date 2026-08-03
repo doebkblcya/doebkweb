@@ -12,6 +12,7 @@
 | v1.3 | ✅ 完成 | 多端适配（移动端汉堡导航、断点 640、播放器面板限高、宽度 token 对齐） |
 | v1.4 | ✅ 完成 | 三段式主题切换（浅色/深色/自动：侧栏快捷按钮 + 设置面板分段控件、Shiki 双主题、VT 兼容） |
 | v1.5 | ✅ 完成 | 动效打磨（Motion spring 结构性动画：抽屉/播放器面板/设置弹窗；方向感知页面过渡；列表页入场动画；reduced-motion 降级） |
+| v1.5.1 | ✅ 完成 | 移动端修复 + VT 监听器审计（汉堡抽屉切页残留、汉堡图标隐藏、iOS 100dvh、i18n 切换、设置弹窗 VT-safe） |
 
 > 说明：v0.4（Motion 动效）与 v1.0（正式上线）从未独立成版本——部署上线实际随 v1.1 完成，动效/SEO 等未做内容并入「未来方向」。
 
@@ -241,6 +242,24 @@
 - **内容入场**：docs/music/photos 三列表页 `inView` + stagger 延迟（JS 设初始态 opacity 0 + translateY(10px)，动画结束清 inline；排序/搜索重排不重放；reduced-motion 降级为淡入）
 - **transform 所有权约定**：JS 接管属性的 CSS transition 移除，只留基础态值；`finished.then` 内 rAF 延迟一帧清理（Motion 终值写回晚于 resolve，避免残留 transform 在桌面断点移出侧栏）
 - **验证**：Playwright 实测过渡动画激活（vt-in/out）、抽屉/面板/设置 spring 中间值与终态、入场 0→1、reduced-motion 降级（入场淡入 + 过渡禁用）、桌面断点 resize 侧栏可见、v1.4 主题回归；`astro check` 0 errors；console 0 errors
+
+---
+
+## v1.5.1 — 移动端修复 + VT 监听器审计（完成）
+
+2026-08-03 实施。v1.5 之后移动端真机验收发现的问题批次，用户手动验证通过。
+
+### 已完成
+
+- **汉堡抽屉切页后不收回**：`navAnim.stop()` 会把当前中间值**异步写回** inline（晚于同步清空，实测侧栏停在中途、桌面断点残留 transform 移出屏）——instant 复位改用 `cancel()`（取消，不写回当前值）+ rAF 延迟一帧兜底清
+- **汉堡图标打开时淡出隐藏**：`aria-expanded` 属性驱动 CSS（opacity 200ms 淡出 + visibility 延迟），关闭立即恢复；toggle/closeNav 全路径维护属性，VT 切页自动复位
+- **iOS Safari 100vh 修复**：100vh 含地址栏高度，底部内容（主题/设置图标、面板底、TOC 底）被遮不可见——sidebar `height: 100dvh` + `padding-bottom: env(safe-area-inset-bottom)`（home indicator 避让）、播放器面板/TOC `max-height: 100dvh`（vh fallback 在前）
+- **侧栏去 persist（i18n 切换修复）**：persist 保留旧语言 DOM——切英文后导航文案/链接仍是中文（点导航全跳回 zh）；移除 `transition:persist` 每页重建，状态由 `astro:after-swap` 兜底（抽屉复位/滑块定位/主题恢复）；after-swap 处理器改 remove-before-add 防累积
+- **设置弹窗 VT-safe**：齿轮/遮罩原来用元素级 `addEventListener`——侧栏每页重建后监听器绑在旧元素，新元素点击无响应（用户实测"刷新才能打开"）——改 inline `onclick` + `window.__vt_toggleSettings/closeSettings`（函数内每次取最新 DOM）；弹窗内部 `stopPropagation` 防误关
+- **navList hover 委托**：滑块跟随改 document 级委托（mouseover/mouseout + relatedTarget 判断，remove-before-add）；滑块函数内部取最新 DOM
+- **监听器审计**：docs 列表页 click/keydown 补 remove-before-add（页面级脚本每次 VT 重跑防累积）；确认 [slug] TOC / photos 键盘已合规、VinylPlayer persist 元素级监听有效
+- **CLAUDE.md 约定强化**：元素级 `addEventListener` 一律禁止（非 persist 元素）+ "去掉某元素 persist 时必须 grep 审计子树内元素级监听器"
+- **验证**：Playwright 复现矩阵（抽屉中间值/切页复位、图标淡出、dvh 尺寸、i18n 双向切换、多次切页监听器无累积）+ 用户真机手动验收通过
 
 ---
 
