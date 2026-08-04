@@ -20,12 +20,11 @@ export const ui: UIStrings = {
   home: {
     quote: "Code is meant to be read by humans, and only incidentally for machines to execute.",
     welcome: "Hi, I'm doebkblcya",
-    welcomeSub: "Full-Stack Engineer · Technical Writer",
   },
 
   about: {
     title: "About",
-    description: "About doebkblcya — full-stack engineer and technical writer",
+    description: "About doebkblcya — profile and tech notes",
   },
 
   docs: {

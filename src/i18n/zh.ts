@@ -19,12 +19,11 @@ export const ui: UIStrings = {
   home: {
     quote: "代码是写给人看的，顺便能在机器上运行。",
     welcome: "你好，我是 doebkblcya",
-    welcomeSub: "全栈工程师 · 技术写作者",
   },
 
   about: {
     title: "关于我",
-    description: "关于 doebkblcya — 全栈工程师、技术写作者的个人介绍",
+    description: "关于 doebkblcya — 个人简介与技术笔记",
   },
 
   docs: {

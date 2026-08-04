@@ -107,7 +107,7 @@ FLUX 为代表的扩散模型在设计上就不满足这三条——扩散模型
 > ⚠️ **注意**：原仓库 `Gourieff/comfyui-reactor-node` 已被 GitHub 禁用。新官方仓库地址去掉了 `-node` 后缀。
 
 ```bash
-cd /home/doebk/ai/image-generation/ComfyUI/custom_nodes
+cd /home/user/ai/image-generation/ComfyUI/custom_nodes
 
 # 克隆 ReActor 仓库（新地址）
 git clone https://github.com/Gourieff/comfyui-reactor.git
@@ -116,7 +116,7 @@ git clone https://github.com/Gourieff/comfyui-reactor.git
 cd comfyui-reactor
 
 # 安装 Python 依赖（使用你的 venv）
-source /home/doebk/ai/image-generation/venv/bin/activate
+source /home/user/ai/image-generation/venv/bin/activate
 pip install -r requirements.txt
 
 # 额外依赖
@@ -134,10 +134,10 @@ ReActor 首次运行时会自动下载模型。如果自动下载失败（WSL2 �
 #### 4.2.1 核心换脸模型（必装）
 
 ```bash
-mkdir -p /home/doebk/ai/image-generation/ComfyUI/models/insightface
+mkdir -p /home/user/ai/image-generation/ComfyUI/models/insightface
 
 # 下载 inswapper_128.onnx（核心换脸模型，~528MB）
-curl -L -o /home/doebk/ai/image-generation/ComfyUI/models/insightface/inswapper_128.onnx \
+curl -L -o /home/user/ai/image-generation/ComfyUI/models/insightface/inswapper_128.onnx \
   "https://huggingface.co/datasets/Gourieff/ReActor/resolve/main/models/inswapper_128.onnx"
 ```
 
@@ -145,11 +145,11 @@ curl -L -o /home/doebk/ai/image-generation/ComfyUI/models/insightface/inswapper_
 
 ```bash
 # 新版将模型放在 ComfyUI/models/insightface/models/buffalo_l/
-mkdir -p /home/doebk/ai/image-generation/ComfyUI/models/insightface/models/buffalo_l
+mkdir -p /home/user/ai/image-generation/ComfyUI/models/insightface/models/buffalo_l
 
 # 方式一：下载整包 zip 解压
 curl -L -o buffalo_l.zip "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip"
-unzip buffalo_l.zip -d /home/doebk/ai/image-generation/ComfyUI/models/insightface/models/buffalo_l/
+unzip buffalo_l.zip -d /home/user/ai/image-generation/ComfyUI/models/insightface/models/buffalo_l/
 rm buffalo_l.zip
 
 # 方式二：从 HuggingFace 镜像逐个下载所需文件：
@@ -169,7 +169,7 @@ https://huggingface.co/deepinsight/insightface/resolve/main/buffalo_l/
 #### 4.2.3 面部修复模型（可选，推荐）
 
 ```bash
-mkdir -p /home/doebk/ai/image-generation/ComfyUI/models/facerestore_models
+mkdir -p /home/user/ai/image-generation/ComfyUI/models/facerestore_models
 
 # CodeFormer（推荐）和 GFPGAN 可从以下地址下载：
 # https://huggingface.co/datasets/Gourieff/ReActor/tree/main/models/facerestore_models
@@ -310,7 +310,7 @@ LoadImage(源脸图) ───────────────────�
 ### Q: 安装后报错 "No module named 'insightface'"
 
 ```bash
-source /home/doebk/ai/image-generation/venv/bin/activate
+source /home/user/ai/image-generation/venv/bin/activate
 pip install insightface
 ```
 
@@ -380,8 +380,8 @@ ReActor 本身不降画质——但 CodeFormer 修复步骤会在低质量目标
 ## 附录：与当前环境的关系
 
 ```
-你的 ComfyUI:          /home/doebk/ai/image-generation/ComfyUI/
-Python venv:           /home/doebk/ai/image-generation/venv/
+你的 ComfyUI:          /home/user/ai/image-generation/ComfyUI/
+Python venv:           /home/user/ai/image-generation/venv/
 numpy 版本:             2.4.4（需 ReActor v0.7.0+，已兼容）
 需要安装的 nodes:       comfyui-reactor（注意不含 -node 后缀）
 仓库地址:               https://github.com/Gourieff/comfyui-reactor

@@ -91,7 +91,7 @@ https://huggingface.co/city96/FLUX.1-Fill-dev-gguf
 ```bash
 # 和当前 dev 模型放同一目录
 mv flux1-fill-dev-Q5_K_M.gguf \
-  /home/doebk/ai/image-generation/ComfyUI/models/unet/
+  /home/user/ai/image-generation/ComfyUI/models/unet/
 ```
 
 放置后的目录：

@@ -24,7 +24,6 @@ export interface NavStrings {
 export interface HomeStrings {
   quote: string;
   welcome: string;
-  welcomeSub: string;
 }
 
 export interface AboutStrings {

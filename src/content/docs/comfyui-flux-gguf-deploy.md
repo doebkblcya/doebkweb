@@ -43,7 +43,7 @@ VRAM 账本 (GGUF Q5_K_M):
 
 ## 第一步：Windows 侧配置（WSL2 内存上限）
 
-你已有一个 `.wslconfig`（位于 `C:\Users\doebk\.wslconfig`），只需在 `[wsl2]` 段落**添加**下面两行：
+你已有一个 `.wslconfig`（位于 `C:\Users\user\.wslconfig`），只需在 `[wsl2]` 段落**添加**下面两行：
 
 ```ini
 [wsl2]

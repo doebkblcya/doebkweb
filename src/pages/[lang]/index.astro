@@ -29,7 +29,6 @@ const navButtons = [
       <!-- 自我介绍 -->
       <div class="intro">
         <p class="intro-greeting">{t.home.welcome}</p>
-        <p class="intro-sub">{t.home.welcomeSub}</p>
       </div>
 
       <!-- 功能按钮 -->
@@ -96,12 +95,6 @@ const navButtons = [
     color: var(--color-text-primary);
   }
 
-  .intro-sub {
-    margin-top: var(--space-3);
-    font-size: clamp(1.125rem, 1.8vw, 1.5rem);
-    color: var(--color-text-secondary);
-  }
-
   /* ── Buttons ────────────────────────────────── */
   .actions {
     display: flex;
@@ -151,6 +144,11 @@ const navButtons = [
   @media (max-width: 640px) {
     .welcome {
       padding: var(--space-8) var(--space-6);
+    }
+
+    /* 仅手机端:问候语居中(座右铭保持左对齐) */
+    .intro-greeting {
+      text-align: center;
     }
 
     .actions {
