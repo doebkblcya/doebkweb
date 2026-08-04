@@ -15,6 +15,7 @@
 | v1.5.1 | ✅ 完成 | 移动端修复 + VT 监听器审计（汉堡抽屉切页残留、汉堡图标隐藏、iOS 100dvh、i18n 切换、设置弹窗 VT-safe） |
 | v1.6 | ✅ 完成 | 媒体 CLI + R2 immutable 迁移（media 四子命令、photos.json 化、57 对象带缓存头、Microcastle 专辑） |
 | v1.7 | ✅ 完成 | S3 multipart 上传、照片墙 + 札记搜索、播放器/CLI 修复批次、sitemap + SEO meta |
+| v1.7.1 | ✅ 完成 | 播放器未播放态按钮偏移修复 + 照片/音乐搜索栏换行临界对齐 |
 
 > 说明：v0.4（Motion 动效）与 v1.0（正式上线）从未独立成版本——部署上线实际随 v1.1 完成，动效/SEO 等未做内容并入「未来方向」。
 
@@ -300,6 +301,17 @@
 - **修复批次**：设置弹窗 VT 切页后困在抽屉（sidebar transform 是 fixed 包含块——open() 时提升 overlay 到 body，inline onclick 兜底不依赖脚本重跑）；侧栏滑块切页瞬时定位（新 DOM 无 inline transform 会从顶部滑下）；摄影札记占位文案与真实札记字体字号统一；搜索框占位文案「搜索摄影札记…」/「Search photo notes…」
 - **sitemap + SEO meta**：`@astrojs/sitemap` 构建自动生成（zh/en 全 URL）；BaseLayout 输出 canonical + og:type/title/description/url/locale；各页专属 description（about/music/photos/docs 文案 + 文档详情用 frontmatter summary）；og:image/twitter:card/JSON-LD/RSS 明确不做
 - **文档**：README/upload.md/deployment.md/architecture.md 同步（S3 凭证、multipart、照片 JPG、照片墙功能表）；CLAUDE.md 补「跨页共享组件脚本 VT 后不重跑」约定
+
+---
+
+## v1.7.1 — 播放器按钮偏移 + 搜索栏换行临界对齐（完成）
+
+2026-08-04 实施。v1.7 之后验收发现的布局问题批次，Playwright 实测三态/全宽度验证。
+
+### 已完成
+
+- **播放器未播放态按钮偏移**：无专辑加载时「专辑架」按钮偏右 8px（中心 769 vs 容器 761）——init/showAlbumUI 只 `display:none` 了按钮和分隔线，未隐藏容器 span（`#actions-info`/`#volume-wrap`），零宽 flex item 在行内照常占 `gap` 把唯一可见按钮顶偏；修复为容器一并隐藏/恢复（`els()` 补 volumeWrap 引用），加载专辑后全控件恢复显示、两行均居中（实测未播放/播放/桌面三态回归）
+- **照片/音乐搜索栏换行临界对齐**：两页 toolbar 样式同构，唯一差异是右侧按钮组宽度（view-toggle「照片墙·时间线」6 字 vs sort-group「专辑名·歌手」5 字，宽 140 vs 126）——换行临界视口不同（photos 411 / music 397），400–410 区间照片两行、音乐一行；photos `.search-wrap` min-width 180→166，用按钮组差 14px 抵消（166+16+140 = 180+16+126 = 322），两页换行临界同为 toolbar 322px（视口 397 起同时换一行），实测 375–1280 全宽度两页布局行为一致
 
 ---
 
