@@ -193,6 +193,7 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
         btnPlaylist:    document.getElementById("btn-playlist"),
         btnReview:      document.getElementById("btn-review"),
         btnVolume:      document.getElementById("btn-volume"),
+        volumeWrap:     document.getElementById("volume-wrap"),
         volumeSlider:   document.getElementById("volume-slider"),
         iconVolHigh:    document.getElementById("icon-volume-high"),
         iconVolLow:     document.getElementById("icon-volume-low"),
@@ -298,6 +299,9 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
 
     function showAlbumUI() {
       var e = els();
+      // 容器 span 一并恢复(flex 行内零宽 item 会占 gap 把其余按钮顶偏)
+      if (e.actionsInfo) e.actionsInfo.style.display = "flex";
+      if (e.volumeWrap) e.volumeWrap.style.display = "flex";
       if (e.actionsTransport) e.actionsTransport.style.display = "flex";
       if (e.actionsSep) e.actionsSep.style.display = "inline-block";
       if (e.btnPlaylist) e.btnPlaylist.style.display = "inline-flex";
@@ -524,7 +528,10 @@ const { flatTracks: flatTracksJson, r2Base } = Astro.props;
       });
 
       // Default: no album — transport/review/playlist hidden
+      // 容器 span 也隐藏:零宽 flex item 在行内占 gap,会把唯一可见的专辑架按钮顶偏
       var e = els();
+      if (e.actionsInfo) e.actionsInfo.style.display = "none";
+      if (e.volumeWrap) e.volumeWrap.style.display = "none";
       if (e.actionsTransport) e.actionsTransport.style.display = "none";
       if (e.actionsSep) e.actionsSep.style.display = "none";
       if (e.btnPlaylist) e.btnPlaylist.style.display = "none";
