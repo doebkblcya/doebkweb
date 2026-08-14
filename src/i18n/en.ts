@@ -63,6 +63,7 @@ export const ui: UIStrings = {
     viewWall: "Wall",
     searchPlaceholder: "Search photo notes…",
     noResults: "No results",
+    loadError: "Failed to load image",
   },
 
   notFound: {

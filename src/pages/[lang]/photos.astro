@@ -25,6 +25,7 @@ for (let i = 0; i < photos.length; i++) {
 
 const photosJson = JSON.stringify(photos);
 const noNoteI18n = t.photos.noNote;
+const loadErrorI18n = t.photos.loadError;
 ---
 
 <BaseLayout title={t.photos.title} description={t.photos.description} hideFooter>
@@ -114,15 +115,18 @@ const noNoteI18n = t.photos.noNote;
     <div class="lightbox-body">
       <div class="lightbox-img-wrap" id="lightbox-img-wrap">
         <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+        <div class="lightbox-spinner" id="lightbox-spinner" hidden aria-hidden="true"></div>
+        <p class="lightbox-error" id="lightbox-error" hidden></p>
       </div>
       <p class="lightbox-caption" id="lightbox-caption"></p>
     </div>
   </div>
 </BaseLayout>
 
-<script define:vars={{ photosJson, noNoteI18n }}>
+<script define:vars={{ photosJson, noNoteI18n, loadErrorI18n }}>
   var PHOTOS = JSON.parse(photosJson);
   var NO_NOTE = noNoteI18n;
+  var LOAD_ERROR = loadErrorI18n;
 
   var VIEW_KEY = "doebk-photo-view";
 
@@ -170,22 +174,57 @@ const noNoteI18n = t.photos.noNote;
     }
   })();
 
-  window.__vt_openPhoto = function (e, link) {
-    e.preventDefault();
-    var idx = parseInt(link.getAttribute("data-index") || "0", 10);
+  // 切换/打开共用:换图进入加载态——立即隐藏旧图(transition:none 防上一张残留)+ spinner,
+  // 新图 load 完成才淡入。onload/onerror 每次换图重新绑定:浏览器改 src 会中止上一次加载,
+  // 只有最后一次 src 会触发 load,快速连点不会误显示旧图
+  window.__vt_showPhoto = function (idx) {
     var p = PHOTOS[idx];
     if (!p) return;
     window.__vt_photoIdx = idx;
-    var lb = document.getElementById("lightbox");
     var lbImg = document.getElementById("lightbox-img");
     var lbCap = document.getElementById("lightbox-caption");
-    if (!lb || !lbImg) return;
-    lbImg.src = p.src;
+    var spinner = document.getElementById("lightbox-spinner");
+    var errEl = document.getElementById("lightbox-error");
+    if (!lbImg) return;
     lbImg.alt = p.alt;
     if (lbCap) {
       lbCap.textContent = p.note || NO_NOTE;
       lbCap.classList.toggle("is-placeholder", !p.note);
     }
+    if (errEl) { errEl.textContent = ""; errEl.hidden = true; }
+    lbImg.classList.add("is-loading");
+    if (spinner) spinner.hidden = false;
+    lbImg.onload = function () {
+      lbImg.classList.remove("is-loading");
+      if (spinner) spinner.hidden = true;
+      lbImg.onload = null;
+      lbImg.onerror = null;
+    };
+    lbImg.onerror = function () {
+      lbImg.classList.remove("is-loading");
+      if (spinner) spinner.hidden = true;
+      if (errEl) { errEl.textContent = LOAD_ERROR; errEl.hidden = false; }
+      lbImg.onload = null;
+      lbImg.onerror = null;
+    };
+    lbImg.src = p.src;
+    // 已缓存图片的 load 是异步事件,spinner 会闪一帧;rAF 时若已加载完成则直接跳过加载态
+    requestAnimationFrame(function () {
+      if (lbImg.complete && lbImg.naturalWidth > 0) {
+        lbImg.classList.remove("is-loading");
+        if (spinner) spinner.hidden = true;
+      }
+    });
+  };
+
+  window.__vt_openPhoto = function (e, link) {
+    e.preventDefault();
+    var idx = parseInt(link.getAttribute("data-index") || "0", 10);
+    var p = PHOTOS[idx];
+    if (!p) return;
+    window.__vt_showPhoto(idx);
+    var lb = document.getElementById("lightbox");
+    if (!lb) return;
     lb.classList.add("is-open");
     lb.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -207,17 +246,7 @@ const noNoteI18n = t.photos.noNote;
     if (!PHOTOS.length) return;
     var cur = window.__vt_photoIdx || 0;
     var idx = dir < 0 ? (cur - 1 + PHOTOS.length) % PHOTOS.length : (cur + 1) % PHOTOS.length;
-    window.__vt_photoIdx = idx;
-    var lbImg = document.getElementById("lightbox-img");
-    var lbCap = document.getElementById("lightbox-caption");
-    if (!lbImg) return;
-    var photo = PHOTOS[idx];
-    lbImg.src = photo.src;
-    lbImg.alt = photo.alt;
-    if (lbCap) {
-      lbCap.textContent = photo.note || NO_NOTE;
-      lbCap.classList.toggle("is-placeholder", !photo.note);
-    }
+    window.__vt_showPhoto(idx);
   };
 
   // Keyboard — document listener, remove stale then re-add
@@ -578,6 +607,7 @@ const noNoteI18n = t.photos.noNote;
   }
 
   .lightbox-img-wrap {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -594,6 +624,60 @@ const noNoteI18n = t.photos.noNote;
       0 4px 40px rgba(0, 0, 0, 0.4),
       0 0 0 1px rgba(255, 255, 255, 0.06);
     transition: opacity 250ms;
+  }
+
+  /* 加载态:立即隐藏旧图(无淡出,防切换瞬间残留上一张),load 完成后淡入 */
+  .lightbox-img.is-loading {
+    opacity: 0;
+    transition: none;
+  }
+
+  /* ── Loading spinner ─────────────────────────── */
+  .lightbox-spinner {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-full);
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.9);
+    animation: lightbox-spin 0.8s linear infinite;
+  }
+
+  @keyframes lightbox-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* reduced-motion:旋转降级为透明度呼吸 */
+  @media (prefers-reduced-motion: reduce) {
+    .lightbox-spinner {
+      animation: lightbox-pulse 2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes lightbox-pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.9; }
+  }
+
+  /* ── Load error ──────────────────────────────── */
+  .lightbox-error {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: var(--space-6);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: var(--text-lg);
+    text-align: center;
+  }
+
+  /* 显式兜底:hidden 属性需压过上方 display:flex */
+  .lightbox-error[hidden] {
+    display: none;
   }
 
   .lightbox-caption {

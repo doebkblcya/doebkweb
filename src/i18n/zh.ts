@@ -62,6 +62,7 @@ export const ui: UIStrings = {
     viewWall: "照片墙",
     searchPlaceholder: "搜索摄影札记…",
     noResults: "无结果",
+    loadError: "图片加载失败",
   },
 
   notFound: {
