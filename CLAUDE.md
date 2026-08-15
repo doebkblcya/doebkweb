@@ -4,10 +4,10 @@
 
 **CLAUDE.md 保持简洁，详细文档在 `docs/` 目录下。**
 
-- **禁止 Read 图片文件**：我不是多模态模型，Read 截图/PNG/JPG 只会返回 `[Unsupported Image]`，没有任何信息增量。截图只能给人看，对我没用。验证视觉效果用 Playwright accessibility snapshot（DOM 结构/文字/状态都能确认），截图直接跳过。
+- **识图（外挂转译，勿滥用）**：模型纯文本、非原生多模态；识图经外挂识图插件把图片转译成文字后进对话，读的是转译文本不是像素，转译有损。**默认不用截图**——首选 Playwright accessibility snapshot；仅用户明确要求看视觉效果、或视觉细节快照确认不了且确有必要时才识图，不主动逐页截图。
 
 - **Playwright 效率**：
-  - `browser_snapshot` 返回的是 YAML 文本（可访问性树），我能读，用来验证 DOM/文字/状态。`browser_take_screenshot` 返回 PNG，我**不能读**，别用。
+  - `browser_snapshot` 返回的是 YAML 文本（可访问性树），是**默认验证手段**（DOM/文字/状态都能确认）。`browser_take_screenshot` 返回 PNG，经视觉桥接转译可读但**默认不用**——除非用户明确要求看视觉效果，或视觉细节（布局/配色/间距）用快照无法确认且确有必要。
   - **合并操作用 `browser_run_code_unsafe`**：不要 type → wait → snapshot 拆成 3 个 tool call 各等一个往返。一把梭写成 Playwright 脚本，一次调用完成连续操作 + 等待 + 返回文本结果。省掉 3-5 个 agent 往返。
   - 验证结果用 `browser_evaluate` 返回布尔/字符串，比 snapshot 取整页 YAML 轻量。
 
