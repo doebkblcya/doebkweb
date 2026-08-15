@@ -33,19 +33,6 @@ const t = lang === "zh" ? zh : en;
         </div>
       </section>
 
-      <!-- 空间导览：卡片链接到站内各板块 -->
-      <section class="section">
-        <h2 class="section-title">{about.space.title}</h2>
-        <div class="space-grid">
-          {about.space.cards.map((card) => (
-            <a class="space-card" href={`/${lang}${card.href}`}>
-              <span class="space-card-title">{card.title}</span>
-              <span class="space-card-desc">{card.description}</span>
-            </a>
-          ))}
-        </div>
-      </section>
-
       <!-- 联系 -->
       <section class="section">
         <h2 class="section-title">{about.contact.title}</h2>
@@ -90,7 +77,6 @@ const t = lang === "zh" ? zh : en;
   }
   .page-body > *:nth-child(2) { animation-delay: 100ms; }
   .page-body > *:nth-child(3) { animation-delay: 200ms; }
-  .page-body > *:nth-child(4) { animation-delay: 300ms; }
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
@@ -103,15 +89,16 @@ const t = lang === "zh" ? zh : en;
   }
 
   .hero-name {
-    font-size: var(--text-2xl);
-    font-weight: 600;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
     letter-spacing: var(--tracking-tight);
     color: var(--color-text-primary);
   }
 
   .hero-tagline {
-    margin-top: var(--space-3);
-    font-size: var(--text-lg);
+    margin-top: var(--space-4);
+    font-size: var(--text-xl);
     color: var(--color-text-secondary);
   }
 
@@ -129,50 +116,11 @@ const t = lang === "zh" ? zh : en;
   }
 
   .intro-text p {
+    max-width: 65ch;
     margin-top: var(--space-4);
     font-size: var(--text-lg);
     line-height: var(--leading-relaxed);
     color: var(--color-text-primary);
-  }
-
-  /* ── 空间导览卡片 ──────────────────────────── */
-  .space-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-4);
-  }
-
-  .space-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-6);
-    background: var(--color-bg-surface);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    transition:
-      background-color var(--duration-fast),
-      border-color var(--duration-fast),
-      transform var(--duration-fast);
-  }
-
-  .space-card:hover {
-    background: var(--color-bg-surface-hover);
-    border-color: var(--color-border);
-    transform: translateY(-2px);
-  }
-
-  .space-card-title {
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: var(--color-text-primary);
-  }
-
-  .space-card-desc {
-    font-size: var(--text-sm);
-    line-height: var(--leading-relaxed);
-    color: var(--color-text-secondary);
   }
 
   /* ── 联系 ──────────────────────────────────── */
@@ -210,10 +158,6 @@ const t = lang === "zh" ? zh : en;
       padding: var(--space-10) var(--space-6) var(--space-16);
     }
 
-    .space-grid {
-      grid-template-columns: 1fr;
-    }
-
     .contact-row {
       flex-direction: column;
     }
@@ -230,7 +174,6 @@ const t = lang === "zh" ? zh : en;
       animation: none;
     }
 
-    .space-card,
     .contact-btn {
       transition: none;
     }

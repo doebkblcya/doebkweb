@@ -1,22 +1,12 @@
 /**
  * 关于页内容数据 — 唯一数据源（类比 src/data/music.json）。
  *
- * ⚠️ 当前为占位初稿，沿用旧 about.md 的通用文案。站长自行填写：
+ * ⚠️ 文案为初稿，站长自行修订：
  * 替换各字段文本即可，页面结构与样式无需改动。
  *
  * 约定：
  * - 整页均为内容，仅中文、不翻译；只有页面抬头（"关于我"）走 i18n（t.about.title）
- * - `href` 为站点内相对路径（不含语言前缀），页面组件按当前 locale 拼 `/${lang}${href}`
  */
-
-export interface SpaceCard {
-  /** 卡片标题（中文，内容不翻译） */
-  title: string;
-  /** 卡片描述（中文） */
-  description: string;
-  /** 站点内相对路径，如 "/docs/"（不含语言前缀） */
-  href: string;
-}
 
 export interface AboutData {
   /** 页面头下方的引导区 */
@@ -29,11 +19,6 @@ export interface AboutData {
     title: string;
     paragraphs: string[];
   };
-  /** 空间导览分区（这个空间里有什么） */
-  space: {
-    title: string;
-    cards: SpaceCard[];
-  };
   /** 联系分区 */
   contact: {
     title: string;
@@ -45,35 +30,16 @@ export interface AboutData {
 export const about: AboutData = {
   hero: {
     name: "doebkblcya",
-    tagline: "你好，我是 doebkblcya。",
+    // TODO: 定位语待站长提供（当前为占位）
+    tagline: "喜欢把折腾过的事情记下来。",
   },
 
   intro: {
     title: "自述",
     paragraphs: [
-      "喜欢把折腾过的技术问题整理成文档，这也是这个站点存在的理由。",
-      "搭建这个站点的底层动力是：有一个完全属于自己的写作空间——不依赖第三方平台、不面向算法优化，纯纯地记录和整理。",
-    ],
-  },
-
-  space: {
-    title: "这个空间里有什么",
-    cards: [
-      {
-        title: "技术文档",
-        description: "部署、工具链、开发实践与技术踩坑记录",
-        href: "/docs/",
-      },
-      {
-        title: "摄影",
-        description: "照片墙与拍摄札记",
-        href: "/photos/",
-      },
-      {
-        title: "音乐",
-        description: "唱片架与常听专辑",
-        href: "/music/",
-      },
+      "我是 doebkblcya，一个喜欢把折腾过的事情「记下来」的人。平时写代码，也拍照、听歌，遇到搞不懂的问题就顺手整理成文档。",
+      "这个站最初只是想给自己留一块不被算法和平台定义的地方。这里的文档是写给自己看的笔记，照片是路过的时间，唱片架是按心情排的曲单——都只对自己诚实。",
+      "如果你也在折腾类似的东西，或者只是路过，欢迎随便逛逛。某篇笔记帮到了你、某张照片让你停了一下，就是这个空间最开心的事。",
     ],
   },
 
