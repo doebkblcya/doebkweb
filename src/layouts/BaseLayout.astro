@@ -6,8 +6,14 @@ import { ui as en } from "../i18n/en";
 import Sidebar from "../components/Sidebar.astro";
 import VinylPlayer from "../components/VinylPlayer.astro";
 import Footer from "../components/Footer.astro";
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 import { getFlatTracks } from "../data/playlist";
+
+import "@fontsource-variable/newsreader/wght.css";
+import "@fontsource-variable/hanken-grotesk/wght.css";
+import "@fontsource-variable/jetbrains-mono/wght.css";
+import "@fontsource-variable/noto-sans-sc/wght.css";
+import "@fontsource-variable/noto-serif-sc/wght.css";
 
 import "../styles/tokens.css";
 import "../styles/reset.css";
@@ -29,24 +35,10 @@ const pageDescription = description || t.site.description;
 const flatTracksJson = JSON.stringify(getFlatTracks());
 const r2Base = "https://cdn.doebkblcya.com/music";
 
-// ── 页面切换过渡:方向感知 slide+fade(Astro 编译为 ::view-transition-* 动画) ──
-// 前进:新页自右 24px 滑入、旧页向左滑出;后退镜像。keyframes 定义见本文件 <style is:global>。
-// persist 元素(sidebar/vinyl/audio)有独立 view-transition-name,不参与 root 动画。
-// 类型由 transition:animate 指令属性结构性检查(astro:transitions 未导出类型名)。
-const vtTransition = {
-  forwards: {
-    old: { name: "vt-out-forward", duration: 0.28, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fillMode: "both" },
-    new: { name: "vt-in-forward", duration: 0.38, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fillMode: "both" },
-  },
-  backwards: {
-    old: { name: "vt-out-backward", duration: 0.28, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fillMode: "both" },
-    new: { name: "vt-in-backward", duration: 0.38, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fillMode: "both" },
-  },
-};
 ---
 
 <!doctype html>
-<html lang={lang} transition:animate={vtTransition}>
+<html lang={lang} data-page={hideHeader ? "home" : "inner"} transition:animate="none">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -63,7 +55,7 @@ const vtTransition = {
     <meta property="og:locale" content={lang === "zh" ? "zh_CN" : "en_US"} />
     <!-- Theme bootstrap — FOUC 防护：首帧渲染前同步设置 html[data-theme]。
          只读 localStorage + matchMedia，幂等，VT 下重复执行无害。
-         localStorage key 与 __vt_setTheme 保持一致（见 CLAUDE.md 约定）。 -->
+         localStorage key 与 __vt_setTheme 保持一致（见 AGENT.md 约定）。 -->
     <script is:inline>
       (function () {
         var key = "doebk-theme";
@@ -83,11 +75,12 @@ const vtTransition = {
         doc.setAttribute("data-theme-mode", mode);
         var meta = document.createElement("meta");
         meta.name = "theme-color";
-        meta.content = theme === "dark" ? "#000000" : "#f5f5f7";
+        meta.content = doc.dataset.page === "home" ? "#06182d" : theme === "dark" ? "#000000" : "#fcfcfd";
         document.head.appendChild(meta);
       })();
     </script>
-    <ViewTransitions />
+    <!-- ClientRouter 只承担客户端导航与跨页播放器持久化；页面自身管理自己的动效。 -->
+    <ClientRouter fallback="swap" />
   </head>
   <body class={!hideHeader ? "has-sidebar" : ""}>
     <a class="skip-link" href="#main-content">
@@ -126,7 +119,7 @@ const vtTransition = {
   }
 
   :root {
-    --sidebar-width: 7.5rem;
+    --sidebar-width: 11rem;
   }
 
   .has-sidebar .content-area {
@@ -141,34 +134,10 @@ const vtTransition = {
     }
   }
 
-  /* ── 页面切换过渡 keyframes(vtTransition 引用,见 frontmatter) ──
-     reduced-motion:覆盖为无动画(过渡由 Astro 注入,显式禁用避免位移) */
-  @keyframes vt-in-forward {
-    from { opacity: 0; transform: translateX(24px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  @keyframes vt-out-forward {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(-16px); }
-  }
-  @keyframes vt-in-backward {
-    from { opacity: 0; transform: translateX(-24px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  @keyframes vt-out-backward {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(16px); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
-      animation: none !important;
-    }
-  }
 </style>
 
 <style is:global>
-  /* Hide sidebar on home page — kept in DOM for View Transition persistence */
+  /* 首页沿用共享布局，但不显示站内页侧栏。 */
   body:not(.has-sidebar) .sidebar {
     display: none;
   }

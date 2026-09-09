@@ -18,10 +18,11 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
   summary: d.data.summary,
   date: d.data.date.toISOString(),
 })));
+const pagefindEnabled = import.meta.env.PROD;
 ---
 
 <BaseLayout title={t.docs.title} description={t.docs.description} hideFooter>
-  <div class="page">
+  <div class="page docs-index">
     <h1 class="page-title">{t.docs.title}</h1>
     <hr class="page-divider" />
 
@@ -31,7 +32,7 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
       <>
         <div class="toolbar">
           <div class="search-wrap" id="search-wrap">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input
               id="search-input"
               class="search-input"
@@ -44,7 +45,7 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
             <div class="search-results" id="search-results" hidden></div>
           </div>
           <div class="sort-group" role="group" aria-label={lang === "zh" ? "排序方式" : "Sort by"}>
-            <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
               <line x1="4" y1="6" x2="20" y2="6"/>
               <line x1="4" y1="12" x2="16" y2="12"/>
               <line x1="4" y1="18" x2="12" y2="18"/>
@@ -402,7 +403,7 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
 
 </style>
 
-<script define:vars={{ docsJson, lang }}>
+<script define:vars={{ docsJson, lang, pagefindEnabled }}>
   var DOCS = JSON.parse(docsJson);
   var LANG = lang;
 
@@ -633,7 +634,7 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
     }
   };
 
-  // remove-before-add:页面级脚本每次 VT 导航重跑,防监听器累积
+  // 遗留全局监听：remove-before-add，防止 ClientRouter 生命周期中重复注册
   document.removeEventListener("click", window.__vt_docs_onClick);
   document.addEventListener("click", window.__vt_docs_onClick);
   document.removeEventListener("keydown", window.__vt_docs_onKeydown);
@@ -641,6 +642,7 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
 
   // ═══ Init Pagefind ══════════════════════════════
   (async function () {
+    if (!pagefindEnabled) return;
     try {
       if (window.__vt_pagefindMod) await window.__vt_pagefindMod.destroy();
       window.__vt_pagefindMod = await import("/pagefind/pagefind.js");
@@ -648,6 +650,80 @@ const docsJson = JSON.stringify(allDocs.map((d) => ({
     } catch { /* dev mode */ }
   })();
 </script>
+
+<style is:global>
+  .docs-index .toolbar {
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+
+  .docs-index .search-wrap { max-width: 26rem; }
+
+  .docs-index .search-results {
+    top: calc(100% + 1px);
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    background: var(--glass-bg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .docs-index .search-result-item { border-radius: 0; border-bottom: 1px solid var(--color-border-light); }
+  .docs-index .search-result-item.is-active { box-shadow: inset 2px 0 0 var(--color-accent); }
+
+  .docs-index .doc-list { gap: 0; border-bottom: 1px solid var(--color-border-light); }
+
+  .docs-index .doc-card {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(12rem, 1fr);
+    grid-template-areas: "title meta" "summary meta";
+    gap: 0.4rem 2rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem) 0;
+    border-top: 1px solid var(--color-border-light);
+    border-radius: 0;
+    background: transparent;
+    transition: background var(--duration-fast), padding var(--duration-normal) var(--ease-gallery);
+  }
+
+  .docs-index .doc-card:hover {
+    padding-inline: 1rem;
+    background: var(--color-bg-muted);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .docs-index .doc-title {
+    grid-area: title;
+    font-family: var(--font-editorial);
+    font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+    font-weight: 400;
+    line-height: 1.18;
+  }
+
+  .docs-index .doc-summary {
+    grid-area: summary;
+    max-width: 62ch;
+    margin: 0.4rem 0 0;
+    line-height: 1.7;
+  }
+
+  .docs-index .doc-meta {
+    grid-area: meta;
+    align-self: start;
+    justify-content: flex-end;
+    margin: 0;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.025em;
+  }
+
+  @media (max-width: 700px) {
+    .docs-index .toolbar { align-items: stretch; }
+    .docs-index .search-wrap { max-width: none; flex-basis: 100%; }
+    .docs-index .doc-card { grid-template-columns: 1fr; grid-template-areas: "meta" "title" "summary"; gap: 0.65rem; }
+    .docs-index .doc-meta { justify-content: flex-start; }
+  }
+</style>
 
 <!-- 内容入场:独立 script 块(define:vars 脚本被视为 inline,不能 import/TS 注解)。
      每次 VT 导航重跑 → 切页后入场动画重放。排序重排只移 DOM 顺序,已入场元素不重放 -->

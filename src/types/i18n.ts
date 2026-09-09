@@ -67,6 +67,11 @@ export interface PhotosStrings {
   viewWall: string;
   searchPlaceholder: string;
   noResults: string;
+  loadError: string;
+  viewLabel: string;
+  close: string;
+  previous: string;
+  next: string;
 }
 
 export interface NotFoundStrings {
@@ -82,13 +87,25 @@ export interface ThemeStrings {
   light: string;
   dark: string;
   auto: string;
-  /** 侧栏太阳/月亮按钮的 aria-label */
-  toggle: string;
 }
 
 export interface CommonStrings {
   skipToContent: string;
   settings: string;
+}
+
+export interface PlayerStrings {
+  musicPlayer: string;
+  idle: string;
+  previous: string;
+  play: string;
+  pause: string;
+  next: string;
+  playlist: string;
+  notes: string;
+  volume: string;
+  volumeSlider: string;
+  shelf: string;
 }
 
 export interface UIStrings {
@@ -101,5 +118,6 @@ export interface UIStrings {
   photos: PhotosStrings;
   notFound: NotFoundStrings;
   theme: ThemeStrings;
+  player: PlayerStrings;
   common: CommonStrings;
 }

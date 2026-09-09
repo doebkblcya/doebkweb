@@ -1,244 +1,147 @@
 # 部署指南
 
-## 目标架构
+更新日期：2026-09-09
 
+## 发布架构
+
+```text
+Git 仓库
+  └── Cloudflare Pages
+      ├── www.doebkblcya.com
+      └── doebkblcya.com
+
+Cloudflare R2
+  └── cdn.doebkblcya.com
+      ├── music/
+      └── photos/
 ```
-doebkblcya.com           →  Cloudflare Pages（静态站点）
-cdn.doebkblcya.com        →  Cloudflare R2（媒体资源：音乐/图片/专辑封面）
-mustdo.doebkblcya.com     →  VPS FastAPI（独立服务，不动）
-```
 
----
+网站本身是 Astro 静态产物。R2 媒体独立发布，不进入 Pages 构建包。
 
-## 本地开发
+## 本地验证
 
-项目代码在 WSL 中，所有命令在 WSL 终端执行。
-
-### 开发模式（热更新）
+推荐 Node.js 20 或更高版本，并使用仓库锁定的 pnpm 依赖树。
 
 ```bash
-pnpm dev
+pnpm install --frozen-lockfile
+pnpm exec astro check
+pnpm build
+pnpm preview
 ```
 
-启动 Astro 开发服务器，默认监听 `http://localhost:4321`。
+构建脚本执行两个阶段：
 
-### 生产构建
+1. `astro build` 生成 `dist/`。
+2. `pagefind --site dist` 为 zh/en 页面生成搜索索引。
 
-```bash
-pnpm build      # 构建 → dist/
-pnpm preview    # 预览构建产物
-```
+开发服务器不包含 Pagefind 构建产物，文档页会跳过 Pagefind 初始化，因此 `pnpm dev` 下不会请求 `/pagefind/pagefind.js`。全文搜索使用 `pnpm build && pnpm preview` 验证。
 
----
+## Cloudflare Pages
 
-## 部署（Cloudflare Pages）
+项目约定：推送 `main` 后触发自动部署。
 
-部署自动化：`git push main` → Cloudflare Pages 检测新提交 → 自动 `pnpm build` → 分发到全球边缘节点。
-
-无需手动 rsync，无需管理服务器。
-
-### 首次设置（已完成）
-
-1. Cloudflare Dashboard → Workers & Pages → Pages → 连接 GitHub 仓库
-2. 构建设置：框架 Astro，构建命令 `pnpm build`，输出目录 `dist`
-3. 自定义域名绑定 `doebkblcya.com` + `www.doebkblcya.com`
-4. DNS CNAME 指向 Pages
-5. SSL 自动配置，无需维护
-
-### Build 环境
-
-| 项 | 值 |
+| 设置 | 值 |
 |---|---|
-| 依赖安装 | `pnpm install`（需 `packageManager` 字段，Pages 自动识别 pnpm） |
-| 构建命令 | `pnpm build` |
-| 输出目录 | `dist` |
-| Node 版本 | 20+ |
-| 环境变量 | 无需额外设置 |
+| Production branch | `main` |
+| Install | `pnpm install --frozen-lockfile` 或平台自动安装 |
+| Build command | `pnpm build` |
+| Output directory | `dist` |
+| Node.js | 20+ |
+| 网站运行时变量 | 无 |
 
----
+不要把 R2 S3 凭证配置为网站前端变量。媒体 CLI 在本地运行，Pages 构建不需要这些密钥。
 
-## 媒体资源（Cloudflare R2）
+### 路由文件
 
-### 存储策略
+- `src/pages/index.astro` 将根路由重定向到 `/zh/`。
+- `public/_redirects` 提供 Pages 层的根路径 301。
+- `public/404.html` 将未知路径引导到中文 404 页面。
+- `src/pages/[lang]/404.astro` 是完整的站内 404 UI。
 
-所有大文件媒体资源存放于 R2 bucket `doebkweb`，通过自定义域名 `cdn.doebkblcya.com` 访问。
+`astro.config.mjs` 中的 `site` 用于 canonical 和 sitemap，变更正式域名时必须同步修改。
 
-### 目录结构
-
-```
-R2 doebkweb/
-├── music/
-│   └── <专辑名>/
-│       ├── cover.jpg          (专辑封面)
-│       ├── <曲名>.mp3
-│       └── <曲名>.lrc         (歌词，可选)
-└── photos/                    (后续)
-    ├── originals/             (高分辨率 JPEG)
-    └── thumbs/                (压缩 WebP)
-```
-
-### wrangler CLI 设置
+## 发布前检查
 
 ```bash
-# 安装（全局）
-npm install -g wrangler
-
-# 认证（API Token 方式）
-# 1. Cloudflare Dashboard → My Profile → API Tokens → Create Token → R2 Edit
-# 2. 写入 ~/.zshrc
-echo 'export CLOUDFLARE_API_TOKEN="你的token"' >> ~/.zshrc
-source ~/.zshrc
+pnpm exec astro check
+pnpm build
+git diff --check
 ```
 
-> media CLI 主路径需要 **R2 S3 凭证**（`CLOUDFLARE_R2_ACCESS_KEY_ID` / `CLOUDFLARE_R2_SECRET_ACCESS_KEY`，创建见 `docs/upload.md`），wrangler 兜底仍用 API Token。
+然后用 `pnpm preview` 检查：
 
-### 上传文件（media CLI，主路径）
+- `/zh/` 和 `/en/`
+- 首页展开、返回首页和浏览器前进/后退
+- `/zh/docs/` 搜索
+- 一篇文档详情与目录
+- 音乐跨页播放
+- 摄影 Lightbox
+- sitemap 文件存在
 
-本地准备：媒体文件放入 `_r2-upload/` 目录（已加入 `.gitignore`，不提交到 git）。
+涉及导航改动时，必须通过页面内链接触发 ClientRouter；直接输入 URL 只能验证完整页面加载。
 
-**音乐专辑**（全 mp3 或全 ncm 目录）：
+## R2 媒体
 
-```bash
-# 上传专辑：全 ncm 时自动询问转换 → 读 ID3（曲序/标题/艺术家）→ 封面压缩 → 上传 → 自动验证
-pnpm media album _r2-upload/music/<专辑名>/
+R2 bucket 为 `doebkweb`，公开资源通过 `https://cdn.doebkblcya.com` 访问。
 
-# 单独转换 ncm（批量/保留源场景；--remove 可选：成功后删除源 ncm）
-pnpm media ncm _r2-upload/music/<专辑名>/ --out _r2-upload/music/<专辑名>/ --remove
+```text
+music/<专辑>/cover.jpg
+music/<专辑>/<曲目>.mp3
+music/<专辑>/<歌词>.lrc
+photos/originals/<文件>.jpg
+photos/thumbs/<文件>.webp
 ```
 
-- 新专辑自动生成 `src/data/music.json` 条目（交互确认）；已有专辑只上传不动数据
-- 专辑名 = 目录名（R2 键名前缀）
-- lrc 按歌名自动匹配；`review` 札记用 `pnpm media review --music <专辑名> "文字"` 录入
+正常上传使用 `pnpm media`，凭证、处理参数和 immutable 约束见 `docs/upload.md`。
 
-**照片**：`pnpm media photos <照片目录>`——RAW 提取或 JPG 直接压缩 → 大图/小图 → 上传（详见 `docs/upload.md`）
+R2 CORS 至少允许正式站点执行 `GET`、`HEAD`，并暴露音频 Range 需要的响应头。修改域名时同步更新 AllowedOrigins。
 
-**缓存头**：所有上传默认带 `cache-control: public, max-age=31536000, immutable`（内容变 → 换文件名上传，见 immutable 纪律）。上传走 S3 API（>5MB multipart 分片并发），上传后自动验证（HEAD + GET Range 边缘缓存 HIT）。
+## 缓存
 
-### 上传文件（wrangler 兜底）
+- Astro 的哈希静态资源可以长期缓存。
+- 媒体 CLI 上传的 R2 对象使用 `public, max-age=31536000, immutable`。
+- 同 URL 的媒体内容不得被覆盖；修改内容时更换文件名并更新数据源。
+- R2 自定义域名的 HEAD 缓存状态不适合判断 HIT，校验以 GET/Range 响应为准。
 
-如需绕过 CLI 直接操作 R2：
+## 回滚
 
-```bash
-# 关键：需要 --remote 标志 + 关闭代理（代理会拖慢大文件上传）
-unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+网站发布异常时优先使用 Cloudflare Pages 的历史部署回滚，不修改 DNS。若故障来自媒体数据：
 
-wrangler r2 object put "doebkweb/music/<专辑>/<文件>" --file=./原文件 --remote \
-  --cache-control "public, max-age=31536000, immutable"
-```
-
-> **注意**：不带 `--remote` 时 wrangler 走本地模拟模式，文件不会到达远端 R2。上传大文件必须关闭代理环境变量。
-
-### CORS 配置
-
-R2 bucket 已配置 CORS，允许主站跨域访问音频和图片：
-
-```json
-[
-  {
-    "AllowedOrigins": ["https://www.doebkblcya.com", "https://doebkblcya.com"],
-    "AllowedMethods": ["GET", "HEAD"],
-    "AllowedHeaders": ["*"],
-    "ExposeHeaders": ["Content-Length", "Content-Range", "Accept-Ranges"]
-  }
-]
-```
-
----
-
-## 音乐配置
-
-音乐数据独立存放在 `src/data/music.json`，纯 JSON 格式：
-
-```json
-{
-  "r2Base": "https://cdn.doebkblcya.com/music",
-  "albums": [
-    {
-      "name": "专辑名（对应 R2 music/ 子目录）",
-      "artist": "歌手",
-      "review": "个人札记（可选，空字符串则无）",
-      "meta": {},
-      "tracks": [
-        { "trackNo": 1, "title": "曲名", "file": "文件名.mp3" },
-        { "trackNo": 2, "title": "曲名", "file": "文件名.mp3", "lrc": "歌词.lrc" }
-      ]
-    }
-  ]
-}
-```
-
-加专辑只需编辑此 JSON，`playlist.ts` 自动生成派生数据。
-
-> **曲序**：`trackNo` 为曲目序号（1 起），数据层按此升序排列（`playlist.ts` 中 sort），数组书写顺序不承担语义；缺省 `trackNo` 的曲目排最后、保持数组序。对应歌词文件名：`文件名.lrc` 放 R2 同目录。
-
----
-
-## 构建产物
-
-`pnpm build` 生成的 `dist/` 目录结构：
-
-```
-dist/
-├── _redirects                      # Pages 级重定向（/ → /zh/）
-├── 404.html                        # Pages 级 404 回退
-├── index.html                      # / → /zh/ 重定向页
-├── zh/
-│   ├── index.html                  # 首页
-│   ├── about/index.html            # About Me
-│   ├── music/index.html            # 音乐专辑架
-│   ├── photos/index.html           # 摄影网格
-│   ├── 404.html                    # 自定义 404
-│   └── docs/
-│       ├── index.html              # 文档列表（含内嵌 Pagefind 搜索 + 排序）
-│       └── <slug>/index.html       # 单篇文档详情
-├── en/                             # 英文页面（同上结构）
-├── _astro/                         # CSS/JS 资源（哈希命名，可永久缓存）
-├── pagefind/                       # 搜索索引
-└── favicon.svg
-```
-
-> v1.2 精简后：无独立归档页 `/docs/archive`、分类页 `/docs/category/*`、搜索页 `/search`，搜索内嵌在文档列表页。
-
----
-
-## DNS 记录
-
-| 记录 | 类型 | 指向 |
-|---|---|---|
-| `doebkblcya.com` | CNAME | `doebkweb.pages.dev` |
-| `www.doebkblcya.com` | CNAME | `doebkblcya.com` |
-| `cdn.doebkblcya.com` | CNAME | R2 bucket（Cloudflare 自动管理） |
-| `mustdo.doebkblcya.com` | A | VPS IP（FastAPI，不动） |
-
----
-
-## 回退方案
-
-如果 Pages 部署出问题：
-
-1. DNS 改回 VPS IP（A 记录）
-2. 在 VPS 目录中重新 `rsync dist/` 恢复旧部署
-3. 排查 Pages 问题，修复后再切回
-
----
+1. 回滚引用该媒体的 Git 提交。
+2. 保留已有 immutable 对象，修正后以新文件名重新上传。
+3. 再更新 JSON 数据指向新 URL。
 
 ## 故障排查
 
-### 部署不更新
+### Pages 构建失败
 
-- Cloudflare Pages Dashboard 查看构建日志
-- 确认 `git push` 成功到达 `main` 分支
-- 清除 Pages 缓存（Dashboard → Settings → Builds & deployments → Clear cache）
+- 确认安装和构建都使用 pnpm。
+- 检查 Node.js 版本。
+- 本地运行 `pnpm install --frozen-lockfile && pnpm build`。
+- 检查 Content Collections frontmatter 和 i18n 类型错误。
 
-### 音乐播放失败
+### 搜索不可用
 
-- 确认 MP3 文件已上传到 R2 `music/` 路径
-- 检查 `src/data/music.json` 中曲目 file 字段与 R2 文件名一致
-- R2 CORS 配置是否正确
-- 浏览器 DevTools Network 面板查看请求是否返回 200
-- 文件名中如有特殊字符，确认 URL 编码正确
+- 确认部署命令是 `pnpm build`，不是只执行 `astro build` 或 `pnpm deploy`。
+- 检查 `dist/pagefind/` 是否存在。
+- 在 preview/生产环境验证，不在 dev 环境判断。
 
-### 页面 404
+### 控制台出现 `reportAllChanges` / `startTime`
 
-- 确认 Pages 构建成功，无报错
-- 检查 `_redirects` 是否在 `dist/` 根目录
+- 若堆栈来源是 `VM...` 和 `<anonymous>`，先关闭 Chrome DevTools 的 Performance 实时指标并重新加载。
+- 该堆栈通常来自 DevTools 注入的 Web Vitals 采集脚本，不是站点打包资源；站点自身没有注册 `reportAllChanges`。
+- 只有错误能定位到 `/_astro/` 或仓库源文件时，才按站点运行时故障继续排查。
+
+### 音乐或图片失败
+
+- 检查 `music.json` / `photos.json` URL 与 R2 key 是否一致。
+- 检查文件名 URL 编码和对象大小写。
+- 检查 R2 CORS、Range 响应和 CDN 状态。
+- 不要通过重新上传同名 immutable 对象修复内容。
+
+### 客户端导航状态异常
+
+- 检查只有 audio 与 VinylPlayer 使用 persist。
+- 检查页面交互是否在断开时清理。
+- 同时验证站内点击、返回和 history 前进/后退。
+- 参考 `src/content/docs/vt-bugs.md`。

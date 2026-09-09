@@ -11,7 +11,7 @@ const t = lang === "zh" ? zh : en;
 ---
 
 <BaseLayout title={t.about.title} description={t.about.description} hideFooter>
-  <div class="page">
+  <div class="page about-page">
     <!-- 标准页头：与其他页面一致（.page-title / .page-divider 为 global.css 共享样式） -->
     <div class="page-header">
       <h1 class="page-title">{t.about.title}</h1>
@@ -177,5 +177,105 @@ const t = lang === "zh" ? zh : en;
     .contact-btn {
       transition: none;
     }
+  }
+</style>
+
+<style is:global>
+  .about-page .page-header { max-width: none; }
+
+  .about-page .page-body {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1.25rem, 2.5vw, 2rem);
+    max-width: none;
+  }
+
+  .about-page .hero {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: inherit;
+    margin-bottom: clamp(5rem, 10vw, 9rem);
+  }
+
+  .about-page .hero-name {
+    grid-column: 1 / span 8;
+    font-family: var(--font-editorial);
+    font-size: clamp(3.5rem, 8vw, 8rem);
+    font-weight: 400;
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+  }
+
+  .about-page .hero-tagline {
+    grid-column: 9 / -1;
+    align-self: end;
+    margin: 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-family: var(--font-editorial);
+    font-size: clamp(1.2rem, 2vw, 1.75rem);
+    line-height: 1.45;
+  }
+
+  .about-page .section {
+    grid-column: 4 / span 7;
+    display: grid;
+    grid-template-columns: minmax(7rem, 1fr) minmax(0, 4fr);
+    gap: 2rem;
+    margin: 0 0 clamp(4rem, 8vw, 7rem);
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .about-page .section-title {
+    margin: 0;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .about-page .intro-text p {
+    max-width: 58ch;
+    margin: 0 0 1.25rem;
+    color: var(--color-text-primary);
+    font-size: 1.08rem;
+    line-height: 1.85;
+  }
+
+  .about-page .contact-row { gap: 0; align-items: flex-start; }
+
+  .about-page .contact-btn {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid var(--color-text-primary);
+    border-radius: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.02em;
+    transition: color var(--duration-fast), background var(--duration-fast);
+  }
+
+  .about-page .contact-btn + .contact-btn { border-left: 0; }
+  .about-page .contact-btn:hover { border-color: var(--color-text-primary); background: var(--color-text-primary); color: var(--color-bg-page); }
+
+  @media (max-width: 900px) {
+    .about-page .hero-name { grid-column: 1 / span 9; }
+    .about-page .hero-tagline { grid-column: 8 / -1; }
+    .about-page .section { grid-column: 2 / span 10; }
+  }
+
+  @media (max-width: 640px) {
+    .about-page .page-body,
+    .about-page .hero { display: block; }
+    .about-page .hero { margin-bottom: 5rem; }
+    .about-page .hero-name { font-size: clamp(3.5rem, 20vw, 5.5rem); }
+    .about-page .hero-tagline { margin-top: 2.5rem; }
+    .about-page .section { display: block; margin-bottom: 4.5rem; }
+    .about-page .section-title { margin-bottom: 2rem; }
+    .about-page .contact-row { flex-direction: row; }
+    .about-page .contact-btn { text-align: left; }
   }
 </style>

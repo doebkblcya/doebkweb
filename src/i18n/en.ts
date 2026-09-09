@@ -64,6 +64,10 @@ export const ui: UIStrings = {
     searchPlaceholder: "Search photo notes…",
     noResults: "No results",
     loadError: "Failed to load image",
+    viewLabel: "Photo view",
+    close: "Close photo",
+    previous: "Previous photo",
+    next: "Next photo",
   },
 
   notFound: {
@@ -78,7 +82,20 @@ export const ui: UIStrings = {
     light: "Light",
     dark: "Dark",
     auto: "Auto",
-    toggle: "Toggle appearance",
+  },
+
+  player: {
+    musicPlayer: "Music player",
+    idle: "Nothing playing",
+    previous: "Previous track",
+    play: "Play",
+    pause: "Pause",
+    next: "Next track",
+    playlist: "Track list",
+    notes: "Notes",
+    volume: "Mute or restore volume",
+    volumeSlider: "Volume",
+    shelf: "Record shelf",
   },
 
   common: {

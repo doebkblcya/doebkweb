@@ -27,7 +27,7 @@ const toc = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
 ---
 
 <BaseLayout title={doc.data.title} description={doc.data.summary} hideFooter>
-  <div class="page">
+  <div class="page doc-detail">
 
     <div class="page-header">
       <h1 class="page-title">{doc.data.title}</h1>
@@ -277,3 +277,63 @@ const toc = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
   document.addEventListener("astro:after-swap", window.__vt_tocInit);
   window.__vt_tocInit();
 </script>
+
+<style is:global>
+  .doc-detail .page-header { max-width: 72rem; }
+
+  .doc-detail .page-title { max-width: 17ch; }
+
+  .doc-detail .page-meta {
+    margin-top: 1.75rem;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.025em;
+  }
+
+  .doc-detail .docs-layout {
+    grid-template-columns: minmax(0, 48rem) minmax(12rem, 18rem);
+    justify-content: space-between;
+    gap: clamp(3rem, 7vw, 8rem);
+    max-width: 82rem;
+  }
+
+  .doc-detail .toc {
+    top: 2rem;
+    padding: 1rem 0;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border-light);
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .doc-detail .toc-title {
+    margin: 0 0 1rem;
+    padding: 0;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .doc-detail .toc-list { gap: 0; }
+
+  .doc-detail .toc-link {
+    padding: 0.5rem 0;
+    border-radius: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.45;
+  }
+
+  .doc-detail .toc-link:hover { background: transparent; color: var(--color-text-primary); }
+  .doc-detail .toc-link.is-active { padding-left: 0.75rem; border-left: 2px solid var(--color-accent); background: transparent; }
+  .doc-detail .toc-depth-3 .toc-link { padding-left: 1.25rem; }
+
+  @media (max-width: 1100px) {
+    .doc-detail .docs-layout { grid-template-columns: minmax(0, 48rem); }
+  }
+</style>

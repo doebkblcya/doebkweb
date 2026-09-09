@@ -38,13 +38,13 @@ const dataJson = JSON.stringify({
 ---
 
 <BaseLayout title={t.music.title} description={t.music.description} hideFooter>
-  <div class="page">
+  <div class="page music-page">
     <h1 class="page-title">{t.music.title}</h1>
     <hr class="page-divider" />
 
     <div class="toolbar">
       <div class="search-wrap">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input
@@ -57,7 +57,7 @@ const dataJson = JSON.stringify({
         />
       </div>
       <div class="sort-group" role="group" aria-label={lang === "zh" ? "排序方式" : "Sort by"}>
-        <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
           <line x1="4" y1="6" x2="20" y2="6"/>
           <line x1="4" y1="12" x2="16" y2="12"/>
           <line x1="4" y1="18" x2="12" y2="18"/>
@@ -93,7 +93,7 @@ const dataJson = JSON.stringify({
                     onerror={`this.style.display='none';this.parentElement.classList.add('no-img')`}
                   />
                   <div class="cover-fallback">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
                       <circle cx="12" cy="12" r="10"/>
                       <circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -515,5 +515,57 @@ const dataJson = JSON.stringify({
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: var(--space-8) var(--space-6);
     }
+  }
+</style>
+
+<style is:global>
+  .music-page .toolbar { justify-content: space-between; margin-bottom: clamp(3rem, 6vw, 5rem); }
+  .music-page .search-wrap { max-width: 26rem; }
+
+  .music-page .shelf {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: clamp(3rem, 6vw, 6rem) clamp(1.5rem, 3vw, 3rem);
+  }
+
+  .music-page .album-sleeve { padding: 0; }
+
+  .music-page .sleeve-card {
+    border: 1px solid var(--color-border-light);
+    background: var(--color-bg-muted);
+  }
+
+  .music-page .sleeve-cover {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .music-page .sleeve-info {
+    margin-top: 1rem;
+    padding: 0.9rem 0 0;
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .music-page .sleeve-name {
+    font-family: var(--font-editorial);
+    font-size: 1.35rem;
+    font-weight: 500;
+  }
+
+  .music-page .sleeve-artist {
+    margin-top: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.025em;
+  }
+
+  @media (hover: hover) {
+    .music-page .sleeve-card:hover .sleeve-cover { box-shadow: none; }
+  }
+
+  @media (max-width: 640px) {
+    .music-page .toolbar { align-items: stretch; }
+    .music-page .search-wrap { flex-basis: 100%; max-width: none; }
+    .music-page .shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 1rem; }
+    .music-page .sleeve-name { font-size: 1.15rem; }
   }
 </style>

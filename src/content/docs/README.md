@@ -1,46 +1,55 @@
 ---
-title: "文档上传约定（内部说明）"
-date: 2026-08-04
-summary: "本站文档目录的上传约定：frontmatter 必填项与隐私红线（本文件 draft，不发布）"
+title: "文档写作约定"
+date: 2026-09-09
+summary: "本站技术文章的 frontmatter、发布规则与隐私边界"
 draft: true
 ---
 
-# 文档上传约定
+# 文档写作约定
 
-本站技术文档放在本目录（`src/content/docs/`），Markdown 写作，提交后经 Cloudflare Pages 自动构建发布。本文档 `draft: true` 不会发布，仅作内部指引。
+本目录存放公开技术文章。该 README 为 `draft: true`，不会进入列表或生成页面。
 
-## Frontmatter（必填）
+## Frontmatter
 
 ```yaml
 ---
 title: "文档标题"          # 必填
-date: 2026-08-04          # 必填，写作/发布日期（YAML date）
-summary: "一句话摘要"       # 必填，列表页展示
-# 可选：
-updated: 2026-08-05       # 更新日期
-draft: true               # 草稿：不出现在列表，也不生成页面（仅本 README 用）
-listed: false             # 隐藏：列表不显示，但页面仍可访问
+date: 2026-09-09           # 必填
+summary: "一句话摘要"       # 必填
+updated: 2026-09-09        # 可选
+draft: false               # 可选，默认 false
+listed: true               # 可选，默认 true
 ---
 ```
 
-Schema 定义见 `src/content/config.ts`。缺 `title`/`date`/`summary` 会构建失败。
+Schema 位于 `src/content/config.ts`。当前路由会同时过滤 `draft: true` 和 `listed: false`，两者都不会生成详情页。
 
-## 隐私红线（必须遵守）
+## 写作规则
 
-文档会公开部署到互联网，以下内容**一律不得出现**：
+- 正文使用原语言，不为 zh/en 路由复制翻译版本。
+- 正文可以保留一个 h1；渲染阶段会移除开头与 frontmatter title 重复的 h1。
+- 图片等大资源放 R2，小型配图可放 `public/`。
+- 标题层级从 h2 开始组织正文，h2/h3 会进入详情页目录。
+- 命令与配置必须能脱离作者本机环境理解。
 
-| 内容 | 做法 |
-|---|---|
-| 真实密钥 / Token / 密码 / API Key | 用占位符：`DEEPGRAM_API_KEY=xxx` |
-| 真实用户名 / 本地绝对路径 | 用 `~`、`/home/user/`、`C:\Users\user\` 占位，禁止写 `/home/doebk/` 等真实路径 |
-| 内网 IP、公司内部域名、服务器地址 | 用 `<内网IP>` 占位；`127.0.0.1`/`localhost` 本地示例可保留 |
-| 个人联系方式（邮箱/手机号/微信号） | 仅 about 页可放公开邮箱，正文不放 |
-| 硬件/环境指纹级细节 | 可写型号（如 RTX 4070），不写机器名/序列号/唯一标识 |
+## 隐私边界
 
-**原则**：文档里的命令应"换个环境就能跑"——所有路径、凭据、地址都必须是示例值或占位符。
+公开文章不得包含：
 
-## 其他约定
+- 真实密钥、Token、密码和 API Key
+- 私有邮箱、手机号或即时通信账号
+- 内网 IP、私有域名、服务器凭证
+- 本机用户名、机器名、序列号或身份路径
+- 未经授权的第三方内容
 
-- 文档内容不翻译，仅 UI 文案走 i18n
-- 图片等大文件放 R2，文档内用小文件/外部链接
-- 上传流程：`git push main` → Cloudflare Pages 自动构建（详见 `docs/upload.md`）
+使用 `~/project`、`/home/user`、`C:\Users\user`、`<TOKEN>`、`<内网IP>` 等占位值。
+
+## 验证与发布
+
+```bash
+pnpm exec astro check
+pnpm build
+pnpm preview
+```
+
+确认详情页、目录、代码高亮和 Pagefind 搜索后再提交。完整流程见 `docs/upload.md`。

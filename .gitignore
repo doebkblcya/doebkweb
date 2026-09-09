@@ -5,3 +5,4 @@ dist/
 *.local
 _r2-upload/
 .playwright-mcp/
+tmp/

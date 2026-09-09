@@ -1,97 +1,78 @@
 # doebkweb
 
-> 个人静态技术站点 — 程序员名片 · 技术文档知识库 · 摄影画廊 · 唱片架
+doebkblcya 的个人静态网站：个人介绍、技术文档、唱片架和摄影画廊。
 
-Apple Design 风格的纯静态站点,基于 [Astro](https://astro.build) 构建,部署于 Cloudflare Pages,媒体资源托管于 R2 CDN。
-
-[![Astro](https://img.shields.io/badge/Astro-5.6-BC52EE?logo=astro&logoColor=white)](https://astro.build)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![i18n](https://img.shields.io/badge/i18n-中文%20%2F%20English-1d1d1f)]()
-[![Cloudflare](https://img.shields.io/badge/Cloudflare-Pages%20%2B%20R2-F38020?logo=cloudflare&logoColor=white)](https://pages.cloudflare.com)
-[![View Transitions](https://img.shields.io/badge/View%20Transitions-✓-0071e3)]()
-
----
+网站使用 Astro 5 生成静态页面，部署在 Cloudflare Pages；音乐和摄影资源存放在 Cloudflare R2。首页以深蓝背景、`doebkblcya` 大标题和人物画作为核心视觉，单次下拉完成构图重排并显示导航。站内页采用展览画册式排版，以纸白/纯黑画布、编辑字体、细结构线和留白统一各页面。
 
 ## 功能
 
-| 功能 | 说明 |
-|---|---|
-| **技术文档** | 9 篇真实技术文档,Markdown 内容 + Shiki 语法高亮;右侧目录 rail(滚动高亮)、表格横向滚动、kbd / 折叠块 / 外部链接标识等增强渲染 |
-| **全文搜索** | Pagefind 构建时索引,文档列表页内嵌下拉搜索,毛玻璃面板 + 键盘导航(↑↓ / Enter / Esc) |
-| **音乐播放器** | 黑胶唱片动画(旋转 + 唱臂联动)、专辑架联动播放;View Transitions 跨页持久化,切页不中断;曲序由数据层 `trackNo` 排序 |
-| **摄影画廊** | 照片墙(默认)/ 时间线双视图切换,札记全文搜索;Lightbox 全屏预览(键盘 ← → / Esc 导航),竖图方向自动处理 |
-| **媒体工作流** | `pnpm media` CLI 统一管理音乐/照片:RAW/JPG 处理、ncm 解密、S3 multipart 分片上传 + 自动验证、札记录入 |
-| **双语 UI** | 中 / 英文案,TypeScript 接口约束结构一致;文档内容不翻译,仅 UI 翻译 |
-| **多端适配** | 桌面完整侧栏,iPad 竖屏保留侧栏,手机(≤640px)汉堡抽屉导航;播放器面板横屏可滚动 |
-| **三段式主题** | 浅色 / 深色 / 自动(跟随系统),侧栏太阳月亮快捷切换 + 设置面板分段控件;localStorage 记忆,View Transitions 切页不闪 |
-| **动效打磨** | 方向感知页面过渡(前进/后退滑入滑出)、抽屉/播放器面板/设置弹窗 Motion spring 物理动画(可中断)、列表页 inView 入场;`prefers-reduced-motion` 自动降级 |
+- 技术文档：Astro Content Collections、Shiki 双主题代码高亮、目录 rail、Pagefind 全文搜索。
+- 唱片架：专辑搜索与排序、曲目播放、黑胶和唱臂动效、跨页面连续播放。
+- 摄影画廊：照片墙/时间线切换、札记搜索、响应式 Lightbox。
+- 关于页：内容由 TypeScript 数据文件维护，包含自述与联系方式。
+- 双语 UI：中文和英文路由，正文内容保持原语言。
+- 三段式主题：浅色、深色、跟随系统。
+- 响应式导航：桌面固定侧栏，手机抽屉导航；首页使用独立导航入口。
+- 自托管字体：Newsreader、Hanken Grotesk、JetBrains Mono 与 Noto 中文可变字体，不依赖第三方字体 CDN。
+- 内容工作流：媒体 CLI 负责转码、R2 上传、校验和数据写回。
 
----
+ClientRouter 仅用于无刷新的站内导航和播放器持久化。全站根转场已关闭，首页和其他页面各自管理动效生命周期。
 
 ## 快速开始
 
 ```bash
-pnpm install        # 安装依赖
-pnpm dev            # 开发服务器 → http://localhost:4321
-pnpm build          # 生产构建 → dist/
-pnpm preview        # 本地预览构建产物(含 Pagefind 搜索)
+pnpm install
+pnpm dev
+pnpm exec astro check
+pnpm build
+pnpm preview
 ```
 
-**部署**:`git push main` → Cloudflare Pages 自动构建分发,媒体资源走 R2 CDN(`cdn.doebkblcya.com`)。
+开发服务器默认是 `http://localhost:4321`。Pagefind 只在生产构建后存在，搜索请通过 `pnpm build && pnpm preview` 检查。
 
----
+## 目录
 
-## 技术栈
+```text
+src/
+├── components/             Sidebar、播放器、设置、页脚
+├── content/docs/           技术文章
+├── data/                   about.ts、music.json、photos.json 及派生 helper
+├── i18n/                   中英文 UI
+├── layouts/BaseLayout.astro
+├── pages/[lang]/           zh/en 页面与文档路由
+└── styles/                 tokens、reset、global、prose
+public/
+├── images/home-figure.webp 首页人物素材
+├── favicon.svg
+├── apple-touch-icon.png
+└── _redirects
+docs/                       项目文档
+scripts/media.mjs           媒体 CLI
+```
 
-| 层 | 选型 |
+## 数据来源
+
+| 内容 | 文件 |
 |---|---|
-| 框架 | [Astro](https://astro.build) ^5.6(纯静态生成 + View Transitions) |
-| 语言 | TypeScript ^5.8(`@astrojs/check` 类型检查) |
-| 动画 | Motion ^12.11(vanilla API:spring 结构性动画、inView 入场、方向感知页面过渡,reduced-motion 降级) |
-| 搜索 | Pagefind ^1.5.2(构建时索引,零运行时开销) |
-| 代码高亮 | Shiki 双主题(github-light / github-dark,按 `html[data-theme]` 切换) |
-| 部署 | Cloudflare Pages + R2 媒体托管(`cdn.doebkblcya.com`) |
+| 关于页 | `src/data/about.ts` |
+| 专辑与曲目 | `src/data/music.json` |
+| 摄影 | `src/data/photos.json` |
+| UI 文案 | `src/i18n/zh.ts`、`src/i18n/en.ts` |
+| 文档 | `src/content/docs/*.md` |
 
----
+内容数量不在文档中重复维护，始终以这些数据文件和 Content Collection 为准。
 
-## 目录结构
+## 发布
 
-```
-doebkweb/
-├── src/
-│   ├── pages/[lang]/          # 路由页面(zh/en 双语言生成)
-│   │   ├── index.astro        #   首页(全屏欢迎)
-│   │   ├── about.astro        #   关于我
-│   │   ├── music.astro        #   专辑架
-│   │   ├── photos.astro       #   摄影画廊
-│   │   ├── docs/              #   文档列表 + 详情(TOC rail)
-│   │   └── 404.astro
-│   ├── components/            # Sidebar(移动端汉堡)/ VinylPlayer / LanguageSettings / Footer
-│   ├── layouts/BaseLayout.astro   # 全局布局(持久化 audio + 播放器 + 侧栏)
-│   ├── content/docs/          # Markdown 文档(Content Collections)
-│   ├── data/                  # music.json(唯一数据源)/ playlist.ts / photos.ts
-│   ├── i18n/                  # zh.ts / en.ts(UIStrings 接口约束)
-│   └── styles/                # tokens.css(Design Tokens)/ reset / global / prose
-├── docs/                      # 项目文档(需求/架构/路线图/部署/上传)
-├── scripts/media.mjs          # 媒体 CLI(音乐/照片处理、上传、札记)
-└── public/                    # 静态资源
-```
-
----
+推送 `main` 后由 Cloudflare Pages 执行 `pnpm build` 并发布 `dist/`。媒体文件不进入 Git，通过 `pnpm media` 上传到 `cdn.doebkblcya.com`。
 
 ## 项目文档
 
-| 文件 | 内容 |
-|---|---|
-| [`docs/requirements.md`](docs/requirements.md) | 需求、设计语言、内容策略、约束 |
-| [`docs/architecture.md`](docs/architecture.md) | 目录结构、路由、数据流、CSS 层级、事件总线 |
-| [`docs/roadmap.md`](docs/roadmap.md) | 版本历史(按完成顺序)、未来方向 |
-| [`docs/deployment.md`](docs/deployment.md) | 本地开发、Pages 部署、R2 上传、故障排查 |
-| [`docs/upload.md`](docs/upload.md) | 上传指南:media CLI(音乐/照片)+ 文档 git 流程 |
-| [`CLAUDE.md`](CLAUDE.md) | AI 协作约定(View Transitions / 响应式 / 音乐数据) |
+- [协作约束](AGENT.md)
+- [产品需求](docs/requirements.md)
+- [架构说明](docs/architecture.md)
+- [部署指南](docs/deployment.md)
+- [内容与媒体上传](docs/upload.md)
+- [路线图](docs/roadmap.md)
 
----
-
-## 许可
-
-Copyright © 2026 doebkblcya · [个人主页](https://doebkblcya.com) · 未经授权禁止转载
+Copyright © 2026 doebkblcya。站内原创内容未经授权禁止转载。

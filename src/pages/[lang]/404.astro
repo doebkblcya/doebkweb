@@ -10,7 +10,7 @@ const t = lang === "zh" ? zh : en;
 ---
 
 <BaseLayout title={t.notFound.title}>
-  <div class="page">
+  <div class="page notfound-page">
     <h1 class="page-code">404</h1>
     <h2 class="page-title">{t.notFound.title}</h2>
     <p class="page-desc">{t.notFound.description}</p>
@@ -56,5 +56,49 @@ const t = lang === "zh" ? zh : en;
 
   .back-link:hover {
     opacity: 0.7;
+  }
+</style>
+
+<style is:global>
+  .notfound-page {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-content: center;
+    min-height: 100vh;
+    max-width: none;
+    text-align: left;
+  }
+
+  .notfound-page .page-code {
+    grid-column: 1 / span 6;
+    grid-row: 1 / span 3;
+    margin: 0;
+    color: var(--color-border-light);
+    font-family: var(--font-editorial);
+    font-size: clamp(8rem, 22vw, 22rem);
+    font-weight: 400;
+    line-height: 0.7;
+  }
+
+  .notfound-page .page-title,
+  .notfound-page .page-desc,
+  .notfound-page .back-link { grid-column: 8 / -1; }
+
+  .notfound-page .page-title { align-self: end; margin-bottom: 1.5rem; font-size: clamp(2.4rem, 5vw, 4.5rem); }
+  .notfound-page .page-desc { margin-bottom: 2.5rem; }
+
+  .notfound-page .back-link {
+    width: fit-content;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid var(--color-text-primary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .notfound-page .back-link:hover { background: var(--color-text-primary); color: var(--color-bg-page); opacity: 1; }
+
+  @media (max-width: 760px) {
+    .notfound-page { display: block; padding-top: 9rem; }
+    .notfound-page .page-code { margin-bottom: 4rem; font-size: 42vw; }
   }
 </style>

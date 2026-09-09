@@ -63,6 +63,10 @@ export const ui: UIStrings = {
     searchPlaceholder: "搜索摄影札记…",
     noResults: "无结果",
     loadError: "图片加载失败",
+    viewLabel: "照片显示方式",
+    close: "关闭照片",
+    previous: "上一张",
+    next: "下一张",
   },
 
   notFound: {
@@ -76,7 +80,20 @@ export const ui: UIStrings = {
     light: "浅色",
     dark: "深色",
     auto: "自动",
-    toggle: "切换外观",
+  },
+
+  player: {
+    musicPlayer: "音乐播放器",
+    idle: "未在播放",
+    previous: "上一首",
+    play: "播放",
+    pause: "暂停",
+    next: "下一首",
+    playlist: "播放列表",
+    notes: "札记",
+    volume: "静音或恢复音量",
+    volumeSlider: "音量",
+    shelf: "专辑架",
   },
 
   common: {

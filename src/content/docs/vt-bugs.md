@@ -1,114 +1,137 @@
 ---
-title: "View Transitions 故障报告"
+title: "Astro ClientRouter 生命周期故障记录"
 date: 2026-07-28
-summary: "Astro View Transitions API 在实际项目中的故障现象与排查记录"
+updated: 2026-09-09
+summary: "从 ViewTransitions 到 ClientRouter：跨页播放器、脚本去重与页面状态残留的原因和修复"
 ---
 
-# View Transitions 故障报告
+# Astro ClientRouter 生命周期故障记录
 
 ## 背景
 
-doebkweb 使用 Astro View Transitions（VT）实现页面间的无缝导航。VT 截获链接点击，用 `fetch` 拉取新页面 HTML，然后替换 `<body>` 内容——整个过程不会触发浏览器完整导航，JS 运行时（`window`、变量、定时器、事件监听器）持续存活。
+本站需要音乐在页面之间连续播放，因此使用 Astro 的客户端路由。这个组件在 Astro 4 中名为 `ViewTransitions`，Astro 5 改名为 `ClientRouter`；它不仅控制视觉过渡，也会拦截站内链接、获取下一页 HTML 并替换页面 DOM。
 
-## 核心问题
+普通多页面导航会创建新的 document。ClientRouter 导航则保留当前 JavaScript 运行环境，并把新页面的 body 换入当前 document。这个差异让播放器可以持续，也改变了脚本生命周期。
 
-**VT 只替换 DOM，不执行 `<body>` 中的 `<script>` 标签。** 这是 Astro 的既定行为，不是 bug，但带来了系统性的交互故障。
+## 根因
 
-```
-初次访问 → 脚本执行 → addEventListener 挂在 DOM 元素上 ✅
-VT 切走再切回 → 新页面有新 DOM → 脚本不执行 → 元素没有监听器 ❌
-```
+Astro 打包后的 module script 在同一 document 内去重执行。页面第一次访问时，脚本可以把事件绑定到当前 DOM；离开再返回时，页面节点已经是新实例，而 module 不一定重新执行。
 
-## 两类故障
+```text
+首次进入
+  module 执行 → 监听器绑定到节点 A
 
-### Bug 1：首页 Persist 契约违反
+离开页面
+  节点 A 被移除 → module 和全局监听仍可能存活
 
-`transition:persist` 要求元素在所有参与 VT 的页面中都存在。VinylPlayer 和 Sidebar 需要 persist（音乐播放状态、导航高亮），但首页不想显示它们。
-
-**临时方案**：首页渲染这些组件但用 CSS 隐藏（`body:not(.has-sidebar) .sidebar { display: none }`）。
-
-**后果**：
-- 首页音乐不停止（清理脚本在 VT 下不执行）
-- DOM 状态在首页与其他页面之间可能不一致
-- 架构脆弱，每次加新页面都要考虑 persist 契约
-
-**最终方案**：保留这个模式（它是 VT 下必要的代价），但明确它是例外而非规则。只有真正有跨页面运行时状态的组件才 persist。
-
-### Bug 2：页面交互在 VT 后全部失效
-
-受影响的文件和交互：
-
-| 文件 | 失效的交互 |
-|---|---|
-| `photos.astro` | 关闭按钮、上/下切换、背景点击关闭、键盘导航 |
-| `docs/index.astro` | 排序按钮、搜索输入、搜索 focus、外部点击关闭、Escape 关闭 |
-| `music.astro` | 搜索输入、排序按钮、专辑架点击播放 |
-| `index.astro` | 首页音乐停止 + 播放器重置脚本 |
-
-共计 **13 处**，刷新后恢复正常——因为刷新触发了完整页面加载，脚本重新执行。
-
-## 修复方案
-
-### 规则：非 persist 元素的交互全部使用 inline HTML 属性
-
-```
-✅ 正确：
-<button onclick="window.__vt_doSomething()">按钮</button>
-
-❌ 错误：
-<script>
-  document.getElementById("btn").addEventListener("click", () => { ... });
-</script>
+返回页面
+  节点 B 被插入 → module 已执行过 → B 没有旧监听器
 ```
 
-### 具体实践
+如果代码还保留动画帧、Motion 控制器或 window/document 监听，就会出现另一类问题：旧页面逻辑继续修改新页面，导致按钮、人物、标题或抽屉状态叠加。
 
-1. **交互入口**：`onclick`、`oninput`、`onfocus` 等 inline 属性
-2. **业务逻辑**：放在 `window.__vt_xxx` 全局函数中
-3. **DOM 引用**：每次调用时 `document.getElementById()` 重新获取，不缓存在闭包中
-4. **document 级监听**（keyboard、外部点击）：存 `window.__vt_xxx`，每次脚本执行先 `removeEventListener` 旧函数再注册新函数
-5. **Persist 组件**：用 `dataset.ready` 守卫防止重入
+## 曾出现的症状
 
-### 修复后文件结构示例
+- 页面交互刷新后正常，站内跳转回来后失效。
+- document 级事件重复注册，一次操作触发多次。
+- 主题属性在文档交换后恢复为服务器输出值。
+- 持久化 Sidebar 后切换语言，链接和文案仍来自旧语言。
+- 首页展开后进入关于页，再返回首页，人物、标题与按钮处于不同步状态。
+
+这些现象不是 View Transition 动画本身造成的，而是 DOM 所有权和脚本生命周期没有统一。
+
+## 当前架构
+
+### ClientRouter 只负责导航
+
+`BaseLayout.astro` 使用：
 
 ```astro
-<!-- photos.astro -->
-<button onclick="window.__vt_closePhoto()">关闭</button>
-<button onclick="window.__vt_navPhoto(-1)">上一张</button>
-<div class="lightbox" onclick="window.__vt_closeIfBackdrop(event, this)">
-
-<script define:vars={{ photosJson }}>
-  var PHOTOS = JSON.parse(photosJson);
-
-  window.__vt_closePhoto = function () {
-    var lb = document.getElementById("lightbox");  // 每次重读
-    if (!lb) return;
-    lb.classList.remove("is-open");
-  };
-
-  // Keyboard — document 级，remove-before-add 防累积
-  if (window.__vt_photos_onKeydown) {
-    document.removeEventListener("keydown", window.__vt_photos_onKeydown);
-  }
-  window.__vt_photos_onKeydown = function (e) { ... };
-  document.addEventListener("keydown", window.__vt_photos_onKeydown);
-</script>
+<html transition:animate="none">
+  <ClientRouter fallback="swap" />
+</html>
 ```
 
-## 经验教训
+根页面不做左右滑动或淡入淡出。这样仍保留客户端导航和持久化能力，同时避免旧、新页面快照与首页动效叠加。
 
-### 调试误区
+### 只持久化真实跨页状态
 
-1. **方向反复**：最初认为是监听累积、`const` 重复声明、闭包作用域等问题，逐一尝试后都失败
-2. **测试盲区**：`browser_navigate` 是完整页面加载，不触发 VT。必须通过点击侧边栏链接触发 client-side 导航才能复现
-3. **根因定位漫长**：最终的根因（VT 不执行 body 脚本）是 Astro 的既定行为，但花了大量时间在 JS 层面的假说上
+```text
+#audio       persist
+#vinyl-app   persist
+Sidebar      不 persist
+首页 hero    不 persist
+页面内容      不 persist
+```
 
-### 架构反思
+audio 保存真实播放位置，VinylPlayer 保存播放器 UI。Sidebar 必须根据语言和当前路径重建；首页必须每次得到新的初始状态。
 
-这次经历引出了一个根本问题：MPA 架构下 VT 是否值得。VT 带来的唯一不可替代价值是跨页面音乐无缝播放。如果不需要这个特性，删除 VT 可以消除全部 13 处隐患，且以后不需要任何约束。最终选择了保留 VT，接受 inline onclick 作为项目规范。
+### 页面交互使用组件生命周期
 
-## 相关文件
+首页用 Custom Element 包裹：
 
-- 项目规则：`CLAUDE.md` 中「View Transitions」段落
-- 受影响文件：`photos.astro`、`docs/index.astro`、`music.astro`、`index.astro`
-- Persist 组件：`VinylPlayer.astro`、`Sidebar.astro`
+```js
+class HomeHero extends HTMLElement {
+  connectedCallback() {
+    const controller = new AbortController();
+
+    window.addEventListener("wheel", this.onWheel, {
+      passive: false,
+      signal: controller.signal,
+    });
+
+    this.dispose = () => {
+      controller.abort();
+      this.animation?.stop();
+      cancelAnimationFrame(this.frame);
+    };
+  }
+
+  disconnectedCallback() {
+    this.dispose?.();
+  }
+}
+```
+
+浏览器每次插入新 `<home-hero>` 都会调用 `connectedCallback`；页面被换走时调用 `disconnectedCallback`。事件、动画和 DOM 的生命周期因此属于同一实例。
+
+## 兼容旧代码
+
+Sidebar、设置、文档列表、音乐页和摄影页仍有 inline handler 与 `window.__vt_*`。这些代码维护时必须：
+
+1. 每次执行都查询当前 DOM，不缓存已经被换走的节点。
+2. document/window 事件采用 remove-before-add，避免重复。
+3. 初始化函数保持幂等。
+4. 不把页面临时状态误放进 persist。
+
+这是迁移期间的兼容方案。新交互优先 Custom Element，不再扩大全局函数集合。
+
+## 主题的特殊处理
+
+BaseLayout 在首帧前从 localStorage 写入 `data-theme` 与 `data-theme-mode`。ClientRouter 交换根属性后，Sidebar 的 `astro:after-swap` 处理器再次应用主题。这个处理器属于跨页面 UI 同步，不属于页面组件状态。
+
+## 正确测试方式
+
+直接打开 URL 只测试完整页面加载，无法覆盖这个问题。回归测试必须包含：
+
+1. 直接打开目标页。
+2. 从其他页面点击站内链接进入。
+3. 离开后再次返回。
+4. 浏览器前进和后退。
+5. 快速连续输入和动画反向。
+6. 检查 audio/VinylPlayer 仍是同一 DOM 实例。
+7. 检查页面节点只有一份，控制台没有运行时异常。
+
+本站首页已经按以上矩阵验证“首页 → 关于我 → 首页”和 history 往返。
+
+## DevTools 注入脚本与站点错误的区分
+
+调试 ClientRouter 时，Chrome DevTools 的 Performance 实时指标可能注入 Web Vitals 采集代码。若控制台堆栈只显示 `VM...`、`<anonymous>`、`reportAllChanges` 和读取 `startTime`，而没有 `/_astro/` 资源或仓库文件，应先关闭该实时指标并重新加载页面。这类异常不属于页面组件生命周期，也不应通过修改路由或播放器规避。
+
+文档搜索是另一条独立链路：Pagefind 只在生产构建后生成。文档列表在开发模式直接跳过初始化，因此 `pnpm dev` 不会请求不存在的 `/pagefind/pagefind.js`；搜索回归应使用 build + preview。
+
+## 结论
+
+ClientRouter 对本站仍有价值，因为跨页音乐是明确需求。成熟的做法不是把所有页面做成持久化 SPA，而是把持久化范围限制在播放器，让每个页面拥有自己的挂载和销毁生命周期。
+
+项目协作规则见 `AGENT.md`，整体结构见 `docs/architecture.md`。
