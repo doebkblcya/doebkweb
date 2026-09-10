@@ -176,13 +176,13 @@ const t = lang === "zh" ? zh : en;
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: inherit;
-    margin-bottom: clamp(3.5rem, 7vw, 6rem);
+    margin-bottom: clamp(2.75rem, 5vw, 4.5rem);
   }
 
   .about-page .hero-name {
     grid-column: 1 / span 8;
     font-family: var(--font-editorial);
-    font-size: clamp(3.5rem, 8vw, 8rem);
+    font-size: clamp(3.25rem, 6.5vw, 6rem);
     font-weight: 400;
     line-height: 0.88;
     letter-spacing: -0.045em;
@@ -247,8 +247,8 @@ const t = lang === "zh" ? zh : en;
   @media (max-width: 640px) {
     .about-page .page-body,
     .about-page .hero { display: block; }
-    .about-page .hero { margin-bottom: 5rem; }
-    .about-page .hero-name { font-size: clamp(3.5rem, 20vw, 5.5rem); }
+    .about-page .hero { margin-bottom: 3.5rem; }
+    .about-page .hero-name { font-size: clamp(3rem, 16vw, 4.25rem); }
     .about-page .body-quote {
       max-width: 32rem;
       margin-bottom: 4.5rem;
