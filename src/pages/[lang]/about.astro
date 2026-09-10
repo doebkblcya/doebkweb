@@ -19,19 +19,14 @@ const t = lang === "zh" ? zh : en;
     </div>
 
     <div class="page-body">
-      <!-- 引导区：展示名 + 一句话（内容） -->
+      <!-- 引导区 -->
       <header class="hero">
         <p class="hero-name">{about.hero.name}</p>
-        <p class="hero-tagline">{about.hero.tagline}</p>
       </header>
 
-      <!-- 自述 -->
-      <section class="section">
-        <h2 class="section-title">{about.intro.title}</h2>
-        <div class="intro-text">
-          {about.intro.paragraphs.map((p) => <p>{p}</p>)}
-        </div>
-      </section>
+      <blockquote class="body-quote">
+        <p>{about.hero.quote}</p>
+      </blockquote>
 
       <!-- 联系 -->
       <section class="section">
@@ -96,12 +91,6 @@ const t = lang === "zh" ? zh : en;
     color: var(--color-text-primary);
   }
 
-  .hero-tagline {
-    margin-top: var(--space-4);
-    font-size: var(--text-xl);
-    color: var(--color-text-secondary);
-  }
-
   /* ── 分区 ──────────────────────────────────── */
   .section {
     margin-top: var(--space-16);
@@ -113,14 +102,6 @@ const t = lang === "zh" ? zh : en;
     font-weight: 600;
     letter-spacing: var(--tracking-wide);
     color: var(--color-text-tertiary);
-  }
-
-  .intro-text p {
-    max-width: 65ch;
-    margin-top: var(--space-4);
-    font-size: var(--text-lg);
-    line-height: var(--leading-relaxed);
-    color: var(--color-text-primary);
   }
 
   /* ── 联系 ──────────────────────────────────── */
@@ -180,7 +161,7 @@ const t = lang === "zh" ? zh : en;
   }
 </style>
 
-<style is:global>
+<style>
   .about-page .page-header { max-width: none; }
 
   .about-page .page-body {
@@ -195,7 +176,7 @@ const t = lang === "zh" ? zh : en;
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: inherit;
-    margin-bottom: clamp(5rem, 10vw, 9rem);
+    margin-bottom: clamp(3.5rem, 7vw, 6rem);
   }
 
   .about-page .hero-name {
@@ -207,17 +188,21 @@ const t = lang === "zh" ? zh : en;
     letter-spacing: -0.045em;
   }
 
-  .about-page .hero-tagline {
-    grid-column: 9 / -1;
-    align-self: end;
-    margin: 0;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border);
+  .about-page .body-quote {
+    grid-column: 4 / span 7;
+    margin: 0 0 clamp(5rem, 9vw, 8rem);
+    padding: clamp(1.5rem, 3vw, 2.5rem) 0 0;
+    border-top: 1px solid var(--color-border-light);
+    border-left: 0;
     color: var(--color-text-secondary);
     font-family: var(--font-editorial);
-    font-size: clamp(1.2rem, 2vw, 1.75rem);
-    line-height: 1.45;
+    font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+    font-style: italic;
+    line-height: 1.35;
+    text-wrap: balance;
   }
+
+  .about-page .body-quote p { margin: 0; }
 
   .about-page .section {
     grid-column: 4 / span 7;
@@ -238,14 +223,6 @@ const t = lang === "zh" ? zh : en;
     letter-spacing: var(--tracking-wide);
   }
 
-  .about-page .intro-text p {
-    max-width: 58ch;
-    margin: 0 0 1.25rem;
-    color: var(--color-text-primary);
-    font-size: 1.08rem;
-    line-height: 1.85;
-  }
-
   .about-page .contact-row { gap: 0; align-items: flex-start; }
 
   .about-page .contact-btn {
@@ -263,7 +240,7 @@ const t = lang === "zh" ? zh : en;
 
   @media (max-width: 900px) {
     .about-page .hero-name { grid-column: 1 / span 9; }
-    .about-page .hero-tagline { grid-column: 8 / -1; }
+    .about-page .body-quote { grid-column: 2 / span 10; }
     .about-page .section { grid-column: 2 / span 10; }
   }
 
@@ -272,7 +249,10 @@ const t = lang === "zh" ? zh : en;
     .about-page .hero { display: block; }
     .about-page .hero { margin-bottom: 5rem; }
     .about-page .hero-name { font-size: clamp(3.5rem, 20vw, 5.5rem); }
-    .about-page .hero-tagline { margin-top: 2.5rem; }
+    .about-page .body-quote {
+      max-width: 32rem;
+      margin-bottom: 4.5rem;
+    }
     .about-page .section { display: block; margin-bottom: 4.5rem; }
     .about-page .section-title { margin-bottom: 2rem; }
     .about-page .contact-row { flex-direction: row; }
