@@ -152,6 +152,8 @@ expanded
 
 滚轮、触摸和键盘只决定目标状态，不把真实页面滚动量当作动画进度。Motion 插值写入 hero stage 的 CSS 自定义属性；离开首页时由 Custom Element 统一停止。
 
+`<home-hero>` 是 deferred 模块脚本，首帧可能早于元素升级。因此 BaseLayout 的同步 head 脚本在解析期写入 `html[data-hero="pending"]`，`index.astro` 据此先把 portal 画到画面外并禁用点击，保证首帧就是 collapsed；`render()` 接管并写入内联变量后该标记失效。`prefers-reduced-motion` 下不写标记，直接呈现 expanded 终态；模块脚本加载失败时由 `DOMContentLoaded` 清除标记，同样回落到可操作终态。
+
 ## 数据流
 
 ### 音乐

@@ -63,6 +63,7 @@ pnpm media               # 查看媒体 CLI 用法
 - 一次滚轮、滑动、方向键或首页非交互区域点击触发完整展开/收起，不按页面滚动距离拖拽进度。
 - 展开后标题、人物、导航互不遮挡；桌面和移动端分别计算终态比例。
 - `prefers-reduced-motion` 下直接显示可操作终态。
+- 模块脚本执行前的首帧由 `html[data-hero="pending"]`（BaseLayout head 内联脚本）固定为收起态，不要在 CSS 默认值里直接写终态；reduced-motion 与脚本加载失败时不设标记，回落到可操作终态。
 - 首页交互由 `<home-hero>` 自己管理生命周期，不重新引入 `window.__vt_home*`。
 
 ## 样式与动效

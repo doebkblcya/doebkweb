@@ -405,6 +405,18 @@ const navItems = [
     pointer-events: auto !important;
   }
 
+  /* <home-hero> 升级前（见 BaseLayout 的 data-hero 标记）先画出收起态：
+     取值与 render() 在 progress = 0 时写入的内联变量一致。 */
+  :global(html[data-hero="pending"]) .hero-stage {
+    --portal-x: 30vw;
+    --portal-y: 5rem;
+    --portal-opacity: 0;
+  }
+
+  :global(html[data-hero="pending"]) .portal {
+    pointer-events: none;
+  }
+
   .portal-link:focus-visible {
     outline: 1px solid #b9cee4;
     outline-offset: 0.35rem;
@@ -433,6 +445,10 @@ const navItems = [
 
     .portal-link {
       font-size: 1rem;
+    }
+
+    :global(html[data-hero="pending"]) .hero-stage {
+      --portal-x: 42vw;
     }
   }
 
