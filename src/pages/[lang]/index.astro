@@ -54,11 +54,12 @@ const navItems = [
       this.dispose?.();
 
       const hero = this.querySelector<HTMLElement>("#home-hero");
-      const stage = this.querySelector<HTMLElement>("#home-stage");
+      const title = this.querySelector<HTMLElement>(".identity");
       const portrait = this.querySelector<HTMLElement>("#home-portrait");
       const portal = this.querySelector<HTMLElement>("#home-portal");
-      if (!hero || !stage || !portrait || !portal) return;
-      const activeStage: HTMLElement = stage;
+      if (!hero || !title || !portrait || !portal) return;
+      const activeTitle: HTMLElement = title;
+      const activePortrait: HTMLElement = portrait;
       const activePortal: HTMLElement = portal;
 
       var controller = new AbortController();
@@ -68,6 +69,7 @@ const navItems = [
       var progressValue = 0;
       var stateTarget: number | null = null;
       var frame: number | undefined;
+      var pointerOnlyFrame = false;
       var scrollAnimation: ReturnType<typeof animate> | undefined;
       var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -80,7 +82,8 @@ const navItems = [
         return x * x * (3 - 2 * x);
       }
 
-      function render() {
+      function render(pointerOnly = false) {
+        if (frame !== undefined) cancelAnimationFrame(frame);
         frame = undefined;
         var progress = reduceMotion ? 1 : progressValue;
         var reveal = smoothstep((progress - 0.2) / 0.56);
@@ -93,34 +96,46 @@ const navItems = [
         var portraitShiftY = small ? -28 : compact ? -31 : -3;
         var portraitEndScale = small ? 0.45 : compact ? 0.4 : 0.76;
 
-        activeStage.style.setProperty("--title-x", `${titleShiftX * progress - pointerX * 0.22}vw`);
-        activeStage.style.setProperty("--title-y", `${titleShiftY * progress - pointerY * 0.1}vh`);
-        activeStage.style.setProperty("--title-scale", `${1 - progress * (1 - titleEndScale)}`);
-        activeStage.style.setProperty("--title-opacity", `${1 - progress * 0.06}`);
-        activeStage.style.setProperty("--portrait-x", `${portraitShiftX * progress + pointerX * 0.65}vw`);
-        activeStage.style.setProperty("--portrait-y", `${portraitShiftY * progress + pointerY * 0.25}vh`);
-        activeStage.style.setProperty("--portrait-scale", `${1 - progress * (1 - portraitEndScale)}`);
-        activeStage.style.setProperty("--portrait-rotate-x", `${pointerY * -1.35}deg`);
-        activeStage.style.setProperty("--portrait-rotate-y", `${pointerX * 1.8 - progress * 1.25}deg`);
-        activeStage.style.setProperty("--portal-x", `${(1 - reveal) * (compact ? 42 : 30)}vw`);
-        activeStage.style.setProperty("--portal-y", `${(1 - reveal) * 5}rem`);
-        activeStage.style.setProperty("--portal-opacity", `${reveal}`);
-        activeStage.style.setProperty("--glow-x", `${portraitShiftX * progress * 0.78 + pointerX * 0.3}vw`);
-        activeStage.style.setProperty("--glow-y", `${portraitShiftY * progress * 0.45 + pointerY * 0.15}vh`);
+        activeTitle.style.transform = `translate3d(calc(-50% + ${titleShiftX * progress - pointerX * 0.22}vw), calc(-50% + ${titleShiftY * progress - pointerY * 0.1}vh), -80px) scale(${1 - progress * (1 - titleEndScale)})`;
+        activePortrait.style.transform = `translate3d(calc(-50% + ${portraitShiftX * progress + pointerX * 0.65}vw), ${portraitShiftY * progress + pointerY * 0.25}vh, 110px) rotateX(${pointerY * -1.35}deg) rotateY(${pointerX * 1.8 - progress * 1.25}deg) scale(${1 - progress * (1 - portraitEndScale)})`;
+        if (pointerOnly) return;
 
+        activeTitle.style.opacity = `${1 - progress * 0.06}`;
+        activePortal.style.transform = `translate3d(${(1 - reveal) * (compact ? 42 : 30)}vw, ${(1 - reveal) * 5}rem, -20px)`;
+        activePortal.style.opacity = `${reveal}`;
         activePortal.style.pointerEvents = reveal > 0.72 ? "auto" : "none";
-        activeStage.classList.add("is-motion-ready");
+      }
+
+      function scheduleRender(pointerOnly: boolean) {
+        if (scrollAnimation) return;
+        if (frame !== undefined) {
+          if (!pointerOnly) pointerOnlyFrame = false;
+          return;
+        }
+        pointerOnlyFrame = pointerOnly;
+        frame = requestAnimationFrame(() => render(pointerOnlyFrame));
       }
 
       function requestRender() {
-        if (frame !== undefined) return;
-        frame = requestAnimationFrame(render);
+        scheduleRender(false);
+      }
+
+      function requestPointerRender() {
+        scheduleRender(true);
       }
 
       function animateTo(target: number) {
         target = clamp(target, 0, 1);
         if (stateTarget !== null && Math.abs(stateTarget - target) < 0.001) return;
+        if (stateTarget === null && Math.abs(progressValue - target) < 0.001) return;
         scrollAnimation?.stop();
+        scrollAnimation = undefined;
+        if (Math.abs(progressValue - target) < 0.001) {
+          progressValue = target;
+          stateTarget = null;
+          render();
+          return;
+        }
         if (reduceMotion) {
           progressValue = target;
           render();
@@ -183,13 +198,13 @@ const navItems = [
         if (reduceMotion || event.pointerType === "touch") return;
         pointerX = clamp((event.clientX / window.innerWidth - 0.5) * 2, -1, 1);
         pointerY = clamp((event.clientY / window.innerHeight - 0.5) * 2, -1, 1);
-        requestRender();
+        requestPointerRender();
       }
 
       function onPointerLeave() {
         pointerX = 0;
         pointerY = 0;
-        requestRender();
+        requestPointerRender();
       }
 
       function onClick(event: MouseEvent) {
@@ -242,7 +257,7 @@ const navItems = [
     max-height: 100svh;
     overflow: hidden;
     overscroll-behavior: none;
-    background: #06182d;
+    background: var(--color-bg-page);
   }
 
   :global(html[data-page="home"] .content-area),
@@ -251,7 +266,7 @@ const navItems = [
     height: 100%;
     min-height: 0;
     overflow: hidden;
-    background: #06182d;
+    background: var(--color-bg-page);
   }
 
   .home {
@@ -260,7 +275,7 @@ const navItems = [
     height: 100vh;
     height: 100svh;
     overflow: clip;
-    background: #06182d;
+    background: var(--color-bg-page);
   }
 
   .hero-shell {
@@ -281,9 +296,6 @@ const navItems = [
     --portal-x: 0vw;
     --portal-y: 0rem;
     --portal-opacity: 1;
-    --glow-x: 0vw;
-    --glow-y: 0vh;
-
     position: relative;
     width: 100%;
     height: 100vh;
@@ -293,26 +305,6 @@ const navItems = [
     isolation: isolate;
   }
 
-  .hero-stage::before {
-    content: "";
-    position: absolute;
-    z-index: 0;
-    top: -8%;
-    left: 22.5%;
-    width: 70%;
-    height: 112%;
-    background: radial-gradient(
-      ellipse at center,
-      rgba(76, 116, 153, 0.24) 0%,
-      rgba(47, 85, 122, 0.11) 38%,
-      rgba(6, 24, 45, 0) 72%
-    );
-    transform: translate3d(var(--glow-x), var(--glow-y), -120px);
-    filter: blur(16px);
-    pointer-events: none;
-    will-change: transform;
-  }
-
   .identity {
     position: absolute;
     z-index: 1;
@@ -320,7 +312,7 @@ const navItems = [
     left: 50%;
     width: max-content;
     margin: 0;
-    color: #dfe6e8;
+    color: var(--color-text-primary);
     font-family: var(--font-editorial);
     font-size: clamp(8rem, 16.5vw, 20rem);
     font-weight: 400;
@@ -383,8 +375,8 @@ const navItems = [
   .portal-link {
     display: block;
     padding: 0.9rem 0;
-    border-bottom: 1px solid rgba(226, 234, 242, 0.32);
-    color: #dfe6e8;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
     font-family: var(--font-sans);
     font-size: clamp(0.95rem, 1.15vw, 1.1rem);
     font-weight: 500;
@@ -395,18 +387,18 @@ const navItems = [
 
   .portal-link:hover,
   .portal-link:focus-visible {
-    color: #b9cee4;
-    border-color: #b9cee4;
+    color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
   }
 
   .portal:focus-within {
-    opacity: 1;
-    transform: translate3d(0, 0, -20px);
+    opacity: 1 !important;
+    transform: translate3d(0, 0, -20px) !important;
     pointer-events: auto !important;
   }
 
   /* <home-hero> 升级前（见 BaseLayout 的 data-hero 标记）先画出收起态：
-     取值与 render() 在 progress = 0 时写入的内联变量一致。 */
+     取值与 render() 在 progress = 0 时写入的导航变换一致。 */
   :global(html[data-hero="pending"]) .hero-stage {
     --portal-x: 30vw;
     --portal-y: 5rem;
@@ -418,7 +410,7 @@ const navItems = [
   }
 
   .portal-link:focus-visible {
-    outline: 1px solid #b9cee4;
+    outline: 1px solid var(--color-accent-hover);
     outline-offset: 0.35rem;
   }
 

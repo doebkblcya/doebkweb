@@ -75,7 +75,7 @@ const r2Base = "https://cdn.doebkblcya.com/music";
         doc.setAttribute("data-theme-mode", mode);
         var meta = document.createElement("meta");
         meta.name = "theme-color";
-        meta.content = doc.dataset.page === "home" ? "#06182d" : theme === "dark" ? "#000000" : "#fcfcfd";
+        meta.content = theme === "dark" ? "#000000" : "#fcfcfd";
         document.head.appendChild(meta);
       })();
     </script>

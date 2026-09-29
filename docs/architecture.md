@@ -150,9 +150,9 @@ expanded
 └── portal 在左下区域显示
 ```
 
-滚轮、触摸和键盘只决定目标状态，不把真实页面滚动量当作动画进度。Motion 插值写入 hero stage 的 CSS 自定义属性；离开首页时由 Custom Element 统一停止。
+滚轮、触摸和键盘只决定目标状态，不把真实页面滚动量当作动画进度。Motion 插值直接更新标题、人物和导航的变换及透明度；离开首页时由 Custom Element 统一停止。
 
-`<home-hero>` 是 deferred 模块脚本，首帧可能早于元素升级。因此 BaseLayout 的同步 head 脚本在解析期写入 `html[data-hero="pending"]`，`index.astro` 据此先把 portal 画到画面外并禁用点击，保证首帧就是 collapsed；`render()` 接管并写入内联变量后该标记失效。`prefers-reduced-motion` 下不写标记，直接呈现 expanded 终态；模块脚本加载失败时由 `DOMContentLoaded` 清除标记，同样回落到可操作终态。
+`<home-hero>` 是 deferred 模块脚本，首帧可能早于元素升级。因此 BaseLayout 的同步 head 脚本在解析期写入 `html[data-hero="pending"]`，`index.astro` 据此先把 portal 画到画面外并禁用点击，保证首帧就是 collapsed；`render()` 接管后以内联样式控制动画。`prefers-reduced-motion` 下不写标记，直接呈现 expanded 终态；模块脚本加载失败时由 `DOMContentLoaded` 清除标记，同样回落到可操作终态。
 
 ## 数据流
 
@@ -222,7 +222,7 @@ BaseLayout 的同步 head 脚本在首帧前写入属性，避免闪烁。Client
 | `prose.css` | 编辑型 Markdown 正文、结构线和 Shiki 双主题 |
 | 组件内 `<style>` | 页面与组件局部布局 |
 
-字体由 Fontsource 包随构建产物自托管，拉丁与中文均使用可变 WOFF2，并由 Unicode range 按实际字形请求。首页使用固定深蓝视觉，不跟随站内页亮/暗主题切换；其余页面浅色为纸白、暗色为纯黑。
+字体由 Fontsource 包随构建产物自托管，拉丁与中文均使用可变 WOFF2，并由 Unicode range 按实际字形请求。首页与其余页面共用明暗主题背景：浅色为纸白、暗色为纯黑。
 
 ## 动效策略
 

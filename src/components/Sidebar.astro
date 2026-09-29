@@ -229,7 +229,7 @@ function isActive(itemHref: string): boolean {
         meta.setAttribute("name", "theme-color");
         document.head.appendChild(meta);
       }
-      meta.setAttribute("content", doc.dataset.page === "home" ? "#06182d" : doc.getAttribute("data-theme") === "dark" ? "#000000" : "#fcfcfd");
+      meta.setAttribute("content", doc.getAttribute("data-theme") === "dark" ? "#000000" : "#fcfcfd");
     }
 
     // 系统主题变化:仅更新有效主题,不动 localStorage 与模式
