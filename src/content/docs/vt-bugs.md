@@ -136,4 +136,4 @@ BaseLayout 在首帧前从 localStorage 写入 `data-theme` 与 `data-theme-mode
 
 ClientRouter 对本站仍有价值，因为跨页音乐是明确需求。成熟的做法不是把所有页面做成持久化 SPA，而是把持久化范围限制在播放器，让每个页面拥有自己的挂载和销毁生命周期。
 
-项目协作规则见 `AGENT.md`，整体结构见 `docs/architecture.md`。
+项目协作规则见 `AGENT.md`，整体结构见仓库 `README.md`。

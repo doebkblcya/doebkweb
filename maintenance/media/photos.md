@@ -1,70 +1,85 @@
-# 摄影处理、上传与记录
+# 摄影处理、上传与编排
 
-先阅读 [README.md](README.md)。用户把**本次全部照片**放入 `materials/inbox/`。约定目录仅包含本批 RAW/JPEG/PNG，不递归扫描，不判断是否上传过；同一照片选择 RAW、JPEG 或 PNG 一份输入，避免重复展示。
+先读 [README.md](README.md)。用户可以在 `materials/inbox/photos/` 按拍摄批次/地点分目录，也可以直接提供本地既有目录。保留用户分类名称供编排维护；不要从照片内容自行重新命名或合并分类。每个分组目录只含这次要上传的照片，AI 逐组调用工具，不递归扫描工具输入、不做历史自动跳过。
+
+同一作品使用一份输入。用户提供修好的 JPG 时直接用 JPG，RAW 仅用于必要时补充同名照片拍摄时间，不从 RAW 重新生成画面。不要移动、删除或修改原始素材。原图、请求、派生文件和上传回执都留本地，不提交 Git。
 
 ## 图片处理
 
-- JPEG/PNG：直接生成网页派生图，不做 RAW 转码。
-- RAW：ExifTool 提取 `JpgFromRaw`、`PreviewImage`、`OtherImage`、`ThumbnailImage` 中可解码的 JPEG，选像素面积最大的一张。默认长边至少 1600px；没有合格预览就停止并报告，请用户提供导出的 JPEG。不会偷偷改用 RAW 解码。
-- 内嵌 JPEG 是相机已经处理好的预览，包含相机的色彩、锐化等效果；这里不做曝光、白平衡或镜头的 RAW 显影调整。
-- 根据 JPEG 自身方向或 RAW 方向校正旋转/镜像，再生成 sRGB 图片。网页文件移除 EXIF/GPS，原始素材始终留在本地。
-- 大图：JPEG，默认长边不超过 2400px，质量 88，用于点开查看。
-- 预览：WebP，默认长边不超过 960px，质量 80。二者都保持比例、不放大。
+- JPEG/PNG：直接生成网页派生图。
+- RAW：ExifTool 提取可解码的内嵌 JPEG，选像素面积最大的一份，默认长边至少 1600px；没有合格预览时报告并请求导出的 JPEG，不自动解码 RAW。
+- 根据图片方向校正旋转/镜像，转换为 sRGB。网页文件移除 EXIF/GPS；原件不变。
+- 普通大图：JPEG，长边不超过 2400px，质量 88；预览：WebP，长边不超过 960px，质量 80。保持比例、不放大。
+- 透明抠图：请求指定 `preserveTransparency: true`，大图和预览均输出 WebP，保留 alpha，不转成 JPEG 或填充背景。抠图本身按用户请求另行完成，这个工具只缩放压缩。
 
-## 执行步骤
-
-1. 检查原件、文件数量和 ExifTool 环境；确认当前批次的文件夹。不要移动/删除用户原始素材。
-2. 创建 `materials/photo-request.json`，例如：
+## 单个分组的请求
 
 ```json
 {
-  "batch": "20260930-v1",
-  "input": "materials/inbox",
+  "batch": "20261002-nanjing-v1",
+  "input": "materials/inbox/photos/南京",
   "annotations": {
-    "DSC0001.NEF": {
-      "alt": "傍晚的河岸，远处有一座桥",
-      "note": "用户提供的拍摄札记"
-    },
-    "DSC0002.JPG": {
-      "date": "2026-09-29",
-      "alt": "雨后街道的灯光倒影"
-    }
+    "DSC0001.JPG": { "note": "用户提供的札记" },
+    "DSC0002.JPG": { "date": "2026-09-06T15:28:28" }
   }
 }
 ```
 
-3. 执行：
+`batch` 是唯一的日期/版本标识，仅使用小写英文字母、数字、连字符。`input` 可以是绝对路径。可选 `output` 必须是独立、不存在的目录，不能与输入嵌套；默认 `materials/processed/<batch>/`。
 
-```bash
-node maintenance/media/tools/prepare-photos.mjs materials/photo-request.json
-```
+`annotations` 仅用于用户札记、已知拍摄时间或原文件名映射。处理过的抠图文件名改变时可用 `name` 保存原始文件名，例如 `"小狼.png": { "name": "正面.png", "note": "小狼" }`。不添加描述字段，不替用户撰写札记。无札记省略 `note`。
 
-4. 输出在 `materials/processed/<batch>/`：每张大图/预览、`photos.draft.json`、`uploads.json`。查看照片确认方向、色彩、清晰度、比例，再核对草稿中的拍摄日期和说明。
-5. 工具从 `DateTimeOriginal` 取相机拍摄日，不用文件修改时间代替。没有日期时使用明确填写的逐张 `date` 或请求的 `defaultDate`；还不知道就询问用户。输入仅有拍摄日，清单统一保存 `YYYY-MM-DD`，不因服务器时区变化跨日。
-6. `alt` 必须是对照片内容的简洁描述，AI 看过照片后填写；不能用文件名充数。`note` 是用户札记，没有就省略。工具允许空 alt 草稿，公开清单校验会阻止发布。
-7. 用 Wrangler 上传 `uploads.json` 中的全部对象，按 README 做 GET、字节数和解码检查。本批全部成功后才将草稿追加到 `src/data/photos.json`。
-8. 执行数据校验、类型检查和构建；预览照片墙、时间线、搜索、大图及前后切换，按本次发布授权推送。仅上传图片不会更新网站。
+可选参数：`largeEdge`、`largeQuality`、`previewEdge`、`previewQuality`、`minimumRawEdge`、`preserveTransparency`。默认参数足够时不增加配置。
 
-## 请求参数
+## 执行与上传
 
-`batch` 是唯一的新版本名称（小写英文字母/数字/连字符）；`input` 是当前批目录。可选 `output` 指定独立且不存在的输出目录，不能包含输入或被输入包含；工具不会向输入目录写文件。
+1. 核对用户分类、文件数量和输入格式。快速了解画面时优先一张缩略总览，避免逐张查看大图；用户分类决定组别。
+2. 为每个分组写一份请求，执行：
 
-还可指定 `largeEdge`、`largeQuality`、`previewEdge`、`previewQuality`、`minimumRawEdge`。没有特殊需求采用默认值。不要为了通过检查把只有小缩略图的 RAW 当作大图发布。
+   ```bash
+   node maintenance/media/tools/prepare-photos.mjs materials/photo-request.json
+   ```
 
-失败时没有完成的上传清单不用于上传；检查报错后，清理/更换本地派生输出目录再重做。工具处理全部本批文件，不做历史自动跳过。
+3. 输出每张大图/预览、`photos.draft.json`、`uploads.json`。`id` 由批次与序号组成，`name` 保存原始文件名含扩展名；网站排序不使用 R2 的序号文件名。
+4. 从 `DateTimeOriginal` 保存相机本地拍摄时间 `YYYY-MM-DDTHH:mm:ss`；来源仅有日期时允许 `YYYY-MM-DD`。不转换到执行机器时区。JPG 缺少信息时可读取同名 RAW 补充；仍无时间则省略 `date`，不要填文件修改时间、录入日或目录名日期，也无需询问以补齐必填项。
+5. 用 Wrangler `--remote` 上传全部对象，再按入口文档 GET 校验 Content-Type、字节数、哈希和解码尺寸。透明图同时核对 alpha。全部成功后才更新公开清单；失败时保留原件和回执，不写未验证 URL、不自动删除 R2。
+6. 将新照片追加/更新到 `src/data/photos.json`；修改现有图片时保留作品身份并使用新的 R2 版本路径，避免重复收录同一张照片。
+7. 按用户分类在 `src/data/photo-groups.json` 安排摄影展，用照片 ID 引用图片，不重复保存照片资料。照片墙自动展示摄影清单中的所有记录。关于页猫咪另存 cats.json，复用已验证 R2 图片，不追加到摄影清单。
+8. 清单校验、类型检查、构建与 `git diff --check`。按用户要求把本地预览交给用户手动检查；仅按当前发布授权提交/推送，上传 R2 不等于页面发布。检查完成后按入口文档清理中间产物，保留原件和最终编辑成果。
 
-## 摄影数据格式
+## 摄影数据
 
 ```json
 {
-  "src": "https://cdn.doebkblcya.com/photos/20260930-v1/001-large.jpg",
-  "thumb": "https://cdn.doebkblcya.com/photos/20260930-v1/001-preview.webp",
-  "alt": "傍晚的河岸，远处有一座桥",
+  "id": "20261002-nanjing-v1-001",
+  "name": "DSC0001.JPG",
+  "src": "https://cdn.doebkblcya.com/photos/20261002-nanjing-v1/001-large.jpg",
+  "thumb": "https://cdn.doebkblcya.com/photos/20261002-nanjing-v1/001-preview.webp",
   "width": 2400,
   "height": 1600,
-  "date": "2026-09-29",
-  "note": "用户提供的拍摄札记"
+  "date": "2026-09-06T15:28:28",
+  "note": "用户提供的札记"
 }
 ```
 
-示例 URL 不能直接发布。`width`/`height` 取**校正方向后网页大图**的实际尺寸，供等比布局使用。预览与大图来自同一输入并保持相同方向。唯一来源是 `photos.json`，不维护第二份网站图片记录。
+示例 URL 不可直接发布。`width`/`height` 为校正方向后大图实际尺寸。预览与大图保持一致比例、方向和透明度。`date`、`note` 可省略；无独立描述或标题字段，HTML 图片替代文本使用 `name`。
+
+## 摄影展编排
+
+```json
+[
+  {
+    "id": "nanjing",
+    "name": "南京",
+    "photos": ["20261002-nanjing-v1-001"]
+  }
+]
+```
+
+分组 `name` 仅保留用户目录分类供编排维护，页面不显示组标题。札记只存于各照片自己的 `note`，展览在各照片下方显示，大图与照片墙搜索读取同一字段。关于页的猫咪独立保存在 `src/data/cats.json`，沿用照片记录格式，名字存于各自 `note`，不放入摄影清单或展览编排。不设置分组 `note`、继承或共享逻辑。用户希望同一文字用于多张照片时分别写入各照片，后续可独立修改；不自行撰写新的札记。没有札记省略照片 `note`，不显示占位。
+
+数组顺序决定组和组内观看顺序，不随机。每组 `photos` 保存按顺序观看的照片 ID；无 `rows`、`layout` 或 `composition` 等大小和对齐配置。摄影展以一屏一张为基础，横图限制宽度、竖图限制高度，完整适配统一展示区域；每张照片和自己的札记形成观看单元，手机沿用同样的连续结构。引用已验证照片的 ID；同一作品不重复出现在展览中。未安排进展览的记录仍显示在照片墙。
+
+摄影展只用 CSS 与 IntersectionObserver：独立观察每张照片进入视野，轻微淡入/6px 上移约 600ms，每张照片自己的札记稍后出现。完全离开视野后复位，再进入可重播；观看时静止，减少动态效果或无脚本时直接显示。
+
+照片墙默认按原始文件名排序，支持拍摄时间从新到旧，无时间的统一放入“没有时间”；搜索只匹配札记。摄影展图下方和大图弹层有札记才显示，没内容不占位。页面只懒加载预览，当前大图点击后加载，关闭弹层移除图片地址。

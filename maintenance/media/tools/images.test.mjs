@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
-import { orientedImage, largestPreview, captureDate } from './images.mjs';
+import { orientedImage, largestPreview, captureDate, captureTime } from './images.mjs';
 import { validate } from './validate-media.mjs';
 const exec = promisify(execFile);
 
@@ -34,18 +34,25 @@ test('RAW preview selection rejects thumbnails and corrupt bytes, and picks the 
   await assert.rejects(largestPreview([{ bytes: small }]), /No embedded JPEG/);
   assert.equal(captureDate({ DateTimeOriginal: '2026:09:29 23:59:59', OffsetTimeOriginal: '+09:00' }), '2026-09-29');
   assert.equal(captureDate({}), null);
+  assert.equal(captureTime({ DateTimeOriginal: '2026:09:29 23:59:59', OffsetTimeOriginal: '+09:00' }), '2026-09-29T23:59:59');
+  assert.equal(captureTime({}), null);
 });
 
 test('invalid or duplicate public records are rejected', () => {
   const album = { id: 'test-album', name: 'Test', artist: 'Artist', cover: 'https://cdn.doebkblcya.com/albums/test/v1/cover.jpg', review: '' };
-  const photo = { src: 'https://cdn.doebkblcya.com/photos/test/large.jpg', thumb: 'https://cdn.doebkblcya.com/photos/test/preview.webp', alt: 'A river', width: 800, height: 1200, date: '2026-09-29' };
+  const photo = { id: 'test-photo', name: 'camera.jpg', src: 'https://cdn.doebkblcya.com/photos/test/large.jpg', thumb: 'https://cdn.doebkblcya.com/photos/test/preview.webp', width: 800, height: 1200, date: '2026-09-29' };
   validate([album], [photo]);
   assert.throws(() => validate([album, album], []), /duplicate id/);
   assert.throws(() => validate([{ ...album, id: undefined }], []), /id/);
   assert.throws(() => validate([{ ...album, released: 2026 }], []), /release/);
   assert.throws(() => validate([], [photo, photo]), /Duplicate image/);
-  assert.throws(() => validate([], [{ ...photo, date: '2026-02-30' }]), /capture date/);
-  assert.throws(() => validate([], [{ ...photo, alt: '' }]), /alt text/);
+  assert.throws(() => validate([], [{ ...photo, date: '2026-02-30' }]), /capture time/);
+  assert.throws(() => validate([], [{ ...photo, date: '2026-09-29T25:00:00' }]), /capture time/);
+  assert.throws(() => validate([], [{ ...photo, name: '' }]), /filename/);
+  assert.throws(() => validate([], [{ ...photo, alt: 'A river' }]), /description field/);
+  validate([], [{ ...photo, date: undefined }]);
+  assert.throws(() => validate([], [photo], [{ id: 'group', name: 'Group', photos: ['missing'] }]), /unknown or repeated/);
+  assert.throws(() => validate([], [photo], [{ id: 'group', name: 'Group', photos: [photo.id, photo.id] }]), /unknown or repeated/);
   assert.throws(() => validate([{ ...album, tracks: [] }], []), /playback/);
   assert.throws(() => validate([{ ...album, cover: 'https://external.example/cover.jpg' }], []), /R2 cover/);
 });
@@ -63,13 +70,15 @@ test('preparation preserves originals, corrects orientation, strips metadata and
     await sharp({ create: { width: 300, height: 200, channels: 3, background: 'blue' } }).png().toFile(png);
     const originalPng = await readFile(png);
     const request = path.join(root, 'request.json');
-    await writeFile(request, JSON.stringify({ batch: 'test-v1', input, output, annotations: { 'camera.jpg': { alt: 'Test image' }, 'second.png': { alt: 'PNG image', date: '2026-09-30' } } }));
+    await writeFile(request, JSON.stringify({ batch: 'test-v1', input, output }));
     await exec(process.execPath, ['maintenance/media/tools/prepare-photos.mjs', request]);
     const draft = JSON.parse(await readFile(path.join(output, 'photos.draft.json'), 'utf8'));
-    assert.equal(draft[0].width, 800); assert.equal(draft[0].height, 1200); assert.equal(draft[0].date, '2026-09-29');
+    assert.equal(draft[0].width, 800); assert.equal(draft[0].height, 1200); assert.equal(draft[0].date, '2026-09-29T23:59:59');
+    assert.equal(draft[0].name, 'camera.jpg'); assert.equal(draft[0].alt, undefined);
     validate([], draft);
     assert.equal(draft.length, 2);
     assert.equal(draft[1].width, 300); assert.equal(draft[1].height, 200);
+    assert.equal(draft[1].date, undefined);
     assert.deepEqual(await readFile(png), originalPng);
     for (const file of ['001-large.jpg', '001-preview.webp']) {
       const info = await sharp(path.join(output, file)).metadata();
@@ -91,5 +100,25 @@ test('preparation preserves originals, corrects orientation, strips metadata and
     const coverDraft = JSON.parse(await readFile(path.join(coverOutput, 'cover.draft.json'), 'utf8'));
     assert.match(coverDraft.thumb, /\/albums\/test-cover\/v1\/preview\.webp$/);
     assert.equal(JSON.parse(await readFile(path.join(coverOutput, 'uploads.json'), 'utf8')).length, 2);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('transparent photo preparation preserves alpha in both WebP derivatives', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'doebk-cutout-'));
+  try {
+    const input = path.join(root, 'input'), output = path.join(root, 'output');
+    await mkdir(input);
+    await sharp({ create: { width: 400, height: 600, channels: 4, background: { r: 30, g: 60, b: 90, alpha: .5 } } }).png().toFile(path.join(input, 'cat.png'));
+    const request = path.join(root, 'request.json');
+    await writeFile(request, JSON.stringify({ batch: 'cats-v1', input, output, preserveTransparency: true, annotations: { 'cat.png': { name: 'original.png', note: '小狼' } } }));
+    await exec(process.execPath, ['maintenance/media/tools/prepare-photos.mjs', request]);
+    const draft = JSON.parse(await readFile(path.join(output, 'photos.draft.json'), 'utf8'));
+    validate([], draft);
+    assert.equal(draft[0].name, 'original.png'); assert.equal(draft[0].note, '小狼');
+    for (const file of ['001-large.webp', '001-preview.webp']) {
+      const info = await sharp(path.join(output, file)).metadata();
+      assert.equal(info.hasAlpha, true); assert.equal(info.exif, undefined);
+      assert.ok((await sharp(path.join(output, file)).stats()).channels[3].mean < 255);
+    }
   } finally { await rm(root, { recursive: true, force: true }); }
 });

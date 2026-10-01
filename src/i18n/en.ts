@@ -67,17 +67,20 @@ export const ui: UIStrings = {
 
   photos: {
     title: "Photos",
-    description: "Photo gallery — photo wall and shooting notes",
+    description: "Photo exhibition and wall",
     emptyList: "No photos yet. Stay tuned.",
-    noNote: "No notes yet",
-    viewTimeline: "Timeline",
+    viewExhibition: "Exhibition",
     viewWall: "Wall",
-    searchPlaceholder: "Search descriptions, notes or dates…",
+    searchPlaceholder: "Search notes…",
     noResults: "No results",
     loadError: "Failed to load image",
     viewLabel: "Photo view",
     previous: "Previous photo",
     next: "Next photo",
+    sortName: "Filename",
+    sortTime: "Capture time",
+    sortLabel: "Sort by",
+    noTime: "No capture time",
   },
 
   notFound: {

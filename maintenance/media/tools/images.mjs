@@ -21,6 +21,12 @@ export function captureDate(exif, fallback) {
   return match ? `${match[1]}-${match[2]}-${match[3]}` : fallback || null;
 }
 
+export function captureTime(exif) {
+  const match = /^(\d{4}):(\d{2}):(\d{2})(?: (\d{2}):(\d{2}):(\d{2}))?/.exec(exif.DateTimeOriginal || '');
+  if (!match) return null;
+  return `${match[1]}-${match[2]}-${match[3]}${match[4] ? `T${match[4]}:${match[5]}:${match[6]}` : ''}`;
+}
+
 export async function largestPreview(candidates, minimumEdge = 1600) {
   const readable = [];
   for (const candidate of candidates) {

@@ -196,17 +196,55 @@ const albums = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang)
 
   const input = page?.querySelector<HTMLInputElement>("#album-search");
   const noResults = page?.querySelector<HTMLElement>("#album-no-results");
+  let artistGroups: { element: HTMLElement; cards: HTMLElement[] }[] = [];
+
+  function renderShelf(key: "name" | "artist") {
+    if (!shelf) return;
+    artistGroups = [];
+    if (key === "name") {
+      shelf.replaceChildren(...cards);
+      return;
+    }
+    const grouped = new Map<string, HTMLElement[]>();
+    cards.forEach(card => {
+      const artist = card.dataset.artist || "";
+      if (!grouped.has(artist)) grouped.set(artist, []);
+      grouped.get(artist)!.push(card);
+    });
+    const fragment = document.createDocumentFragment();
+    grouped.forEach((albums, artist) => {
+      const group = document.createElement("section");
+      group.className = "artist-group";
+      const heading = document.createElement("h2");
+      heading.className = "artist-heading";
+      heading.id = `album-artist-group-${artistGroups.length}`;
+      heading.textContent = artist;
+      group.setAttribute("aria-labelledby", heading.id);
+      const grid = document.createElement("div");
+      grid.className = "artist-albums";
+      grid.append(...albums);
+      group.append(heading, grid);
+      group.hidden = albums.every(card => card.hidden);
+      artistGroups.push({ element: group, cards: albums });
+      fragment.append(group);
+    });
+    shelf.replaceChildren(fragment);
+  }
+
   input?.addEventListener("input", () => {
     const query = input.value.trim().toLocaleLowerCase();
     cards.forEach(card => { card.hidden = !card.dataset.search?.toLocaleLowerCase().includes(query); });
+    artistGroups.forEach(group => { group.element.hidden = group.cards.every(card => card.hidden); });
     if (noResults) noResults.hidden = cards.some(card => !card.hidden);
   });
   page?.querySelectorAll<HTMLButtonElement>("[data-sort]").forEach(button => {
     button.addEventListener("click", () => {
-      const key = button.dataset.sort!;
+      const key = button.dataset.sort;
+      if (key !== "name" && key !== "artist") return;
       const locale = page.dataset.locale;
       cards.sort((a, b) => (a.dataset[key] || "").localeCompare(b.dataset[key] || "", locale)
-        || (a.dataset.name || "").localeCompare(b.dataset.name || "", locale)).forEach(card => shelf?.append(card));
+        || (a.dataset.name || "").localeCompare(b.dataset.name || "", locale));
+      renderShelf(key);
       page.querySelectorAll("[data-sort]").forEach(other => other.setAttribute("aria-pressed", String(other === button)));
     });
   });
@@ -216,7 +254,10 @@ const albums = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang)
   .records-view-toolbar:has(~ .shelf-panel:not([hidden])) { margin-bottom: 0; }
   .shelf-panel > .toolbar { border-top: 0; }
   .shelf-panel[hidden] { display: none; }
-  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 3rem 2rem; align-items: start; }
+  .shelf, .shelf :global(.artist-albums) { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 3rem 2rem; align-items: start; }
+  .shelf :global(.artist-group) { grid-column: 1 / -1; min-width: 0; }
+  .shelf :global(.artist-group[hidden]) { display: none; }
+  .shelf :global(.artist-heading) { padding-top: 1rem; margin-bottom: 1.5rem; border-top: 1px solid var(--color-border-light); font-family: var(--font-editorial); font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 400; line-height: 1.25; overflow-wrap: anywhere; }
   .album[hidden] { display: none; }
   .album-trigger { display: block; width: 100%; padding: 0; text-align: left; color: inherit; }
   .album-trigger:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 6px; }
@@ -252,7 +293,7 @@ const albums = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang)
   :global(body.album-open) { overflow: hidden; }
   .empty-state { color: var(--color-text-tertiary); }
   @media (max-width: 640px) {
-    .shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 1rem; }
+    .shelf, .shelf :global(.artist-albums) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 1rem; }
     .album-dialog { padding: max(1.5rem, env(safe-area-inset-top), env(safe-area-inset-bottom)) max(1.5rem, env(safe-area-inset-left), env(safe-area-inset-right)); }
     .album-detail { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
     .detail-cover { max-width: min(60vw, 280px); }

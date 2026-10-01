@@ -66,4 +66,4 @@ node maintenance/media/tools/prepare-cover.mjs materials/cover-request.json
 - `appleMusicUrl` 为已确认的 Apple Music 专辑 HTTPS 链接，显示在详情底部的“播放”区域；点击在新标签页打开 Apple Music，站内不播放音频。未确认链接时不显示该区域。
 - `sources` 只放复审过的 HTTPS 链接，保留供维护时追溯资料，不在弹层里显示“资料来源”。不能确认的可选字段直接省略。
 
-同批多个专辑逐条完成复审、封面校验后一次更新 JSON。重建旧唱片架时参考 `examples/previous-albums.json`，重新查证，不恢复旧媒体路径。
+同批多个专辑按用户确认的清单和核对要求整理、校验后一次更新 JSON。完成后按入口文档清理本批中间产物。

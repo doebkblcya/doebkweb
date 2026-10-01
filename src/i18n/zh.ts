@@ -66,17 +66,20 @@ export const ui: UIStrings = {
 
   photos: {
     title: "摄影",
-    description: "摄影画廊 — 照片墙与拍摄札记",
+    description: "摄影展与照片墙",
     emptyList: "暂无照片，敬请期待。",
-    noNote: "暂无札记",
-    viewTimeline: "时间线",
+    viewExhibition: "摄影展",
     viewWall: "照片墙",
-    searchPlaceholder: "搜索描述、札记或日期…",
+    searchPlaceholder: "搜索札记…",
     noResults: "无结果",
     loadError: "图片加载失败",
     viewLabel: "照片显示方式",
     previous: "上一张",
     next: "下一张",
+    sortName: "文件名",
+    sortTime: "拍摄时间",
+    sortLabel: "排序方式",
+    noTime: "没有时间",
   },
 
   notFound: {

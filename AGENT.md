@@ -1,6 +1,6 @@
 # AGENT.md — doebkweb
 
-本文件是协作代理的项目约束。产品现状见 `README.md`，详细设计见 `docs/`。
+本文件是协作代理的项目约束。项目结构、内容更新与部署见 `README.md`；媒体操作见 `maintenance/media/`。
 
 ## 项目目标
 
@@ -24,8 +24,10 @@ node maintenance/media/tools/validate-media.mjs  # 静态媒体清单检查
 | 内容 | 唯一来源 |
 |---|---|
 | 专辑、资料、乐评 | `src/data/albums.json` |
-| 照片、日期、说明 | `src/data/photos.json` |
+| 照片、原始文件名、拍摄时间、札记 | `src/data/photos.json` |
+| 摄影展分类与编排 | `src/data/photo-groups.json` |
 | 关于页正文 | `src/data/about.ts` |
+| 关于页猫咪图片与名字 | `src/data/cats.json` |
 | 中英文 UI | `src/types/i18n.ts`、`src/i18n/zh.ts`、`src/i18n/en.ts` |
 | 技术文章 | `src/content/docs/*.md` |
 | 主题与尺寸 token | `src/styles/tokens.css` |
@@ -40,7 +42,7 @@ node maintenance/media/tools/validate-media.mjs  # 静态媒体清单检查
 - 内页用原生跨文档 View Transition：正文 90ms 淡出、280ms 淡入/6px 位移，侧栏稳定。不支持时普通导航，不加兼容依赖。
 - 首页不启用跨文档 VT，保留 `<home-hero>` 自身动效，避免冲突；所有动效遵守 reduced-motion。
 - 页面脚本初始化当前 DOM，使用本页变量与事件监听。弹窗优先用原生 dialog；前进/后退恢复时清理弹窗和抽屉临时状态。
-- `tmp/`、`materials/`、`_r2-upload/`、`.wrangler/`、构建目录、测试产物和凭证不提交。
+- `tmp/`、`materials/`、`_r2-upload/`、`.wrangler/`、构建目录、测试产物和凭证不提交。任务完成并验证后清理中间产物；保留原始素材和最终编辑成果。
 
 ## 首页约束
 
@@ -87,10 +89,16 @@ node maintenance/media/tools/validate-media.mjs  # 静态媒体清单检查
 - 媒体任务先读 `maintenance/media/README.md`，再读 `albums.md` 或 `photos.md`，用文档和小工具执行，无独立媒体 CLI。
 - 专辑资料在录入时查询并由用户复审；乐评保持用户原文。网站运行和构建不查外部专辑 API。
 - 唱片页默认“选集”，仅纳入非空乐评，每次进入随机抽取最多三张，并避开本标签页上一次的排列；阅读及历史返回时顺序稳定。“唱片架”保留全部专辑网格、搜索与专辑名/艺术家排序。
+- 唱片架按艺术家排序时显示艺人分组标题，组内专辑按名称排序；按专辑名排序恢复连续网格。搜索时隐藏空组，复用既有专辑节点及弹层事件。
 - 选集由封套、CSS 黑胶和完整乐评组成；IntersectionObserver 在每次进入视线时触发抽出/文字展开，离开视线后复位，阅读时静止且不重排。遵守 reduced-motion，不增加动画依赖，不自动轮播或持续旋转。
 - 专辑封面使用 360px WebP 预览和 1000px JPEG 大图；列表懒加载，选集大图进入视线时加载，详情图打开弹层才设置 `src`、关闭后移除，不预加载整批封面大图。
 - 摄影批目录只放本次上传的照片，全部处理，不做历史自动跳过；RAW 仅提取内嵌 JPEG。
-- 用户已清空 R2。未重新上传并验证的媒体不写公开清单，不恢复旧链接；远程删除由用户手动执行。
+- 猫咪图片与名字放在关于页“我的猫”分区，独立数据源 cats.json；摄影清单与编排不包含猫咪，不复制或重新上传已有 R2 资源。
+- 摄影默认为按用户分类与观看顺序组织的连续“摄影展”，完整“照片墙”默认按原始文件名排序，也可按相机拍摄时间倒序；缺少时间的归到“没有时间”，不补录入日期。
+- 摄影图片以原始文件名标识，不维护独立描述字段；搜索只匹配用户札记。没有札记时图片下方与大图弹层均不显示文本或占位。札记只属于单张照片，保存在 photos.json 的可选 note；摄影展每张照片下方与其大图显示该札记，照片墙搜索也仅匹配这份文本。photo-groups.json 的 name 仅记录用户分类供编排维护，不在页面作为标题或札记显示；不存在分组札记或继承逻辑。
+- 摄影展以一屏一张为基础，每张照片居中适配统一的展示区域，横图限制宽度、竖图限制高度，完整显示画面；不设置大小、左右、高低差等单张排版参数。photo-groups.json 仅保存分类与照片 ID 顺序，沿用普通滚动。每张照片独立进入视野时以 600ms 淡入/6px 上移，每张照片自己的札记稍后出现；滚出视野后复位，再进入时重播，阅读时静止。仅 CSS 与 IntersectionObserver，遵守 reduced-motion，无 JS 时完整显示；照片墙不加滚动动效。
+- 摄影预览长边 960px WebP、大图长边 2400px JPEG，不放大原件。透明抠图大图也使用 WebP，保留 alpha。只懒加载预览，打开弹层加载当前大图，关闭移除地址；网页派生图不保留 EXIF/GPS。
+- 公开媒体清单只收录已上传且验证可访问的资源；远程删除由站点作者执行。
 - Wrangler 上传与站点发布分开：对象实际 GET 验证后，AI 更新 JSON、检查与构建，再执行本次已授权的发布。
 - R2 对象使用 immutable 缓存；内容改变时更换文件名，不覆盖同 URL 内容。
 
@@ -99,19 +107,15 @@ node maintenance/media/tools/validate-media.mjs  # 静态媒体清单检查
 1. 修改前先检查 `git status`，保留用户已有改动。
 2. 页面交互改动至少验证：直接访问、站内点击进入、离开后返回、浏览器前进/后退。
 3. 首页同时验证桌面和手机视口，检查收起态、展开态、快速反向操作。
-4. 媒体记录必须通过清单检查，图片必须已上传且能从公共 URL 获取；空清单不能回退到旧媒体。
+4. 媒体记录必须通过清单检查，图片必须已上传且能从公共 URL 获取；空清单显示空态，不使用示例或隐式备用数据。
 5. 交付前运行 `pnpm exec astro check`、`pnpm build` 和 `git diff --check`。
 6. `pnpm dev` 下文档搜索不会初始化 Pagefind，也不应请求 `/pagefind/pagefind.js`；全文搜索只在 build + preview 或生产环境验证。
 7. 页面视觉调整不以自动截图代替验收；完成代码与静态检查后交给站点作者手动确认构图和比例。
 
 ## 文档索引
 
+- `README.md`：项目结构、内容更新与部署
+
 - `maintenance/media/README.md`：AI 媒体维护入口
 - `maintenance/media/albums.md`：专辑录入、复审、封面与乐评
 - `maintenance/media/photos.md`：摄影处理、上传与记录
-
-- `docs/requirements.md`：当前产品需求与验收标准
-- `docs/architecture.md`：代码、路由、状态和生命周期
-- `docs/deployment.md`：构建、Cloudflare Pages 与故障排查
-- `docs/upload.md`：媒体和文章发布流程
-- `docs/roadmap.md`：完成阶段、当前方向和后续工作

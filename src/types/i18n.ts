@@ -73,8 +73,7 @@ export interface PhotosStrings {
   title: string;
   description: string;
   emptyList: string;
-  noNote: string;
-  viewTimeline: string;
+  viewExhibition: string;
   viewWall: string;
   searchPlaceholder: string;
   noResults: string;
@@ -82,6 +81,10 @@ export interface PhotosStrings {
   viewLabel: string;
   previous: string;
   next: string;
+  sortName: string;
+  sortTime: string;
+  sortLabel: string;
+  noTime: string;
 }
 
 export interface NotFoundStrings {

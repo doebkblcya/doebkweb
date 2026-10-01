@@ -1,0 +1,115 @@
+---
+import type { Photo, PhotoGroup } from "../data/photos";
+interface Props { photos: Photo[]; groups: PhotoGroup[]; label: string; }
+const { photos, groups, label } = Astro.props;
+const byId = new Map(photos.map(photo => [photo.id, photo]));
+const ordered = groups.flatMap(group => group.photos.map(id => byId.get(id)!));
+---
+
+<section id="photo-exhibition" class="exhibition" aria-label={label}>
+  {ordered.map(photo => <figure class="exhibition-photo">
+    <a class="photo-item" href={photo.src} data-photo-id={photo.id} data-caption={photo.note || ""} aria-label={photo.name}>
+      <img src={photo.thumb} alt={photo.name} width={photo.width} height={photo.height} loading="lazy" decoding="async" />
+    </a>
+    {photo.note?.trim() && <figcaption>{photo.note}</figcaption>}
+  </figure>)}
+</section>
+
+<script>
+  const exhibition = document.querySelector<HTMLElement>("#photo-exhibition");
+  const targets = [...(exhibition?.querySelectorAll<HTMLElement>(".photo-item") || [])];
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let observer: IntersectionObserver | undefined;
+
+  function stopReveal() {
+    observer?.disconnect();
+    observer = undefined;
+    exhibition?.classList.remove("reveal-ready");
+    targets.forEach(target => target.classList.remove("is-visible"));
+  }
+  function startReveal() {
+    stopReveal();
+    if (!exhibition || reducedMotion.matches || !("IntersectionObserver" in window)) return;
+    observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => entry.target.classList.toggle("is-visible", entry.isIntersecting));
+    }, { rootMargin: "0px 0px -48px 0px", threshold: .1 });
+    exhibition.classList.add("reveal-ready");
+    targets.forEach(target => observer?.observe(target));
+  }
+  reducedMotion.addEventListener("change", startReveal);
+  window.addEventListener("pagehide", stopReveal);
+  window.addEventListener("pageshow", startReveal);
+  startReveal();
+</script>
+
+<style>
+  .exhibition {
+    --exhibition-image-height: clamp(16rem, 64vh, 38rem);
+  }
+  .exhibition[hidden] { display: none; }
+  .exhibition-photo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    min-height: min(88vh, 52rem);
+    min-height: min(88svh, 52rem);
+    margin: 0;
+    padding-block: clamp(1.5rem, 4vh, 3rem);
+  }
+  .photo-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: min(100%, 960px);
+    height: var(--exhibition-image-height);
+    text-decoration: none;
+  }
+  .photo-item img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .photo-item:focus-visible { outline-offset: 6px; }
+  figcaption {
+    max-width: 48ch;
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    white-space: pre-wrap;
+    text-align: center;
+  }
+  .reveal-ready .photo-item, .reveal-ready figcaption { opacity: 0; }
+  .reveal-ready .photo-item.is-visible,
+  .reveal-ready .exhibition-photo:focus-within .photo-item { animation: exhibition-enter 600ms cubic-bezier(.22, .61, .36, 1) both; }
+  .reveal-ready .photo-item.is-visible + figcaption,
+  .reveal-ready .exhibition-photo:focus-within figcaption { animation: exhibition-enter 600ms cubic-bezier(.22, .61, .36, 1) 140ms both; }
+  @keyframes exhibition-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .exhibition.reveal-ready .exhibition-photo .photo-item,
+    .exhibition.reveal-ready .exhibition-photo figcaption { opacity: 1; transform: none; animation: none; }
+  }
+  @media (max-width: 640px) {
+    .exhibition {
+      --exhibition-image-height: clamp(14rem, 58vh, 32rem);
+    }
+    .exhibition-photo { min-height: 78vh; min-height: 78svh; gap: 1rem; padding-block: 1.5rem; }
+  }
+  @supports (height: 1svh) {
+    .exhibition { --exhibition-image-height: clamp(16rem, 64svh, 38rem); }
+    @media (max-width: 640px) {
+      .exhibition { --exhibition-image-height: clamp(14rem, 58svh, 32rem); }
+    }
+  }
+</style>

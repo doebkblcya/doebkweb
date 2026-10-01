@@ -75,9 +75,9 @@ html[lang="zh"] .page-title {
   margin: clamp(1.5rem, 3vw, 3rem) 0 clamp(1.5rem, 3vw, 2.5rem);
 }
 
-/* The divider also serves as the toolbar's top edge. */
-.page-divider:has(+ .toolbar) { margin-bottom: 0; }
-.page-divider + .toolbar { border-top: 0; }
+/* Astro can insert invisible script tags between the divider and toolbar. */
+.page-divider:has(~ .toolbar) { margin-bottom: 0; }
+.page-divider ~ .toolbar { border-top: 0; }
 
 .has-sidebar .content-area .page {
   width: min(100%, var(--max-width-wide));
