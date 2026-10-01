@@ -1,0 +1,2003 @@
+[
+  {
+    "id": "xyz-moose",
+    "name": "...XYZ",
+    "artist": "Moose",
+    "cover": "https://cdn.doebkblcya.com/albums/xyz-moose/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/xyz-moose/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1992-01-01",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/xyz/714573815",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/xyz/714573815"
+      }
+    ]
+  },
+  {
+    "id": "a-storm-in-heaven-the-verve",
+    "name": "A Storm In Heaven",
+    "artist": "The Verve",
+    "cover": "https://cdn.doebkblcya.com/albums/a-storm-in-heaven-the-verve/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/a-storm-in-heaven-the-verve/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1993-06-21",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/a-storm-in-heaven/1443193192",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/a-storm-in-heaven/1443193192"
+      }
+    ]
+  },
+  {
+    "id": "abbey-road-2019-mix-the-beatles",
+    "name": "Abbey Road (2019 Mix)",
+    "artist": "The Beatles",
+    "cover": "https://cdn.doebkblcya.com/albums/abbey-road-2019-mix-the-beatles/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/abbey-road-2019-mix-the-beatles/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1969-09-26",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/abbey-road-2019-mix/1474815798",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/abbey-road-2019-mix/1474815798"
+      }
+    ]
+  },
+  {
+    "id": "an-anxious-object-mouse-on-the-keys",
+    "name": "An Anxious Object",
+    "artist": "mouse on the keys",
+    "cover": "https://cdn.doebkblcya.com/albums/an-anxious-object-mouse-on-the-keys/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/an-anxious-object-mouse-on-the-keys/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2009-07-08",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/an-anxious-object/1292674914",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/an-anxious-object/1292674914"
+      }
+    ]
+  },
+  {
+    "id": "animals-pink-floyd",
+    "name": "Animals",
+    "artist": "Pink Floyd",
+    "cover": "https://cdn.doebkblcya.com/albums/animals-pink-floyd/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/animals-pink-floyd/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1977-01-23",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/animals/1065974284",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/animals/1065974284"
+      }
+    ]
+  },
+  {
+    "id": "ants-from-up-there-black-country-new-road",
+    "name": "Ants From Up There",
+    "artist": "Black Country, New Road",
+    "cover": "https://cdn.doebkblcya.com/albums/ants-from-up-there-black-country-new-road/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/ants-from-up-there-black-country-new-road/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2022-02-04",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/ants-from-up-there/1586070259",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/ants-from-up-there/1586070259"
+      }
+    ]
+  },
+  {
+    "id": "atom-heart-mother-pink-floyd",
+    "name": "Atom Heart Mother",
+    "artist": "Pink Floyd",
+    "cover": "https://cdn.doebkblcya.com/albums/atom-heart-mother-pink-floyd/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/atom-heart-mother-pink-floyd/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1970-10-02",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/atom-heart-mother/1065975345",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/atom-heart-mother/1065975345"
+      }
+    ]
+  },
+  {
+    "id": "bloodflowers-the-cure",
+    "name": "Bloodflowers",
+    "artist": "The Cure",
+    "cover": "https://cdn.doebkblcya.com/albums/bloodflowers-the-cure/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/bloodflowers-the-cure/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2000-02-15",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/bloodflowers/154235718",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/bloodflowers/154235718"
+      }
+    ]
+  },
+  {
+    "id": "blow-red-lorry-yellow-lorry",
+    "name": "Blow",
+    "artist": "Red Lorry Yellow Lorry",
+    "cover": "https://cdn.doebkblcya.com/albums/blow-red-lorry-yellow-lorry/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/blow-red-lorry-yellow-lorry/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1989-09-11",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/blow/1044235648",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/blow/1044235648"
+      }
+    ]
+  },
+  {
+    "id": "camel-expanded-edition-camel",
+    "name": "Camel (Expanded Edition)",
+    "artist": "Camel",
+    "cover": "https://cdn.doebkblcya.com/albums/camel-expanded-edition-camel/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/camel-expanded-edition-camel/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2023-11-24",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/camel-expanded-edition/1714904765",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/camel-expanded-edition/1714904765"
+      }
+    ]
+  },
+  {
+    "id": "close-to-the-edge-yes",
+    "name": "Close to the Edge",
+    "artist": "Yes",
+    "cover": "https://cdn.doebkblcya.com/albums/close-to-the-edge-yes/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/close-to-the-edge-yes/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1972-09-13",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/close-to-the-edge/1049014094",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/close-to-the-edge/1049014094"
+      }
+    ]
+  },
+  {
+    "id": "closer-40th-anniversary-2020-digital-master-joy-division",
+    "name": "Closer (40th Anniversary) [2020 Digital Master]",
+    "artist": "Joy Division",
+    "cover": "https://cdn.doebkblcya.com/albums/closer-40th-anniversary-2020-digital-master-joy-division/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/closer-40th-anniversary-2020-digital-master-joy-division/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1980-07-18",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/closer-40th-anniversary-2020-digital-master/1512129942",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/closer-40th-anniversary-2020-digital-master/1512129942"
+      }
+    ]
+  },
+  {
+    "id": "cure-nerdneko",
+    "name": "Cure",
+    "artist": "nerdneko",
+    "cover": "https://cdn.doebkblcya.com/albums/cure-nerdneko/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/cure-nerdneko/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2022-10-30",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/cure/1663756801",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/cure/1663756801"
+      }
+    ]
+  },
+  {
+    "id": "days-of-future-passed-the-moody-blues",
+    "name": "Days of Future Passed",
+    "artist": "The Moody Blues",
+    "cover": "https://cdn.doebkblcya.com/albums/days-of-future-passed-the-moody-blues/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/days-of-future-passed-the-moody-blues/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1967-11-10",
+    "genres": [
+      "Pop"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/days-of-future-passed/1440798214",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/days-of-future-passed/1440798214"
+      }
+    ]
+  },
+  {
+    "id": "deep-purple-deep-purple",
+    "name": "Deep Purple",
+    "artist": "Deep Purple",
+    "cover": "https://cdn.doebkblcya.com/albums/deep-purple-deep-purple/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/deep-purple-deep-purple/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1969"
+  },
+  {
+    "id": "dehumanizing-loneliness-decalius",
+    "name": "Dehumanizing Loneliness",
+    "artist": "Decalius",
+    "cover": "https://cdn.doebkblcya.com/albums/dehumanizing-loneliness-decalius/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/dehumanizing-loneliness-decalius/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2023-10-12",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/dehumanizing-loneliness/6804025572",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/dehumanizing-loneliness/6804025572"
+      }
+    ]
+  },
+  {
+    "id": "delaware-drop-nineteens",
+    "name": "Delaware",
+    "artist": "Drop Nineteens",
+    "cover": "https://cdn.doebkblcya.com/albums/delaware-drop-nineteens/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/delaware-drop-nineteens/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1992-01-01",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/delaware/714831767",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/delaware/714831767"
+      }
+    ]
+  },
+  {
+    "id": "despondent-transponder-fleeting-joys",
+    "name": "Despondent Transponder",
+    "artist": "Fleeting Joys",
+    "cover": "https://cdn.doebkblcya.com/albums/despondent-transponder-fleeting-joys/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/despondent-transponder-fleeting-joys/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2006-01-01",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/despondent-transponder/152342612",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/despondent-transponder/152342612"
+      }
+    ]
+  },
+  {
+    "id": "disappear-ceremony",
+    "name": "Disappear",
+    "artist": "Ceremony",
+    "cover": "https://cdn.doebkblcya.com/albums/disappear-ceremony/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/disappear-ceremony/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2007"
+  },
+  {
+    "id": "discovery-daft-punk",
+    "name": "Discovery",
+    "artist": "Daft Punk",
+    "cover": "https://cdn.doebkblcya.com/albums/discovery-daft-punk/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/discovery-daft-punk/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2001-03-12",
+    "genres": [
+      "Dance"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/discovery/697194953",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/discovery/697194953"
+      }
+    ]
+  },
+  {
+    "id": "disintegration-2010-remaster-the-cure",
+    "name": "Disintegration (2010 Remaster)",
+    "artist": "The Cure",
+    "cover": "https://cdn.doebkblcya.com/albums/disintegration-2010-remaster-the-cure/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/disintegration-2010-remaster-the-cure/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1989-05-02",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/disintegration-2010-remaster/372100016",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/disintegration-2010-remaster/372100016"
+      }
+    ]
+  },
+  {
+    "id": "doolittle-pixies",
+    "name": "Doolittle",
+    "artist": "Pixies",
+    "cover": "https://cdn.doebkblcya.com/albums/doolittle-pixies/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/doolittle-pixies/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1989-04-17",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/doolittle/7060469",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/doolittle/7060469"
+      }
+    ]
+  },
+  {
+    "id": "dummy-portishead",
+    "name": "Dummy",
+    "artist": "Portishead",
+    "cover": "https://cdn.doebkblcya.com/albums/dummy-portishead/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/dummy-portishead/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1994-01-01",
+    "genres": [
+      "Electronic"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/dummy/1440653096",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/dummy/1440653096"
+      }
+    ]
+  },
+  {
+    "id": "exile-on-main-street-2010-remaster-the-rolling-stones",
+    "name": "Exile On Main Street (2010 Remaster)",
+    "artist": "The Rolling Stones",
+    "cover": "https://cdn.doebkblcya.com/albums/exile-on-main-street-2010-remaster-the-rolling-stones/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/exile-on-main-street-2010-remaster-the-rolling-stones/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1972-05-12",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/exile-on-main-street-2010-remaster/1440872228",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/exile-on-main-street-2010-remaster/1440872228"
+      }
+    ]
+  },
+  {
+    "id": "fade-last-little-while",
+    "name": "fade",
+    "artist": "last little while",
+    "cover": "https://cdn.doebkblcya.com/albums/fade-last-little-while/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/fade-last-little-while/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2016"
+  },
+  {
+    "id": "faith-the-cure",
+    "name": "Faith",
+    "artist": "The Cure",
+    "cover": "https://cdn.doebkblcya.com/albums/faith-the-cure/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/faith-the-cure/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1981-04-14",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/faith/288790073",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/faith/288790073"
+      }
+    ]
+  },
+  {
+    "id": "feed-me-with-your-kiss-my-bloody-valentine",
+    "name": "Feed Me with Your Kiss — EP",
+    "artist": "My Bloody Valentine",
+    "cover": "https://cdn.doebkblcya.com/albums/feed-me-with-your-kiss-my-bloody-valentine/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/feed-me-with-your-kiss-my-bloody-valentine/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1988-10-31",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/feed-me-with-your-kiss-ep/1567640267",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/feed-me-with-your-kiss-ep/1567640267"
+      },
+      {
+        "title": "Domino — artist biography",
+        "url": "https://www.dominomusic.com/artists/my-bloody-valentine"
+      }
+    ]
+  },
+  {
+    "id": "funeral-arcade-fire",
+    "name": "Funeral",
+    "artist": "Arcade Fire",
+    "cover": "https://cdn.doebkblcya.com/albums/funeral-arcade-fire/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/funeral-arcade-fire/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2004-09-14",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/funeral/1249417623",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/funeral/1249417623"
+      }
+    ]
+  },
+  {
+    "id": "f-a-godspeed-you-black-emperor",
+    "name": "F♯ A♯ ∞",
+    "artist": "Godspeed You! Black Emperor",
+    "cover": "https://cdn.doebkblcya.com/albums/f-a-godspeed-you-black-emperor/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/f-a-godspeed-you-black-emperor/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1998"
+  },
+  {
+    "id": "halcyon-digest-deerhunter",
+    "name": "Halcyon Digest",
+    "artist": "Deerhunter",
+    "cover": "https://cdn.doebkblcya.com/albums/halcyon-digest-deerhunter/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/halcyon-digest-deerhunter/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2010-09-27",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/halcyon-digest/1544226562",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/halcyon-digest/1544226562"
+      }
+    ]
+  },
+  {
+    "id": "heaven-or-las-vegas-remastered-cocteau-twins",
+    "name": "Heaven Or Las Vegas (Remastered)",
+    "artist": "Cocteau Twins",
+    "cover": "https://cdn.doebkblcya.com/albums/heaven-or-las-vegas-remastered-cocteau-twins/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/heaven-or-las-vegas-remastered-cocteau-twins/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1990-08-21",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/heaven-or-las-vegas-remastered/258198881",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/heaven-or-las-vegas-remastered/258198881"
+      }
+    ]
+  },
+  {
+    "id": "in-rainbows-radiohead",
+    "name": "In Rainbows",
+    "artist": "Radiohead",
+    "cover": "https://cdn.doebkblcya.com/albums/in-rainbows-radiohead/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/in-rainbows-radiohead/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2007-10-10",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/in-rainbows/1109714933",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/in-rainbows/1109714933"
+      }
+    ]
+  },
+  {
+    "id": "in-the-aeroplane-over-the-sea-neutral-milk-hotel",
+    "name": "In the Aeroplane Over the Sea",
+    "artist": "Neutral Milk Hotel",
+    "cover": "https://cdn.doebkblcya.com/albums/in-the-aeroplane-over-the-sea-neutral-milk-hotel/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/in-the-aeroplane-over-the-sea-neutral-milk-hotel/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1998-02-10",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/in-the-aeroplane-over-the-sea/1839077554",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/in-the-aeroplane-over-the-sea/1839077554"
+      }
+    ]
+  },
+  {
+    "id": "in-the-court-of-the-crimson-king-expanded-edition-king-crimson",
+    "name": "In the Court of the Crimson King (Expanded Edition)",
+    "artist": "King Crimson",
+    "cover": "https://cdn.doebkblcya.com/albums/in-the-court-of-the-crimson-king-expanded-edition-king-crimson/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/in-the-court-of-the-crimson-king-expanded-edition-king-crimson/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1969-10-10",
+    "genres": [
+      "Prog-Rock/Art Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/in-the-court-of-the-crimson-king-expanded-edition/918534711",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/in-the-court-of-the-crimson-king-expanded-edition/918534711"
+      }
+    ]
+  },
+  {
+    "id": "in-the-wake-of-poseidon-expanded-edition-king-crimson",
+    "name": "In the Wake of Poseidon (Expanded Edition)",
+    "artist": "King Crimson",
+    "cover": "https://cdn.doebkblcya.com/albums/in-the-wake-of-poseidon-expanded-edition-king-crimson/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/in-the-wake-of-poseidon-expanded-edition-king-crimson/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1970-05-15",
+    "genres": [
+      "Prog-Rock/Art Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/in-the-wake-of-poseidon-expanded-edition/978458457",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/in-the-wake-of-poseidon-expanded-edition/978458457"
+      }
+    ]
+  },
+  {
+    "id": "kid-a-radiohead",
+    "name": "Kid A",
+    "artist": "Radiohead",
+    "cover": "https://cdn.doebkblcya.com/albums/kid-a-radiohead/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/kid-a-radiohead/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2000-10-02",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/kid-a/1097862870",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/kid-a/1097862870"
+      }
+    ]
+  },
+  {
+    "id": "larks-tongues-in-aspic-expanded-edition-king-crimson",
+    "name": "Larks' Tongues In Aspic (Expanded Edition)",
+    "artist": "King Crimson",
+    "cover": "https://cdn.doebkblcya.com/albums/larks-tongues-in-aspic-expanded-edition-king-crimson/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/larks-tongues-in-aspic-expanded-edition-king-crimson/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1973-03-23",
+    "genres": [
+      "Prog-Rock/Art Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/larks-tongues-in-aspic-expanded-edition/918568338",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/larks-tongues-in-aspic-expanded-edition/918568338"
+      }
+    ]
+  },
+  {
+    "id": "let-it-bleed-remastered-2019-the-rolling-stones",
+    "name": "Let It Bleed (Remastered 2019)",
+    "artist": "The Rolling Stones",
+    "cover": "https://cdn.doebkblcya.com/albums/let-it-bleed-remastered-2019-the-rolling-stones/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/let-it-bleed-remastered-2019-the-rolling-stones/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1969-11-28",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/let-it-bleed-remastered-2019/1500642838",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/let-it-bleed-remastered-2019/1500642838"
+      }
+    ]
+  },
+  {
+    "id": "lift-your-skinny-fists-like-antennas-to-heaven-godspeed-you-black-emperor",
+    "name": "Lift Your Skinny Fists Like Antennas to Heaven",
+    "artist": "Godspeed You! Black Emperor",
+    "cover": "https://cdn.doebkblcya.com/albums/lift-your-skinny-fists-like-antennas-to-heaven-godspeed-you-black-emperor/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/lift-your-skinny-fists-like-antennas-to-heaven-godspeed-you-black-emperor/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2000"
+  },
+  {
+    "id": "long-season-fishmans",
+    "name": "Long Season",
+    "artist": "Fishmans",
+    "cover": "https://cdn.doebkblcya.com/albums/long-season-fishmans/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/long-season-fishmans/20261001-v1/preview.webp",
+    "review": "也许是一场白日梦。顺着溪流，夏日的深处，枝繁叶茂的森林埋着钢琴和长笛。青苔慢慢爬过琴键，声音从枝叶的缝隙里传来。路的尽头还是尽头。\n钢琴反复着缓缓推进。贝斯像溪流一样绕过石头，流向更深的深处。人声、提琴与打击乐逐层交织，有些声音很近，有些在听不清的远处。已经忘了从什么时候开始，又忘了什么时候等它再回来一次。\n时间在这里幽幽地低诉。或许记忆里的季节从来没有变过，森林还在，溪流也还在，只是再也回不去了。",
+    "released": "1996-10-25",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/long-season/1416925635",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/long-season/1416925635"
+      }
+    ]
+  },
+  {
+    "id": "loveless-japancakes",
+    "name": "Loveless",
+    "artist": "Japancakes",
+    "cover": "https://cdn.doebkblcya.com/albums/loveless-japancakes/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/loveless-japancakes/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2007-10-09",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/loveless/275176576",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/loveless/275176576"
+      }
+    ]
+  },
+  {
+    "id": "loveless-my-bloody-valentine",
+    "name": "Loveless",
+    "artist": "My Bloody Valentine",
+    "cover": "https://cdn.doebkblcya.com/albums/loveless-my-bloody-valentine/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/loveless-my-bloody-valentine/20261001-v1/preview.webp",
+    "review": "粉红色的音墙，颤微微的失真和人声。呼吸里断断续续的旋律，一张模糊的脸。冬日的冷风里，听不清在说什么。尾音还没有散，下一阵寒意就悄无声息地来了。\n\n墨蓝色的夜里，轻轨站空无一人。模糊的脸在窒息的包裹里，始终辨不清。只有空洞的电吉他。\n\n我一直在这里等你，我会一直在这里等你……",
+    "released": "1991-11-04",
+    "appleMusicUrl": "https://music.apple.com/gb/album/loveless/1556921230",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/gb/album/loveless/1556921230"
+      },
+      {
+        "title": "Domino — artist biography",
+        "url": "https://www.dominomusic.com/artists/my-bloody-valentine"
+      }
+    ]
+  },
+  {
+    "id": "low-life-new-order",
+    "name": "Low-Life",
+    "artist": "New Order",
+    "cover": "https://cdn.doebkblcya.com/albums/low-life-new-order/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/low-life-new-order/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1985-05-13",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/low-life/1041433918",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/low-life/1041433918"
+      }
+    ]
+  },
+  {
+    "id": "madvillainy-madvillain",
+    "name": "Madvillainy",
+    "artist": "Madvillain",
+    "cover": "https://cdn.doebkblcya.com/albums/madvillainy-madvillain/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/madvillainy-madvillain/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2004-03-23",
+    "genres": [
+      "Hip-Hop/Rap"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/madvillainy/887699504",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/madvillainy/887699504"
+      }
+    ]
+  },
+  {
+    "id": "magical-mystery-tour-the-beatles",
+    "name": "Magical Mystery Tour",
+    "artist": "The Beatles",
+    "cover": "https://cdn.doebkblcya.com/albums/magical-mystery-tour-the-beatles/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/magical-mystery-tour-the-beatles/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1967-11-27",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/magical-mystery-tour/1441163490",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/magical-mystery-tour/1441163490"
+      }
+    ]
+  },
+  {
+    "id": "marquee-moon-television",
+    "name": "Marquee Moon",
+    "artist": "Television",
+    "cover": "https://cdn.doebkblcya.com/albums/marquee-moon-television/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/marquee-moon-television/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1977-02-08",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/marquee-moon/1049069472",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/marquee-moon/1049069472"
+      }
+    ]
+  },
+  {
+    "id": "microcastle-deerhunter",
+    "name": "Microcastle",
+    "artist": "Deerhunter",
+    "cover": "https://cdn.doebkblcya.com/albums/microcastle-deerhunter/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/microcastle-deerhunter/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2008-08-01",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/microcastle/285630526",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/microcastle/285630526"
+      }
+    ]
+  },
+  {
+    "id": "mikgazer-vol-1-vocaloid",
+    "name": "Mikgazer Vol.1",
+    "artist": "VOCALOID",
+    "cover": "https://cdn.doebkblcya.com/albums/mikgazer-vol-1-vocaloid/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/mikgazer-vol-1-vocaloid/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2012"
+  },
+  {
+    "id": "mirage-remastered-camel",
+    "name": "Mirage (Remastered)",
+    "artist": "Camel",
+    "cover": "https://cdn.doebkblcya.com/albums/mirage-remastered-camel/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/mirage-remastered-camel/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1974-01-01",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/mirage-remastered/1443266362",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/mirage-remastered/1443266362"
+      }
+    ]
+  },
+  {
+    "id": "nightlife-ep-yuragi",
+    "name": "nightlife - EP",
+    "artist": "Yuragi",
+    "cover": "https://cdn.doebkblcya.com/albums/nightlife-ep-yuragi/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/nightlife-ep-yuragi/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2016-12-27",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/nightlife-ep/1221328951",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/nightlife-ep/1221328951"
+      }
+    ]
+  },
+  {
+    "id": "nowhere-expanded-ride",
+    "name": "Nowhere (Expanded)",
+    "artist": "Ride",
+    "cover": "https://cdn.doebkblcya.com/albums/nowhere-expanded-ride/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/nowhere-expanded-ride/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2010"
+  },
+  {
+    "id": "ok-computer-radiohead",
+    "name": "OK Computer",
+    "artist": "Radiohead",
+    "cover": "https://cdn.doebkblcya.com/albums/ok-computer-radiohead/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/ok-computer-radiohead/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1997-05-21",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/ok-computer/1097861387",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/ok-computer/1097861387"
+      }
+    ]
+  },
+  {
+    "id": "open-this-wall-berlioz",
+    "name": "open this wall",
+    "artist": "berlioz",
+    "cover": "https://cdn.doebkblcya.com/albums/open-this-wall-berlioz/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/open-this-wall-berlioz/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2024-07-12",
+    "genres": [
+      "Dance"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/open-this-wall/1741008009",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/open-this-wall/1741008009"
+      }
+    ]
+  },
+  {
+    "id": "painful-yo-la-tengo",
+    "name": "Painful",
+    "artist": "Yo La Tengo",
+    "cover": "https://cdn.doebkblcya.com/albums/painful-yo-la-tengo/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/painful-yo-la-tengo/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1993-10-05",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/painful/1589240889",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/painful/1589240889"
+      }
+    ]
+  },
+  {
+    "id": "pet-sounds-the-beach-boys",
+    "name": "Pet Sounds",
+    "artist": "The Beach Boys",
+    "cover": "https://cdn.doebkblcya.com/albums/pet-sounds-the-beach-boys/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/pet-sounds-the-beach-boys/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1966-05-16",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/pet-sounds/1440841241",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/pet-sounds/1440841241"
+      }
+    ]
+  },
+  {
+    "id": "pink-moon-nick-drake",
+    "name": "Pink Moon",
+    "artist": "Nick Drake",
+    "cover": "https://cdn.doebkblcya.com/albums/pink-moon-nick-drake/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/pink-moon-nick-drake/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1972-02-25",
+    "genres": [
+      "Alternative Folk",
+      "Pop"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/pink-moon-remastered/1440758653",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/pink-moon-remastered/1440758653"
+      }
+    ]
+  },
+  {
+    "id": "pornography-the-cure",
+    "name": "Pornography",
+    "artist": "The Cure",
+    "cover": "https://cdn.doebkblcya.com/albums/pornography-the-cure/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/pornography-the-cure/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1982-05-04",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/pornography/286646425",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/pornography/286646425"
+      }
+    ]
+  },
+  {
+    "id": "power-corruption-lies-new-order",
+    "name": "Power, Corruption & Lies",
+    "artist": "New Order",
+    "cover": "https://cdn.doebkblcya.com/albums/power-corruption-lies-new-order/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/power-corruption-lies-new-order/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1983-05-02",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/power-corruption-lies/1040981945",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/power-corruption-lies/1040981945"
+      }
+    ]
+  },
+  {
+    "id": "random-access-memories-daft-punk",
+    "name": "Random Access Memories",
+    "artist": "Daft Punk",
+    "cover": "https://cdn.doebkblcya.com/albums/random-access-memories-daft-punk/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/random-access-memories-daft-punk/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2013-05-17",
+    "genres": [
+      "Pop"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/random-access-memories/617154241",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/random-access-memories/617154241"
+      }
+    ]
+  },
+  {
+    "id": "red-expanded-edition-king-crimson",
+    "name": "Red (Expanded Edition)",
+    "artist": "King Crimson",
+    "cover": "https://cdn.doebkblcya.com/albums/red-expanded-edition-king-crimson/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/red-expanded-edition-king-crimson/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1974-09-27",
+    "genres": [
+      "Prog-Rock/Art Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/red-expanded-edition/918614446",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/red-expanded-edition/918614446"
+      }
+    ]
+  },
+  {
+    "id": "remain-in-light-talking-heads",
+    "name": "Remain In Light",
+    "artist": "Talking Heads",
+    "cover": "https://cdn.doebkblcya.com/albums/remain-in-light-talking-heads/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/remain-in-light-talking-heads/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1980-10-08",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/remain-in-light/300948043",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/remain-in-light/300948043"
+      }
+    ]
+  },
+  {
+    "id": "revolver-2022-mix-the-beatles",
+    "name": "Revolver (2022 Mix)",
+    "artist": "The Beatles",
+    "cover": "https://cdn.doebkblcya.com/albums/revolver-2022-mix-the-beatles/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/revolver-2022-mix-the-beatles/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1966-08-05",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/revolver-2022-mix/1642995371",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/revolver-2022-mix/1642995371"
+      }
+    ]
+  },
+  {
+    "id": "rubber-soul-the-beatles",
+    "name": "Rubber Soul",
+    "artist": "The Beatles",
+    "cover": "https://cdn.doebkblcya.com/albums/rubber-soul-the-beatles/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/rubber-soul-the-beatles/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1965-12-03",
+    "genres": [
+      "Pop",
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/rubber-soul/1441164359",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/rubber-soul/1441164359"
+      }
+    ]
+  },
+  {
+    "id": "rumours-fleetwood-mac",
+    "name": "Rumours",
+    "artist": "Fleetwood Mac",
+    "cover": "https://cdn.doebkblcya.com/albums/rumours-fleetwood-mac/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/rumours-fleetwood-mac/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1977-02-04",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/rumours/594061854",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/rumours/594061854"
+      }
+    ]
+  },
+  {
+    "id": "sgt-pepper-s-lonely-hearts-club-band-2017-mix-the-beatles",
+    "name": "Sgt. Pepper's Lonely Hearts Club Band (2017 Mix)",
+    "artist": "The Beatles",
+    "cover": "https://cdn.doebkblcya.com/albums/sgt-pepper-s-lonely-hearts-club-band-2017-mix-the-beatles/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/sgt-pepper-s-lonely-hearts-club-band-2017-mix-the-beatles/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1967-05-26",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/sgt-peppers-lonely-hearts-club-band-2017-mix/1573250333",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/sgt-peppers-lonely-hearts-club-band-2017-mix/1573250333"
+      }
+    ]
+  },
+  {
+    "id": "songs-of-shame-woods",
+    "name": "Songs of Shame",
+    "artist": "Woods",
+    "cover": "https://cdn.doebkblcya.com/albums/songs-of-shame-woods/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/songs-of-shame-woods/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2009-04-09",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/songs-of-shame/309682431",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/songs-of-shame/309682431"
+      }
+    ]
+  },
+  {
+    "id": "sonic-nurse-sonic-youth",
+    "name": "Sonic Nurse",
+    "artist": "Sonic Youth",
+    "cover": "https://cdn.doebkblcya.com/albums/sonic-nurse-sonic-youth/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/sonic-nurse-sonic-youth/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2004-06-08",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/sonic-nurse/1443147804",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/sonic-nurse/1443147804"
+      }
+    ]
+  },
+  {
+    "id": "souvenirs-d-un-autre-monde-alcest",
+    "name": "Souvenirs D'un Autre Monde",
+    "artist": "Alcest",
+    "cover": "https://cdn.doebkblcya.com/albums/souvenirs-d-un-autre-monde-alcest/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/souvenirs-d-un-autre-monde-alcest/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2007-08-03",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/souvenirs-dun-autre-monde/1556156328",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/souvenirs-dun-autre-monde/1556156328"
+      }
+    ]
+  },
+  {
+    "id": "souvlaki-slowdive",
+    "name": "Souvlaki",
+    "artist": "Slowdive",
+    "cover": "https://cdn.doebkblcya.com/albums/souvlaki-slowdive/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/souvlaki-slowdive/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1993-05-17",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/souvlaki/399211729",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/souvlaki/399211729"
+      }
+    ]
+  },
+  {
+    "id": "spiderland-slint",
+    "name": "Spiderland",
+    "artist": "Slint",
+    "cover": "https://cdn.doebkblcya.com/albums/spiderland-slint/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/spiderland-slint/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1991-03-15",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/spiderland/295785324",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/spiderland/295785324"
+      }
+    ]
+  },
+  {
+    "id": "sticky-fingers-2015-remaster-the-rolling-stones",
+    "name": "Sticky Fingers (2015 Remaster)",
+    "artist": "The Rolling Stones",
+    "cover": "https://cdn.doebkblcya.com/albums/sticky-fingers-2015-remaster-the-rolling-stones/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/sticky-fingers-2015-remaster-the-rolling-stones/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1971-04-23",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/sticky-fingers-2015-remaster/1440812661",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/sticky-fingers-2015-remaster/1440812661"
+      }
+    ]
+  },
+  {
+    "id": "strange-free-world-kitchens-of-distinction",
+    "name": "Strange Free World",
+    "artist": "Kitchens of Distinction",
+    "cover": "https://cdn.doebkblcya.com/albums/strange-free-world-kitchens-of-distinction/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/strange-free-world-kitchens-of-distinction/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1991-02-19",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/strange-free-world/1726661007",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/strange-free-world/1726661007"
+      }
+    ]
+  },
+  {
+    "id": "tales-from-topographic-oceans-yes",
+    "name": "Tales from Topographic Oceans",
+    "artist": "Yes",
+    "cover": "https://cdn.doebkblcya.com/albums/tales-from-topographic-oceans-yes/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/tales-from-topographic-oceans-yes/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1973-12-07",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/tales-from-topographic-oceans/1049006570",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/tales-from-topographic-oceans/1049006570"
+      }
+    ]
+  },
+  {
+    "id": "talk-about-the-weather-bonus-tracks-red-lorry-yellow-lorry",
+    "name": "Talk About the Weather (Bonus Tracks)",
+    "artist": "Red Lorry Yellow Lorry",
+    "cover": "https://cdn.doebkblcya.com/albums/talk-about-the-weather-bonus-tracks-red-lorry-yellow-lorry/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/talk-about-the-weather-bonus-tracks-red-lorry-yellow-lorry/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1985-01-01",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/talk-about-the-weather-bonus-tracks/160356498",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/talk-about-the-weather-bonus-tracks/160356498"
+      }
+    ]
+  },
+  {
+    "id": "talking-heads-77-talking-heads",
+    "name": "Talking Heads: 77",
+    "artist": "Talking Heads",
+    "cover": "https://cdn.doebkblcya.com/albums/talking-heads-77-talking-heads/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/talking-heads-77-talking-heads/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1977-09-16",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/talking-heads-77/120135545",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/talking-heads-77/120135545"
+      }
+    ]
+  },
+  {
+    "id": "the-bends-radiohead",
+    "name": "The Bends",
+    "artist": "Radiohead",
+    "cover": "https://cdn.doebkblcya.com/albums/the-bends-radiohead/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-bends-radiohead/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1995-03-08",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-bends/1097862703",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-bends/1097862703"
+      }
+    ]
+  },
+  {
+    "id": "the-dark-side-of-the-moon-50th-anniversary-remastered-pink-floyd",
+    "name": "The Dark Side of the Moon (50th Anniversary) [Remastered]",
+    "artist": "Pink Floyd",
+    "cover": "https://cdn.doebkblcya.com/albums/the-dark-side-of-the-moon-50th-anniversary-remastered-pink-floyd/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-dark-side-of-the-moon-50th-anniversary-remastered-pink-floyd/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1973-03-01",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-dark-side-of-the-moon-50th-anniversary-remastered/1665303755",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-dark-side-of-the-moon-50th-anniversary-remastered/1665303755"
+      }
+    ]
+  },
+  {
+    "id": "the-division-bell-pink-floyd",
+    "name": "The Division Bell",
+    "artist": "Pink Floyd",
+    "cover": "https://cdn.doebkblcya.com/albums/the-division-bell-pink-floyd/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-division-bell-pink-floyd/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1994-03-28",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-division-bell/1065976549",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-division-bell/1065976549"
+      }
+    ]
+  },
+  {
+    "id": "the-doors-the-doors",
+    "name": "The Doors",
+    "artist": "The Doors",
+    "cover": "https://cdn.doebkblcya.com/albums/the-doors-the-doors/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-doors-the-doors/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1967-01-04",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-doors/1622368510",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-doors/1622368510"
+      }
+    ]
+  },
+  {
+    "id": "the-earth-is-not-a-cold-dead-place-explosions-in-the-sky",
+    "name": "The Earth Is Not a Cold Dead Place",
+    "artist": "Explosions In the Sky",
+    "cover": "https://cdn.doebkblcya.com/albums/the-earth-is-not-a-cold-dead-place-explosions-in-the-sky/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-earth-is-not-a-cold-dead-place-explosions-in-the-sky/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2003-11-04",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-earth-is-not-a-cold-dead-place/318951781",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-earth-is-not-a-cold-dead-place/318951781"
+      }
+    ]
+  },
+  {
+    "id": "the-glow-pt-2-the-microphones",
+    "name": "The Glow, Pt. 2",
+    "artist": "The Microphones",
+    "cover": "https://cdn.doebkblcya.com/albums/the-glow-pt-2-the-microphones/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-glow-pt-2-the-microphones/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2001-09-11",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-glow-pt-2/483212192",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-glow-pt-2/483212192"
+      }
+    ]
+  },
+  {
+    "id": "the-journey-studies-the-seven-mile-journey",
+    "name": "The Journey Studies",
+    "artist": "The Seven Mile Journey",
+    "cover": "https://cdn.doebkblcya.com/albums/the-journey-studies-the-seven-mile-journey/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-journey-studies-the-seven-mile-journey/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2005-06-17",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-journey-studies/314535940",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-journey-studies/314535940"
+      }
+    ]
+  },
+  {
+    "id": "the-low-end-theory-a-tribe-called-quest",
+    "name": "The Low End Theory",
+    "artist": "A Tribe Called Quest",
+    "cover": "https://cdn.doebkblcya.com/albums/the-low-end-theory-a-tribe-called-quest/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-low-end-theory-a-tribe-called-quest/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1991-09-24",
+    "genres": [
+      "Hip-Hop/Rap",
+      "Rap"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-low-end-theory/278911460",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-low-end-theory/278911460"
+      }
+    ]
+  },
+  {
+    "id": "the-piper-at-the-gates-of-dawn-pink-floyd",
+    "name": "The Piper at the Gates of Dawn",
+    "artist": "Pink Floyd",
+    "cover": "https://cdn.doebkblcya.com/albums/the-piper-at-the-gates-of-dawn-pink-floyd/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-piper-at-the-gates-of-dawn-pink-floyd/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1967-08-05",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-piper-at-the-gates-of-dawn/1065975041",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-piper-at-the-gates-of-dawn/1065975041"
+      }
+    ]
+  },
+  {
+    "id": "the-queen-is-dead-the-smiths",
+    "name": "The Queen Is Dead",
+    "artist": "The Smiths",
+    "cover": "https://cdn.doebkblcya.com/albums/the-queen-is-dead-the-smiths/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-queen-is-dead-the-smiths/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1986-06-16",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-queen-is-dead/800092985",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-queen-is-dead/800092985"
+      }
+    ]
+  },
+  {
+    "id": "the-rise-and-fall-of-ziggy-stardust-and-the-spiders-from-mars-2012-remaster-david-bowie",
+    "name": "The Rise and Fall of Ziggy Stardust and the Spiders from Mars (2012 Remaster)",
+    "artist": "David Bowie",
+    "cover": "https://cdn.doebkblcya.com/albums/the-rise-and-fall-of-ziggy-stardust-and-the-spiders-from-mars-2012-remaster-david-bowie/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-rise-and-fall-of-ziggy-stardust-and-the-spiders-from-mars-2012-remaster-david-bowie/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1972-06-16",
+    "genres": [
+      "Pop"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-rise-and-fall-of-ziggy-stardust-and-the/1039796877",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-rise-and-fall-of-ziggy-stardust-and-the/1039796877"
+      }
+    ]
+  },
+  {
+    "id": "the-snow-goose-expanded-edition-camel",
+    "name": "The Snow Goose (Expanded Edition)",
+    "artist": "Camel",
+    "cover": "https://cdn.doebkblcya.com/albums/the-snow-goose-expanded-edition-camel/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-snow-goose-expanded-edition-camel/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1975-04-15",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-snow-goose-expanded-edition/1408870777",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-snow-goose-expanded-edition/1408870777"
+      }
+    ]
+  },
+  {
+    "id": "the-velvet-underground-nico-45th-anniversary-edition-the-velvet-underground-nico",
+    "name": "The Velvet Underground & Nico (45th Anniversary Edition)",
+    "artist": "The Velvet Underground & Nico",
+    "cover": "https://cdn.doebkblcya.com/albums/the-velvet-underground-nico-45th-anniversary-edition-the-velvet-underground-nico/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-velvet-underground-nico-45th-anniversary-edition-the-velvet-underground-nico/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1967-03-12",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-velvet-underground-nico-45th-anniversary-edition/1440851613",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-velvet-underground-nico-45th-anniversary-edition/1440851613"
+      }
+    ]
+  },
+  {
+    "id": "the-wall-pink-floyd",
+    "name": "The Wall",
+    "artist": "Pink Floyd",
+    "cover": "https://cdn.doebkblcya.com/albums/the-wall-pink-floyd/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/the-wall-pink-floyd/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1979-11-30",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/the-wall/1065975633",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/the-wall/1065975633"
+      }
+    ]
+  },
+  {
+    "id": "to-see-the-next-part-of-the-dream-parannoul",
+    "name": "To See the Next Part of the Dream",
+    "artist": "Parannoul",
+    "cover": "https://cdn.doebkblcya.com/albums/to-see-the-next-part-of-the-dream-parannoul/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/to-see-the-next-part-of-the-dream-parannoul/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2021-04-19",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/to-see-the-next-part-of-the-dream/1563369236",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/to-see-the-next-part-of-the-dream/1563369236"
+      }
+    ]
+  },
+  {
+    "id": "tyranny-the-voidz",
+    "name": "Tyranny",
+    "artist": "The Voidz",
+    "cover": "https://cdn.doebkblcya.com/albums/tyranny-the-voidz/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/tyranny-the-voidz/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2014-09-23",
+    "genres": [
+      "IDM/Experimental"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/tyranny/1478661846",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/tyranny/1478661846"
+      }
+    ]
+  },
+  {
+    "id": "unknown-pleasures-2019-digital-master-joy-division",
+    "name": "Unknown Pleasures (2019 Digital Master)",
+    "artist": "Joy Division",
+    "cover": "https://cdn.doebkblcya.com/albums/unknown-pleasures-2019-digital-master-joy-division/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/unknown-pleasures-2019-digital-master-joy-division/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1979-06-15",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/unknown-pleasures-2019-digital-master/1476702180",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/unknown-pleasures-2019-digital-master/1476702180"
+      }
+    ]
+  },
+  {
+    "id": "urban-hymns-remastered-2016-the-verve",
+    "name": "Urban Hymns (Remastered 2016)",
+    "artist": "The Verve",
+    "cover": "https://cdn.doebkblcya.com/albums/urban-hymns-remastered-2016-the-verve/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/urban-hymns-remastered-2016-the-verve/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1997-09-29",
+    "genres": [
+      "Alternative",
+      "Pop",
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/urban-hymns-remastered-2016/1440885112",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/urban-hymns-remastered-2016/1440885112"
+      }
+    ]
+  },
+  {
+    "id": "use-your-illusion-i-guns-n-roses",
+    "name": "Use Your Illusion I",
+    "artist": "Guns N' Roses",
+    "cover": "https://cdn.doebkblcya.com/albums/use-your-illusion-i-guns-n-roses/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/use-your-illusion-i-guns-n-roses/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1991-09-17",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/use-your-illusion-i/1440896026",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/use-your-illusion-i/1440896026"
+      }
+    ]
+  },
+  {
+    "id": "velocity-design-comfort-sweet-trip",
+    "name": "velocity : design : comfort.",
+    "artist": "Sweet Trip",
+    "cover": "https://cdn.doebkblcya.com/albums/velocity-design-comfort-sweet-trip/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/velocity-design-comfort-sweet-trip/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2003-01-10",
+    "genres": [
+      "Electronic"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/velocity-design-comfort/299710177",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/velocity-design-comfort/299710177"
+      }
+    ]
+  },
+  {
+    "id": "violent-femmes-violent-femmes",
+    "name": "Violent Femmes",
+    "artist": "Violent Femmes",
+    "cover": "https://cdn.doebkblcya.com/albums/violent-femmes-violent-femmes/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/violent-femmes-violent-femmes/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1983-01-01",
+    "genres": [
+      "Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/violent-femmes/1576789411",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/violent-femmes/1576789411"
+      }
+    ]
+  },
+  {
+    "id": "weird-era-cont-deerhunter",
+    "name": "Weird Era Cont.",
+    "artist": "Deerhunter",
+    "cover": "https://cdn.doebkblcya.com/albums/weird-era-cont-deerhunter/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/weird-era-cont-deerhunter/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2008-10-27",
+    "genres": [
+      "Ambient"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/weird-era-cont/294838738",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/weird-era-cont/294838738"
+      }
+    ]
+  },
+  {
+    "id": "where-maps-end-rainbow-danger-club",
+    "name": "Where Maps End",
+    "artist": "Rainbow Danger Club",
+    "cover": "https://cdn.doebkblcya.com/albums/where-maps-end-rainbow-danger-club/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/where-maps-end-rainbow-danger-club/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2011-04-18",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/where-maps-end/426223129",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/where-maps-end/426223129"
+      }
+    ]
+  },
+  {
+    "id": "who-s-next-remastered-2022-the-who",
+    "name": "Who's Next (Remastered 2022)",
+    "artist": "The Who",
+    "cover": "https://cdn.doebkblcya.com/albums/who-s-next-remastered-2022-the-who/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/who-s-next-remastered-2022-the-who/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1971-08-14",
+    "genres": [
+      "Pop",
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/whos-next-remastered-2022/1706357665",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/whos-next-remastered-2022/1706357665"
+      }
+    ]
+  },
+  {
+    "id": "wish-you-were-here-pink-floyd",
+    "name": "Wish You Were Here",
+    "artist": "Pink Floyd",
+    "cover": "https://cdn.doebkblcya.com/albums/wish-you-were-here-pink-floyd/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/wish-you-were-here-pink-floyd/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1975-09-12",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/wish-you-were-here/1065973975",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/wish-you-were-here/1065973975"
+      }
+    ]
+  },
+  {
+    "id": "yes-deluxe-edition-yes",
+    "name": "Yes (Deluxe Edition)",
+    "artist": "Yes",
+    "cover": "https://cdn.doebkblcya.com/albums/yes-deluxe-edition-yes/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/yes-deluxe-edition-yes/20261001-v1/preview.webp",
+    "review": "",
+    "released": "1969-07-25",
+    "genres": [
+      "Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/yes-deluxe-edition/1082031465",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/yes-deluxe-edition/1082031465"
+      }
+    ]
+  },
+  {
+    "id": "record-105",
+    "name": "万能青年旅店",
+    "artist": "万能青年旅店",
+    "cover": "https://cdn.doebkblcya.com/albums/record-105/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/record-105/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2010-11-12",
+    "genres": [
+      "Adult Alternative"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/%E4%B8%87%E8%83%BD%E9%9D%92%E5%B9%B4%E6%97%85%E5%BA%97/1538548871",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/%E4%B8%87%E8%83%BD%E9%9D%92%E5%B9%B4%E6%97%85%E5%BA%97/1538548871"
+      }
+    ]
+  },
+  {
+    "id": "record-106",
+    "name": "丑奴儿",
+    "artist": "草东没有派对",
+    "cover": "https://cdn.doebkblcya.com/albums/record-106/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/record-106/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2016-02-19",
+    "genres": [
+      "Indie Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/%E9%86%9C%E5%A5%B4%E5%85%92/1676735354",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/%E9%86%9C%E5%A5%B4%E5%85%92/1676735354"
+      }
+    ]
+  },
+  {
+    "id": "record-107",
+    "name": "冀西南林路行",
+    "artist": "万能青年旅店",
+    "cover": "https://cdn.doebkblcya.com/albums/record-107/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/record-107/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2020-12-22",
+    "genres": [
+      "Prog-Rock/Art Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/%E5%86%80%E8%A5%BF%E5%8D%97%E6%9E%97%E8%B7%AF%E8%A1%8C/1545534900",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/%E5%86%80%E8%A5%BF%E5%8D%97%E6%9E%97%E8%B7%AF%E8%A1%8C/1545534900"
+      }
+    ]
+  },
+  {
+    "id": "record-108",
+    "name": "台风",
+    "artist": "野外合作社",
+    "cover": "https://cdn.doebkblcya.com/albums/record-108/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/record-108/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2018"
+  },
+  {
+    "id": "demetori",
+    "name": "如臨深遠 ～雨縒煙柳～",
+    "artist": "Demetori",
+    "cover": "https://cdn.doebkblcya.com/albums/demetori/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/demetori/20261001-v1/preview.webp",
+    "review": "电吉他在碎雨里低吼，一遍遍呜怆着。如烟，如雨。鼓点坠下，砸在映着红楼的池塘里，晕开了少女的双眼。远方，黑发的巫女，寡欢的容颜。白茫茫的天，下着如哭如泣的烟雨。\n\n也许本来就是一场梦，还是不愿就此醒来。幽幽的残念绕过双踩，缠上琴弦，魂牵梦绕。如臨深遠，雨縒煙柳……\n\nYou know it's a dream. You can't touch it, but you just don't want to wake up…",
+    "released": "2006"
+  },
+  {
+    "id": "record-114",
+    "name": "瓦合",
+    "artist": "草东没有派对",
+    "cover": "https://cdn.doebkblcya.com/albums/record-114/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/record-114/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2023-05-20",
+    "genres": [
+      "Indie Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/%E7%93%A6%E5%90%88/1679883738",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/%E7%93%A6%E5%90%88/1679883738"
+      }
+    ]
+  },
+  {
+    "id": "record-116",
+    "name": "絶景",
+    "artist": "朽チ縄",
+    "cover": "https://cdn.doebkblcya.com/albums/record-116/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/record-116/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2016"
+  },
+  {
+    "id": "record-117",
+    "name": "菊花夜行军",
+    "artist": "交工乐队",
+    "cover": "https://cdn.doebkblcya.com/albums/record-117/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/record-117/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2001-09-01",
+    "genres": [
+      "Taiwanese Folk"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/%E8%8F%8A%E8%8A%B1%E5%A4%9C%E8%A1%8C%E8%BB%8D/681818004",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/%E8%8F%8A%E8%8A%B1%E5%A4%9C%E8%A1%8C%E8%BB%8D/681818004"
+      }
+    ]
+  },
+  {
+    "id": "2017-mix-the-paramecia",
+    "name": "飞出迷楼 (2017 Mix)",
+    "artist": "昼夜生The Paramecia & 苏紫旭",
+    "cover": "https://cdn.doebkblcya.com/albums/2017-mix-the-paramecia/20261001-v1/cover.jpg",
+    "thumb": "https://cdn.doebkblcya.com/albums/2017-mix-the-paramecia/20261001-v1/preview.webp",
+    "review": "",
+    "released": "2017-10-25",
+    "genres": [
+      "Indie Rock"
+    ],
+    "appleMusicUrl": "https://music.apple.com/us/album/%E9%A3%9E%E5%87%BA%E8%BF%B7%E6%A5%BC-2017-mix/1762592641",
+    "sources": [
+      {
+        "title": "Apple Music",
+        "url": "https://music.apple.com/us/album/%E9%A3%9E%E5%87%BA%E8%BF%B7%E6%A5%BC-2017-mix/1762592641"
+      }
+    ]
+  }
+]

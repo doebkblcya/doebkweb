@@ -1,571 +1,267 @@
 ---
 export { getStaticPaths } from "./_getStaticPaths";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { albums as rawAlbums, getTrackUrl } from "../../data/playlist";
-
+import AlbumSelection from "../../components/AlbumSelection.astro";
+import { albums as collection } from "../../data/albums";
 import { ui as zh } from "../../i18n/zh";
 import { ui as en } from "../../i18n/en";
-
 const lang = Astro.currentLocale || "zh";
 const t = lang === "zh" ? zh : en;
-
-const albums = [...rawAlbums]
-  .map((a, i) => ({ ...a, _idx: i }))
-  .sort((a, b) => a.name.localeCompare(b.name, "zh"));
-
-const dataJson = JSON.stringify({
-  albums: rawAlbums.map((a, i) => ({
-    _idx: i,
-    name: a.name,
-    artist: a.artist,
-    cover: a.cover,
-    review: a.review || null,
-    meta: a.meta || null,
-    tracks: a.tracks.map(tr => ({
-      title: tr.title,
-      album: a.name,
-      file: tr.file,
-      url: getTrackUrl({ ...tr, album: a.name }),
-    })),
-  })),
-  i18n: {
-    searchPlaceholder: t.music.searchPlaceholder,
-    sortAlbum: t.music.sortAlbum,
-    sortArtist: t.music.sortArtist,
-    noResults: t.music.noResults,
-  },
-});
+const albums = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang));
 ---
 
 <BaseLayout title={t.music.title} description={t.music.description} hideFooter>
-  <div class="page music-page">
+  <div class="page records-page" data-locale={lang}>
     <h1 class="page-title">{t.music.title}</h1>
     <hr class="page-divider" />
-
-    <div class="toolbar">
-      <div class="search-wrap">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input
-          id="search-input"
-          class="search-input"
-          type="search"
-          placeholder={t.music.searchPlaceholder}
-          autocomplete="off"
-          oninput="window.__vt_musicSearch(this.value)"
-        />
+    {albums.length === 0 ? <p class="empty-state">{t.music.emptyList}</p> : <>
+      <div class="toolbar records-view-toolbar">
+        <div class="view-toggle" role="group" aria-label={t.music.viewLabel}>
+          <button class="view-option" data-record-view="selection" aria-pressed="true" aria-controls="album-selection">{t.music.viewSelection}</button>
+          <span class="view-sep" aria-hidden="true">·</span>
+          <button class="view-option" data-record-view="shelf" aria-pressed="false" aria-controls="album-shelf-panel">{t.music.viewShelf}</button>
+        </div>
       </div>
-      <div class="sort-group" role="group" aria-label={lang === "zh" ? "排序方式" : "Sort by"}>
-        <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-          <line x1="4" y1="6" x2="20" y2="6"/>
-          <line x1="4" y1="12" x2="16" y2="12"/>
-          <line x1="4" y1="18" x2="12" y2="18"/>
-        </svg>
-        <button class="sort-option is-active" onclick="window.__vt_musicSort(this, 'album')">{t.music.sortAlbum}</button>
-        <span class="sort-sep" aria-hidden="true">·</span>
-        <button class="sort-option" onclick="window.__vt_musicSort(this, 'artist')">{t.music.sortArtist}</button>
-      </div>
-    </div>
-
-    {albums.length === 0 ? (
-      <div class="empty-state">
-        <p>{t.music.emptyList}</p>
-      </div>
-    ) : (
-      <div class="shelf" id="shelf" onclick="window.__vt_musicAlbumClick(event)">
-        {albums.map((album) => (
-          <div class="album-sleeve" data-idx={album._idx}>
-            <!-- Card: cover + vinyl -->
-            <button class="sleeve-card" data-album={album._idx} aria-label={`${album.name} — ${album.artist}`}>
-              <div class="sleeve-inner">
-                <!-- Vinyl disc behind cover -->
-                <div class="vinyl-disc">
-                  <div class="vinyl-center"></div>
-                </div>
-                <!-- Cover on top -->
-                <div class="sleeve-cover">
-                  <img
-                    class="cover-img"
-                    src={album.cover}
-                    alt={album.name}
-                    loading="lazy"
-                    onerror={`this.style.display='none';this.parentElement.classList.add('no-img')`}
-                  />
-                  <div class="cover-fallback">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-                      <circle cx="12" cy="12" r="10"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </button>
-
-            <!-- Info -->
-            <div class="sleeve-info">
-              <h2 class="sleeve-name">{album.name}</h2>
-              <p class="sleeve-artist">{album.artist}</p>
-            </div>
+      <AlbumSelection albums={albums} t={t.music} />
+      <section id="album-shelf-panel" class="shelf-panel" aria-label={t.music.viewShelf} hidden>
+        <div class="toolbar">
+          <div class="search-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="album-search" class="search-input" type="search" placeholder={t.music.searchPlaceholder} aria-label={t.music.searchPlaceholder} autocomplete="off" />
           </div>
-        ))}
-      </div>
-    )}
-
-    <div class="no-results" id="no-results" style="display:none">
-      <p>{t.music.noResults}</p>
-    </div>
+          <div class="sort-group" role="group" aria-label={t.music.sortLabel}>
+            <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/></svg>
+            <button class="sort-option" data-sort="name" aria-pressed="true">{t.music.sortAlbum}</button>
+            <span class="sort-sep" aria-hidden="true">·</span>
+            <button class="sort-option" data-sort="artist" aria-pressed="false">{t.music.sortArtist}</button>
+          </div>
+        </div>
+        <div class="shelf" id="album-shelf">
+          {albums.map(album => <article class="album" id={album.id} data-name={album.name} data-artist={album.artist} data-search={`${album.name} ${album.artist} ${album.review} ${(album.genres || []).join(" ")}`}>
+            <button class="album-trigger" aria-label={`${album.name} — ${album.artist} · ${t.music.details}`} aria-haspopup="dialog" aria-controls={`album-dialog-${album.id}`}>
+              <span class="cover"><img src={album.thumb || album.cover} alt={`${album.name} — ${album.artist}`} width="360" height="360" loading="lazy" decoding="async" /></span>
+            </button>
+            <div class="album-heading">
+              <h2>{album.name}</h2><p>{album.artist}</p>
+            </div>
+          </article>)}
+        </div>
+        <p id="album-no-results" class="empty-state" hidden role="status">{t.music.noResults}</p>
+      </section>
+      <noscript><style is:inline>#album-shelf-panel[hidden] { display: block; } .records-view-toolbar { display: none; }</style></noscript>
+      {albums.map(album => <dialog class="album-dialog" id={`album-dialog-${album.id}`} aria-labelledby={`album-title-${album.id}`} autofocus>
+        <div class="album-detail">
+          <div class="detail-cover"><img data-src={album.cover} alt={`${album.name} — ${album.artist}`} width="1000" height="1000" decoding="async" /></div>
+          <div class="detail-body">
+            <header class="detail-heading">
+              <h2 id={`album-title-${album.id}`}>{album.name}</h2>
+              <p class="detail-artist">{album.artist}</p>
+            </header>
+            <dl class="album-meta">
+              {album.released && <div><dt>{t.music.released}</dt><dd><time datetime={album.released}>{album.released}</time></dd></div>}
+              {!!album.genres?.length && <div><dt>{t.music.genres}</dt><dd>{album.genres.join(" / ")}</dd></div>}
+              {album.label && <div><dt>{t.music.label}</dt><dd>{album.label}</dd></div>}
+            </dl>
+            {album.review && <section class="review"><h3>{t.music.review}</h3><p>{album.review}</p></section>}
+            {album.appleMusicUrl && <footer class="playback"><span>{t.music.play}</span><div><a href={album.appleMusicUrl} target="_blank" rel="noopener noreferrer">Apple Music <span aria-hidden="true">↗</span></a></div></footer>}
+          </div>
+        </div>
+      </dialog>)}
+    </>}
   </div>
 </BaseLayout>
 
-<script define:vars={{ dataJson }}>
-  var DATA = JSON.parse(dataJson);
-  var ALBUMS = DATA.albums;
-
-  window.__vt_musicSort = function (btn, mode) {
-    // Update active state
-    document.querySelectorAll(".sort-option").forEach(function (b) { b.classList.remove("is-active"); });
-    btn.classList.add("is-active");
-    // Save current sort/query
-    window.__vt_musicSortMode = mode;
-    window.__vt_musicRender();
-  };
-
-  window.__vt_musicSearch = function (val) {
-    window.__vt_musicQuery = val.trim();
-    window.__vt_musicRender();
-  };
-
-  window.__vt_musicRender = function () {
-    var arr = ALBUMS.slice();
-    // Filter
-    var q = (window.__vt_musicQuery || "").toLowerCase();
-    if (q) {
-      arr = arr.filter(function (a) {
-        if (a.name.toLowerCase().indexOf(q) !== -1) return true;
-        if (a.artist.toLowerCase().indexOf(q) !== -1) return true;
-        return a.tracks.some(function (t) { return t.title.toLowerCase().indexOf(q) !== -1; });
-      });
-    }
-    // Sort
-    var mode = window.__vt_musicSortMode || "album";
-    arr.sort(function (a, b) {
-      if (mode === "artist") return a.artist.localeCompare(b.artist, "zh");
-      return a.name.localeCompare(b.name, "zh");
-    });
-
-    var shelf = document.getElementById("shelf");
-    var noResults = document.getElementById("no-results");
-    if (!shelf) return;
-
-    if (arr.length === 0) {
-      shelf.style.display = "none";
-      if (noResults) noResults.style.display = "block";
-      return;
-    }
-    shelf.style.display = "";
-    if (noResults) noResults.style.display = "none";
-
-    var visible = {};
-    for (var i = 0; i < arr.length; i++) { visible[arr[i]._idx] = true; }
-    for (var i = 0; i < arr.length; i++) {
-      var sleeve = shelf.querySelector('.album-sleeve[data-idx="' + arr[i]._idx + '"]');
-      if (sleeve) { sleeve.style.display = ""; shelf.appendChild(sleeve); }
-    }
-    var all = shelf.querySelectorAll(".album-sleeve");
-    for (var i = 0; i < all.length; i++) {
-      var sidx = parseInt(all[i].getAttribute("data-idx") || "-1", 10);
-      if (!visible[sidx]) all[i].style.display = "none";
-    }
-  };
-
-  window.__vt_musicAlbumClick = function (e) {
-    var card = e.target.closest(".sleeve-card");
-    if (!card) return;
-    e.preventDefault();
-    // 阻止冒泡到 document：handleDocClick 会把刚打开的面板误关（"点击面板外即关"逻辑）
-    e.stopPropagation();
-    var ai = parseInt(card.getAttribute("data-album") || "0", 10);
-    var a = ALBUMS[ai];
-    if (!a) return;
-    var audio = document.getElementById("audio");
-    if (!audio) return;
-    audio.dispatchEvent(new CustomEvent("album-change", {
-      detail: { albumName: a.name, artist: a.artist, cover: a.cover, review: a.review, meta: a.meta, tracks: a.tracks },
-      bubbles: false,
-    }));
-  };
-</script>
-
-<!-- 内容入场:独立 script 块(define:vars 脚本被视为 inline,不能 import/TS 注解)。
-     作用于外层 .album-sleeve,不干扰内部黑胶滑出的 hover transform;
-     每次 VT 导航重跑 → 切页后入场动画重放 -->
 <script>
-  import { animate, inView, spring } from "motion";
+  const page = document.querySelector<HTMLElement>(".records-page");
+  const shelf = page?.querySelector<HTMLElement>("#album-shelf");
+  const shelfPanel = page?.querySelector<HTMLElement>("#album-shelf-panel");
+  const cards = [...(page?.querySelectorAll<HTMLElement>(".album") || [])];
+  const dialogs = [...(page?.querySelectorAll<HTMLDialogElement>(".album-dialog") || [])];
+  const selection = page?.querySelector<HTMLElement>("#album-selection");
+  const selectionList = selection?.querySelector<HTMLElement>(".selection-list");
+  const selectionRecords = [...(selection?.querySelectorAll<HTMLElement>("[data-record-id]") || [])];
+  const viewButtons = [...(page?.querySelectorAll<HTMLButtonElement>("[data-record-view]") || [])];
+  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const orderKey = "doebk-album-selection-order";
+  let lastOrder = "";
+  let selectionObserver: IntersectionObserver | undefined;
+  try { lastOrder = sessionStorage.getItem(orderKey) || ""; } catch {}
 
-  (function () {
-    var sleeves: HTMLElement[] = Array.prototype.slice.call(document.querySelectorAll(".album-sleeve"));
-    if (!sleeves.length) return;
-    // JS 设初始态(无 JS 时内容保持可见);每卡片进入视口触发一次,
-    // 延迟按原顺序递增形成交错;reduced-motion 降级为淡入(跳过位移)
-    sleeves.forEach(function (el) {
-      el.style.opacity = "0";
-      el.style.transform = "translateY(10px)";
+  function shuffleSelection() {
+    if (!selectionList) return;
+    const shuffled = [...selectionRecords];
+    for (let index = shuffled.length - 1; index > 0; index--) {
+      const other = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+    }
+    const signature = (records: HTMLElement[]) => JSON.stringify(records.slice(0, 3).map(record => record.dataset.recordId));
+    // Randomness can repeat; avoid the previous displayed order explicitly.
+    if (shuffled.length > 1 && signature(shuffled) === lastOrder) {
+      shuffled.push(shuffled.shift()!);
+    }
+    lastOrder = signature(shuffled);
+    try { sessionStorage.setItem(orderKey, lastOrder); } catch {}
+    shuffled.forEach((record, index) => {
+      record.hidden = index >= 3;
+      record.classList.remove("is-revealed");
+      selectionList.append(record);
     });
-    inView(".album-sleeve", function (el) {
-      var card = el as HTMLElement;
-      var idx = sleeves.indexOf(card);
-      animate(card, { opacity: 1, y: 0 }, {
-        type: spring, visualDuration: 0.55, bounce: 0.1,
-        delay: 0.15 + Math.max(idx, 0) * 0.08,
-        reduceMotion: true,
-      }).finished.then(function () {
-        card.style.opacity = "";
-        card.style.transform = "";
-      }).catch(function () {});
-      return function () {}; // 触发一次后取消观察
+  }
+
+  function revealRecord(record: HTMLElement) {
+    const cover = record.querySelector<HTMLImageElement>(".record-sleeve img");
+    if (cover?.dataset.cover && cover.src !== cover.dataset.cover) cover.src = cover.dataset.cover;
+    record.classList.add("is-revealed");
+  }
+
+  function observeSelection() {
+    selectionObserver?.disconnect();
+    if (!selection || selection.hidden) return;
+    const visible = selectionRecords.filter(record => !record.hidden);
+    const canObserve = "IntersectionObserver" in window;
+    selection.toggleAttribute("data-animated", !motionPreference.matches && canObserve);
+    if (canObserve) {
+      selectionObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const record = entry.target as HTMLElement;
+          if (record.hidden || selection.hidden) return;
+          if (entry.isIntersecting) {
+            revealRecord(record);
+          } else {
+            // Reset offscreen so scrolling back replays the entrance animation.
+            record.classList.remove("is-revealed");
+          }
+        });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0 });
+      visible.forEach(record => selectionObserver?.observe(record));
+    } else {
+      visible.forEach(revealRecord);
+    }
+    selection.removeAttribute("data-pending");
+  }
+
+  shuffleSelection();
+  observeSelection();
+  viewButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      if (button.getAttribute("aria-pressed") === "true" || !selection || !shelfPanel) return;
+      const showSelection = button.dataset.recordView === "selection";
+      selectionObserver?.disconnect();
+      selection.hidden = !showSelection;
+      shelfPanel.hidden = showSelection;
+      viewButtons.forEach(other => other.setAttribute("aria-pressed", String(other === button)));
+      if (showSelection) {
+        shuffleSelection();
+        observeSelection();
+      }
     });
-  })();
+  });
+  motionPreference.addEventListener("change", observeSelection);
+
+  page?.querySelectorAll<HTMLButtonElement>('[aria-controls^="album-dialog-"]').forEach(trigger => {
+    trigger.addEventListener("click", () => {
+      const dialog = document.getElementById(trigger.getAttribute("aria-controls") || "");
+      if (!(dialog instanceof HTMLDialogElement) || dialog.open) return;
+      const cover = dialog.querySelector<HTMLImageElement>(".detail-cover img");
+      if (cover?.dataset.src) cover.src = cover.dataset.src;
+      dialog.showModal();
+      document.body.classList.add("album-open");
+    });
+  });
+  dialogs.forEach(dialog => {
+    dialog.addEventListener("click", event => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener("close", () => {
+      dialog.querySelector<HTMLImageElement>(".detail-cover img")?.removeAttribute("src");
+      document.body.classList.remove("album-open");
+    });
+  });
+  function closeDialogs() {
+    dialogs.forEach(dialog => {
+      if (dialog.open) dialog.close();
+      dialog.querySelector<HTMLImageElement>(".detail-cover img")?.removeAttribute("src");
+    });
+    document.body.classList.remove("album-open");
+  }
+  window.addEventListener("pagehide", () => {
+    closeDialogs();
+    selectionObserver?.disconnect();
+  });
+  window.addEventListener("pageshow", event => {
+    closeDialogs();
+    // History restoration keeps the current reading order and scroll position.
+    if (event.persisted) observeSelection();
+  });
+
+  const input = page?.querySelector<HTMLInputElement>("#album-search");
+  const noResults = page?.querySelector<HTMLElement>("#album-no-results");
+  input?.addEventListener("input", () => {
+    const query = input.value.trim().toLocaleLowerCase();
+    cards.forEach(card => { card.hidden = !card.dataset.search?.toLocaleLowerCase().includes(query); });
+    if (noResults) noResults.hidden = cards.some(card => !card.hidden);
+  });
+  page?.querySelectorAll<HTMLButtonElement>("[data-sort]").forEach(button => {
+    button.addEventListener("click", () => {
+      const key = button.dataset.sort!;
+      const locale = page.dataset.locale;
+      cards.sort((a, b) => (a.dataset[key] || "").localeCompare(b.dataset[key] || "", locale)
+        || (a.dataset.name || "").localeCompare(b.dataset.name || "", locale)).forEach(card => shelf?.append(card));
+      page.querySelectorAll("[data-sort]").forEach(other => other.setAttribute("aria-pressed", String(other === button)));
+    });
+  });
 </script>
 
 <style>
-  /* ── Toolbar ─────────────────────────────────── */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-10);
-    flex-wrap: wrap;
-  }
-
-  /* ── Search ──────────────────────────────────── */
-  .search-wrap {
-    position: relative;
-    flex: 1;
-    min-width: 180px;
-    max-width: 320px;
-  }
-
-  .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: var(--color-text-tertiary);
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 8px 14px 8px 36px;
-    border: none;
-    border-radius: var(--radius-full);
-    background: var(--color-bg-page);
-    font-size: var(--text-sm);
-    color: var(--color-text-primary);
-    outline: none;
-    transition: background 200ms, box-shadow 200ms;
-    font-family: inherit;
-  }
-
-  .search-input::placeholder {
-    color: var(--color-text-tertiary);
-  }
-
-  .search-input:focus {
-    background: var(--color-bg-surface);
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
-  }
-
-  /* WebKit search input reset */
-  .search-input::-webkit-search-decoration,
-  .search-input::-webkit-search-cancel-button,
-  .search-input::-webkit-search-results-button,
-  .search-input::-webkit-search-results-decoration {
-    -webkit-appearance: none;
-  }
-
-  /* ── Sort ─────────────────────────────────────── */
-  .sort-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .sort-icon {
-    color: var(--color-text-tertiary);
-    flex-shrink: 0;
-    margin-right: 2px;
-  }
-
-  .sort-option {
-    padding: 4px 6px;
-    border: none;
-    background: none;
-    border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    font-family: inherit;
-    color: var(--color-text-tertiary);
-    cursor: pointer;
-    transition: color 150ms;
-    white-space: nowrap;
-  }
-
-  .sort-option:hover {
-    color: var(--color-text-secondary);
-  }
-
-  .sort-option.is-active {
-    color: var(--color-accent);
-    font-weight: 600;
-  }
-
-  .sort-sep {
-    color: var(--color-border);
-    font-size: var(--text-sm);
-    user-select: none;
-  }
-
-  /* ── No results ──────────────────────────────── */
-  .no-results {
-    text-align: center;
-    padding: var(--space-16) 0;
-    color: var(--color-text-tertiary);
-    font-size: var(--text-lg);
-  }
-
-  /* ── Page ────────────────────────────────────── */
-  .page {
-    padding: var(--space-16) var(--space-8) var(--space-24);
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: var(--space-16) 0;
-    color: var(--color-text-tertiary);
-    font-size: var(--text-lg);
-  }
-
-  /* ── Shelf grid ────────────────────────────────── */
-  .shelf {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--space-12) var(--space-8);
-  }
-
-  /* ── Album sleeve ──────────────────────────────── */
-  .album-sleeve {
-    display: flex;
-    flex-direction: column;
-    padding: 0 var(--space-4);
-  }
-
-  /* ── Card (cover + vinyl) ──────────────────────── */
-  .sleeve-card {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 1;
-    background: none;
-    border: none;
-    cursor: pointer;
-    perspective: 800px;
-    padding: 0;
-  }
-
-  .sleeve-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-  }
-
-  /* ── Vinyl disc behind cover ───────────────────── */
-  .vinyl-disc {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at 35% 35%,
-      #2a2a2a 0%, #111 3%, #1a1a1a 5%, #0d0d0d 7%,
-      #1a1a1a 9%, #0a0a0a 12%, #181818 14%, #0d0d0d 17%,
-      #161616 19%, #0a0a0a 22%, #171717 24%, #0d0d0d 27%,
-      #151515 29%, #0a0a0a 32%, #171717 34%, #0d0d0d 37%,
-      #141414 39%, #0a0a0a 42%, #161616 44%, #0d0d0d 47%,
-      #141414 49%, #0a0a0a 52%, #151515 54%, #0d0d0d 57%,
-      #131313 59%, #0a0a0a 62%, #151515 64%, #0d0d0d 67%,
-      #131313 69%, #0a0a0a 72%, #141414 74%, #0d0d0d 77%,
-      #121212 79%
-    );
-    box-shadow:
-      0 4px 30px rgba(0,0,0,0.3),
-      0 0 0 1px rgba(255,255,255,0.03);
-    transform: translateX(0);
-    opacity: 0;
-    transition:
-      transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      opacity 300ms;
-  }
-
-  .vinyl-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 22%;
-    height: 22%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: radial-gradient(circle at 40% 40%, #e44 0%, #c33 100%);
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
-  }
-
-  /* ── Cover on top ──────────────────────────────── */
-  .sleeve-cover {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    background: var(--color-bg-surface);
-    box-shadow: var(--shadow-md);
-    transform: translateX(0);
-    transition:
-      transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      box-shadow 500ms cubic-bezier(0.22, 0.61, 0.36, 1);
-  }
-
-  .cover-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .sleeve-cover.no-img {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .sleeve-cover.no-img .cover-fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-border);
-  }
-
-  .cover-fallback {
-    display: none;
-  }
-
-  /* ── Hover: vinyl slides out (仅 hover 能力设备——鼠标/触控板;
-         触屏含平板无 hover 粘滞问题,黑胶滑出会卡住不回去,故全部禁用) ── */
-  @media (hover: hover) {
-    .sleeve-card:hover .vinyl-disc {
-      transform: translateX(36%);
-      opacity: 1;
-    }
-
-    .sleeve-card:hover .sleeve-cover {
-      transform: translateX(-14%);
-      box-shadow:
-        0 8px 40px rgba(0,0,0,0.25),
-        0 0 0 1px rgba(0,0,0,0.06);
-    }
-  }
-
-  /* 按压反馈:仅缩放,无左移——触屏点击激活 :active,带 translateX 会让手机端点专辑时左移 */
-  .sleeve-card:active .sleeve-cover {
-    transform: scale(0.98);
-    transition: transform 100ms;
-  }
-
-  /* ── Info ──────────────────────────────────────── */
-  .sleeve-info {
-    margin-top: var(--space-4);
-    padding: 0 var(--space-1);
-  }
-
-  .sleeve-name {
-    font-size: var(--text-base);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: color 200ms;
-  }
-
-  .sleeve-artist {
-    margin-top: 2px;
-    font-size: var(--text-sm);
-    color: var(--color-text-tertiary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: color 200ms;
-  }
-
-  /* ── Mobile ────────────────────────────────────── */
+  .records-view-toolbar:has(~ .shelf-panel:not([hidden])) { margin-bottom: 0; }
+  .shelf-panel > .toolbar { border-top: 0; }
+  .shelf-panel[hidden] { display: none; }
+  .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 3rem 2rem; align-items: start; }
+  .album[hidden] { display: none; }
+  .album-trigger { display: block; width: 100%; padding: 0; text-align: left; color: inherit; }
+  .album-trigger:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 6px; }
+  .cover { display: block; aspect-ratio: 1; background: var(--color-bg-muted); overflow: hidden; }
+  .cover img { width: 100%; height: 100%; object-fit: contain; transition: transform 180ms ease; }
+  .album-trigger:hover img { transform: scale(1.025); }
+  .album-heading { margin-top: 1rem; }
+  .album-heading h2 { font-size: clamp(1.25rem, 2vw, 1.8rem); line-height: 1.3; overflow-wrap: anywhere; }
+  .album-heading p { margin-top: .35rem; color: var(--color-text-secondary); font-size: var(--text-sm); }
+  .album-dialog { position: fixed; inset: 0; margin: 0; width: 100%; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: max(2rem, env(safe-area-inset-top), env(safe-area-inset-bottom)) max(2rem, env(safe-area-inset-left), env(safe-area-inset-right)); border: 0; background: transparent; box-shadow: none; color: #f4f4f1; }
+  .album-dialog[open] { display: flex; align-items: center; justify-content: center; }
+  .album-detail { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; gap: clamp(2rem, 5vw, 4.5rem); width: min(100%, 960px); max-height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / .25) transparent; }
+  .detail-cover { width: 100%; max-width: 360px; justify-self: center; }
+  .detail-cover img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
+  .detail-body { min-width: 0; padding: .5rem .5rem .5rem 0; }
+  .detail-heading h2 { font-family: var(--font-editorial); font-size: clamp(2rem, 4.5vw, 3.5rem); font-weight: 500; line-height: 1.08; overflow-wrap: anywhere; text-wrap: balance; }
+  .detail-artist { margin-top: 1rem; font-size: var(--text-lg); color: rgb(255 255 255 / .65); }
+  .album-meta { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; margin-top: 2rem; }
+  .album-meta dt, .playback > span, .review h3 { font-size: var(--text-xs); font-weight: 400; letter-spacing: var(--tracking-wide); color: rgb(255 255 255 / .45); }
+  .album-meta dd { margin-top: .5rem; font-size: var(--text-sm); color: rgb(255 255 255 / .8); }
+  .album-meta time { font-family: var(--font-mono); font-size: var(--text-xs); }
+  .review { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid rgb(255 255 255 / .15); }
+  .review h3 { margin-bottom: 1rem; }
+  .review p { font-family: var(--font-editorial); font-size: var(--text-lg); white-space: pre-wrap; line-height: 1.9; overflow-wrap: anywhere; color: rgb(255 255 255 / .85); }
+  .playback { margin-top: 2rem; font-size: var(--text-xs); }
+  .playback > div { margin-top: .65rem; }
+  .playback a { color: rgb(255 255 255 / .6); text-decoration: underline; text-decoration-color: rgb(255 255 255 / .2); text-underline-offset: .25em; }
+  .playback a:hover { color: white; }
+  .album-dialog :focus-visible { outline-color: rgb(255 255 255 / .8); }
+  .album-dialog[open] .album-detail { animation: detail-enter 200ms var(--ease-gallery); }
+  @keyframes detail-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  :global(html) { scrollbar-gutter: stable; }
+  :global(body.album-open) { overflow: hidden; }
+  .empty-state { color: var(--color-text-tertiary); }
   @media (max-width: 640px) {
-    .shelf {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: var(--space-8) var(--space-6);
-    }
+    .shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 1rem; }
+    .album-dialog { padding: max(1.5rem, env(safe-area-inset-top), env(safe-area-inset-bottom)) max(1.5rem, env(safe-area-inset-left), env(safe-area-inset-right)); }
+    .album-detail { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+    .detail-cover { max-width: min(60vw, 280px); }
+    .detail-body { padding: 0 .25rem .25rem; }
+    .detail-heading, .playback { text-align: center; }
+    .detail-heading h2 { font-size: clamp(1.75rem, 7vw, 2.5rem); }
+    .detail-artist { margin-top: .75rem; font-size: var(--text-base); }
+    .album-meta { justify-content: center; }
+    .album-meta { margin-top: 1.5rem; text-align: center; }
   }
-</style>
-
-<style is:global>
-  .music-page .toolbar { justify-content: space-between; margin-bottom: clamp(3rem, 6vw, 5rem); }
-  .music-page .search-wrap { max-width: 26rem; }
-
-  .music-page .shelf {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: clamp(3rem, 6vw, 6rem) clamp(1.5rem, 3vw, 3rem);
-  }
-
-  .music-page .album-sleeve { padding: 0; }
-
-  .music-page .sleeve-card {
-    border: 1px solid var(--color-border-light);
-    background: var(--color-bg-muted);
-  }
-
-  .music-page .sleeve-cover {
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .music-page .sleeve-info {
-    margin-top: 1rem;
-    padding: 0.9rem 0 0;
-    border-top: 1px solid var(--color-border-light);
-  }
-
-  .music-page .sleeve-name {
-    font-family: var(--font-editorial);
-    font-size: 1.35rem;
-    font-weight: 500;
-  }
-
-  .music-page .sleeve-artist {
-    margin-top: 0.25rem;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: 0.025em;
-  }
-
-  @media (hover: hover) {
-    .music-page .sleeve-card:hover .sleeve-cover { box-shadow: none; }
-  }
-
-  @media (max-width: 640px) {
-    .music-page .toolbar { align-items: stretch; }
-    .music-page .search-wrap { flex-basis: 100%; max-width: none; }
-    .music-page .shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 1rem; }
-    .music-page .sleeve-name { font-size: 1.15rem; }
-  }
+  @media (prefers-reduced-motion: reduce) { .cover img { transition: none; } .album-dialog[open] .album-detail { animation: none; } }
 </style>

@@ -6,3 +6,11 @@ dist/
 _r2-upload/
 .playwright-mcp/
 tmp/
+
+# Local media batches, generated derivatives, and Wrangler state
+materials/
+.wrangler/
+.env
+.env.*
+.dev.vars
+.dev.vars.*

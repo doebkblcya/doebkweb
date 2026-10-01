@@ -56,6 +56,17 @@ export interface MusicStrings {
   sortArtist: string;
   searchPlaceholder: string;
   noResults: string;
+  review: string;
+  released: string;
+  genres: string;
+  label: string;
+  play: string;
+  details: string;
+  viewSelection: string;
+  viewShelf: string;
+  viewLabel: string;
+  sortLabel: string;
+  emptySelection: string;
 }
 
 export interface PhotosStrings {
@@ -69,7 +80,6 @@ export interface PhotosStrings {
   noResults: string;
   loadError: string;
   viewLabel: string;
-  close: string;
   previous: string;
   next: string;
 }
@@ -92,20 +102,7 @@ export interface ThemeStrings {
 export interface CommonStrings {
   skipToContent: string;
   settings: string;
-}
-
-export interface PlayerStrings {
-  musicPlayer: string;
-  idle: string;
-  previous: string;
-  play: string;
-  pause: string;
-  next: string;
-  playlist: string;
-  notes: string;
-  volume: string;
-  volumeSlider: string;
-  shelf: string;
+  language: string;
 }
 
 export interface UIStrings {
@@ -118,6 +115,5 @@ export interface UIStrings {
   photos: PhotosStrings;
   notFound: NotFoundStrings;
   theme: ThemeStrings;
-  player: PlayerStrings;
   common: CommonStrings;
 }

@@ -1,74 +1,26 @@
 [
   {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC04131.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC04131.webp",
-    "alt": "DSC04131",
-    "width": 2000,
-    "height": 1333,
-    "date": "2026-02-18T08:06:26",
-    "note": "test1231我是人"
+    "src": "https://cdn.doebkblcya.com/photos/20260930-cats-v1/001-large.jpg",
+    "thumb": "https://cdn.doebkblcya.com/photos/20260930-cats-v1/001-preview.webp",
+    "width": 1122,
+    "height": 1402,
+    "date": "2026-09-30",
+    "alt": "白色背景前端坐的三花猫，尾巴向右伸展"
   },
   {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC04438.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC04438.webp",
-    "alt": "DSC04438",
-    "width": 2000,
-    "height": 1333,
-    "date": "2026-03-15T10:48:46",
-    "note": ""
+    "src": "https://cdn.doebkblcya.com/photos/20260930-cats-v1/002-large.jpg",
+    "thumb": "https://cdn.doebkblcya.com/photos/20260930-cats-v1/002-preview.webp",
+    "width": 1199,
+    "height": 1312,
+    "date": "2026-09-30",
+    "alt": "白色背景前端坐的三花幼猫，尾巴卷在左侧"
   },
   {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC04821.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC04821.webp",
-    "alt": "DSC04821",
-    "width": 1333,
-    "height": 2000,
-    "date": "2026-04-02T09:58:41",
-    "note": ""
-  },
-  {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05021.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05021.webp",
-    "alt": "DSC05021",
-    "width": 2000,
-    "height": 1333,
-    "date": "2026-04-06T09:32:26",
-    "note": ""
-  },
-  {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05070.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05070.webp",
-    "alt": "DSC05070",
-    "width": 2000,
-    "height": 1333,
-    "date": "2026-04-09T08:21:46",
-    "note": ""
-  },
-  {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05072.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05072.webp",
-    "alt": "DSC05072",
-    "width": 2000,
-    "height": 1333,
-    "date": "2026-04-09T08:22:47",
-    "note": ""
-  },
-  {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05672.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05672.webp",
-    "alt": "DSC05672",
-    "width": 2000,
-    "height": 1333,
-    "date": "2026-07-25T11:44:41",
-    "note": ""
-  },
-  {
-    "src": "https://cdn.doebkblcya.com/photos/originals/DSC05680.jpg",
-    "thumb": "https://cdn.doebkblcya.com/photos/thumbs/DSC05680.webp",
-    "alt": "DSC05680",
-    "width": 2000,
-    "height": 1333,
-    "date": "2026-07-25T11:45:52",
-    "note": ""
+    "src": "https://cdn.doebkblcya.com/photos/20260930-cats-v1/003-large.jpg",
+    "thumb": "https://cdn.doebkblcya.com/photos/20260930-cats-v1/003-preview.webp",
+    "width": 1086,
+    "height": 1448,
+    "date": "2026-09-30",
+    "alt": "白色背景前端坐的灰白虎斑猫，尾巴向左伸展"
   }
 ]

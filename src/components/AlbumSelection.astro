@@ -1,0 +1,97 @@
+---
+import type { Album } from "../data/albums";
+import type { MusicStrings } from "../types/i18n";
+
+interface Props { albums: Album[]; t: MusicStrings; }
+const { albums, t } = Astro.props;
+const reviewed = albums.filter(album => album.review.trim());
+---
+
+<section id="album-selection" class="selection" aria-label={t.viewSelection}>
+  {reviewed.length === 0 ? <p class="empty-state">{t.emptySelection}</p> : <div class="selection-list">
+    {reviewed.map((album, index) => <article class="selection-record" data-record-id={album.id} aria-labelledby={`selection-title-${album.id}`} hidden={index >= 3}>
+      <div class="selection-art">
+        <div class="vinyl" aria-hidden="true">
+          <div class="vinyl-label"><img src={album.thumb || album.cover} alt="" width="360" height="360" loading="lazy" decoding="async" /></div>
+        </div>
+        <button class="record-sleeve" aria-label={`${album.name} — ${album.artist} · ${t.details}`} aria-haspopup="dialog" aria-controls={`album-dialog-${album.id}`}>
+          <img src={album.thumb || album.cover} data-cover={album.cover} alt={`${album.name} — ${album.artist}`} width="1000" height="1000" loading="lazy" decoding="async" />
+        </button>
+      </div>
+      <div class="selection-copy">
+        <header class="selection-heading">
+          <h2 id={`selection-title-${album.id}`}>{album.name}</h2>
+          <div class="selection-info"><span>{album.artist}</span>{album.released && <time datetime={album.released}>{album.released.slice(0, 4)}</time>}</div>
+        </header>
+        <div class="selection-review" aria-label={t.review}>
+          {album.review.split(/\n+/).map(paragraph => <p class:list={{ "latin-paragraph": !/[\u3400-\u9fff]/.test(paragraph) }}>{paragraph}</p>)}
+        </div>
+        {album.appleMusicUrl && <footer class="selection-playback"><span>{t.play}</span><a href={album.appleMusicUrl} target="_blank" rel="noopener noreferrer">Apple Music <span aria-hidden="true">↗</span></a></footer>}
+      </div>
+    </article>)}
+  </div>}
+  <script is:inline>
+    // Hide the initial order only while the page module prepares it. Without JS,
+    // the server-rendered reviews remain readable; a failed module also falls back.
+    (function () {
+      var selection = document.currentScript.parentElement;
+      selection.setAttribute("data-pending", "");
+      window.addEventListener("DOMContentLoaded", function () {
+        selection.removeAttribute("data-pending");
+      }, { once: true });
+    })();
+  </script>
+</section>
+
+<style>
+  .selection[data-pending] { visibility: hidden; }
+  .selection[hidden] { display: none; }
+  .selection-record { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); align-items: center; gap: clamp(2rem, 5vw, 5rem); padding: clamp(3.5rem, 7vw, 7rem) 0; }
+  .selection-record[hidden] { display: none; }
+  .selection-record:first-child { padding-top: 1.5rem; }
+  .selection-record + .selection-record { border-top: 1px solid var(--color-border-light); }
+  .selection-art { position: relative; width: 100%; max-width: 510px; aspect-ratio: 1.5; isolation: isolate; }
+  .record-sleeve { position: relative; display: block; width: calc(100% / 1.5); aspect-ratio: 1; padding: 0; z-index: 1; background: var(--color-bg-muted); }
+  .record-sleeve::after { content: ""; position: absolute; inset: 0; border: 1px solid rgb(127 127 127 / .14); pointer-events: none; }
+  .record-sleeve img { width: 100%; height: 100%; object-fit: cover; }
+  .record-sleeve:focus-visible { outline-offset: 6px; }
+  .vinyl { position: absolute; top: 0; left: 0; width: calc(100% / 1.5); aspect-ratio: 1; border-radius: 50%; border: 1px solid #363636; background: radial-gradient(circle at center, transparent 0 27%, rgb(255 255 255 / .07) 27.3% 27.7%, transparent 28%), repeating-radial-gradient(circle at center, #151515 0 2px, #242424 2.5px 3px, #151515 3.5px 5px); transform: translateX(48%) rotate(8deg); pointer-events: none; }
+  .vinyl::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: conic-gradient(from 30deg, transparent, rgb(255 255 255 / .09) 14%, transparent 27% 58%, rgb(255 255 255 / .07) 70%, transparent 84%); }
+  .vinyl-label { position: absolute; inset: 35%; border-radius: 50%; overflow: hidden; }
+  .vinyl-label img { width: 100%; height: 100%; object-fit: cover; }
+  .vinyl-label::after { content: ""; position: absolute; width: 7%; aspect-ratio: 1; border-radius: 50%; background: #080808; border: 1px solid rgb(255 255 255 / .25); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  .selection-copy { min-width: 0; }
+  .selection-heading h2 { font-family: var(--font-editorial); font-size: clamp(1.75rem, 3.2vw, 3rem); font-weight: 400; line-height: 1.15; text-wrap: balance; }
+  .selection-info { display: flex; flex-wrap: wrap; align-items: baseline; gap: .65rem 1.25rem; margin-top: .9rem; font-size: var(--text-sm); color: var(--color-text-secondary); }
+  .selection-info time { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-tertiary); }
+  .selection-review { margin-top: 2rem; font-family: var(--font-editorial); font-size: clamp(1rem, 1.35vw, 1.125rem); line-height: 2; color: var(--color-text-secondary); }
+  .selection-review p { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .selection-review p + p { margin-top: 1.1em; }
+  .latin-paragraph { font-style: italic; }
+  .selection-playback { display: flex; align-items: baseline; gap: .75rem; margin-top: 1.75rem; font-size: var(--text-xs); color: var(--color-text-tertiary); }
+  .selection-playback a { text-decoration: underline; text-underline-offset: .3em; text-decoration-color: var(--color-border); }
+  .selection-playback a:hover { color: var(--color-text-primary); }
+  .selection[data-animated] .vinyl { transform: translateX(3%) rotate(-6deg); }
+  .selection[data-animated] .selection-copy { opacity: 0; transform: translateX(-10px); }
+  .selection[data-animated] .is-revealed .vinyl { transform: translateX(48%) rotate(8deg); transition: transform 620ms var(--ease-gallery); }
+  .selection[data-animated] .is-revealed .selection-copy { opacity: 1; transform: none; transition: opacity 480ms ease 140ms, transform 560ms var(--ease-gallery) 140ms; }
+  .empty-state { color: var(--color-text-tertiary); }
+  @media (max-width: 960px) {
+    .selection-record { grid-template-columns: minmax(0, 1fr); gap: 2.75rem; }
+    .selection-art { max-width: 460px; justify-self: center; }
+    .selection-copy { width: min(100%, 580px); justify-self: center; }
+  }
+  @media (max-width: 640px) {
+    .selection-record { gap: 2rem; padding-block: 3.5rem; }
+    .selection-record:first-child { padding-top: 1rem; }
+    .selection-heading h2 { font-size: clamp(1.75rem, 7vw, 2.5rem); }
+    .selection-review { margin-top: 1.5rem; }
+    .selection-playback { margin-top: 1.5rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .selection[data-animated] .vinyl,
+    .selection[data-animated] .is-revealed .vinyl { transform: translateX(48%) rotate(8deg); transition: none; }
+    .selection[data-animated] .selection-copy,
+    .selection[data-animated] .is-revealed .selection-copy { opacity: 1; transform: none; transition: none; }
+  }
+</style>

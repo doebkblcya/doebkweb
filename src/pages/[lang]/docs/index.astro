@@ -12,12 +12,6 @@ const t = lang === "zh" ? zh : en;
 const allDocs = await getCollection("docs", ({ data }) => !data.draft && data.listed !== false);
 allDocs.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
-const docsJson = JSON.stringify(allDocs.map((d) => ({
-  slug: d.slug,
-  title: d.data.title,
-  summary: d.data.summary,
-  date: d.data.date.toISOString(),
-})));
 const pagefindEnabled = import.meta.env.PROD;
 ---
 
@@ -38,9 +32,8 @@ const pagefindEnabled = import.meta.env.PROD;
               class="search-input"
               type="search"
               placeholder={t.docs.searchPlaceholder}
+              aria-label={t.docs.searchPlaceholder}
               autocomplete="off"
-              oninput="window.__vt_docsSearch(this.value)"
-              onfocus="window.__vt_docsSearch(this.value)"
             />
             <div class="search-results" id="search-results" hidden></div>
           </div>
@@ -50,9 +43,9 @@ const pagefindEnabled = import.meta.env.PROD;
               <line x1="4" y1="12" x2="16" y2="12"/>
               <line x1="4" y1="18" x2="12" y2="18"/>
             </svg>
-            <button class="sort-option is-active" onclick="window.__vt_docsSort(this, 'desc')">{t.docs.sortNewest}</button>
+            <button class="sort-option is-active" data-sort="desc" aria-pressed="true">{t.docs.sortNewest}</button>
             <span class="sort-sep" aria-hidden="true">·</span>
-            <button class="sort-option" onclick="window.__vt_docsSort(this, 'asc')">{t.docs.sortOldest}</button>
+            <button class="sort-option" data-sort="asc" aria-pressed="false">{t.docs.sortOldest}</button>
           </div>
         </div>
 
@@ -76,7 +69,8 @@ const pagefindEnabled = import.meta.env.PROD;
   </div>
 </BaseLayout>
 
-<style>
+<style is:global>
+.docs-index {
   .page {
     padding: var(--space-16) var(--space-8) var(--space-24);
   }
@@ -86,62 +80,7 @@ const pagefindEnabled = import.meta.env.PROD;
     color: var(--color-text-tertiary);
   }
 
-  /* ── Toolbar ─────────────────────────────────── */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-10);
-    flex-wrap: wrap;
-  }
-
-  /* ── Search ──────────────────────────────────── */
-  .search-wrap {
-    position: relative;
-    flex: 1;
-    min-width: 180px;
-    max-width: 320px;
-  }
-
-  .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: var(--color-text-tertiary);
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 8px 14px 8px 36px;
-    border: none;
-    border-radius: var(--radius-full);
-    background: var(--color-bg-page);
-    font-size: var(--text-sm);
-    color: var(--color-text-primary);
-    outline: none;
-    transition: background 200ms, box-shadow 200ms;
-    font-family: inherit;
-  }
-
-  .search-input::placeholder {
-    color: var(--color-text-tertiary);
-  }
-
-  .search-input:focus {
-    background: var(--color-bg-surface);
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
-  }
-
-  /* WebKit search input reset */
-  .search-input::-webkit-search-decoration,
-  .search-input::-webkit-search-cancel-button,
-  .search-input::-webkit-search-results-button,
-  .search-input::-webkit-search-results-decoration {
-    -webkit-appearance: none;
-  }
-
+}
 </style>
 <style is:global>
   /* ── Results dropdown ───────────────────────── */
@@ -313,49 +252,6 @@ const pagefindEnabled = import.meta.env.PROD;
   }
 </style>
 <style>
-  /* ── Sort ─────────────────────────────────────── */
-  .sort-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .sort-icon {
-    color: var(--color-text-tertiary);
-    flex-shrink: 0;
-    margin-right: 2px;
-  }
-
-  .sort-option {
-    padding: 4px 6px;
-    border: none;
-    background: none;
-    border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    font-family: inherit;
-    color: var(--color-text-tertiary);
-    cursor: pointer;
-    transition: color 150ms;
-    white-space: nowrap;
-  }
-
-  .sort-option:hover {
-    color: var(--color-text-secondary);
-  }
-
-  .sort-option.is-active {
-    color: var(--color-accent);
-    font-weight: 600;
-  }
-
-  .sort-sep {
-    color: var(--color-border);
-    font-size: var(--text-sm);
-    user-select: none;
-  }
-
   /* ── Doc cards ──────────────────────────────── */
   .doc-list {
     display: flex;
@@ -403,261 +299,96 @@ const pagefindEnabled = import.meta.env.PROD;
 
 </style>
 
-<script define:vars={{ docsJson, lang, pagefindEnabled }}>
-  var DOCS = JSON.parse(docsJson);
-  var LANG = lang;
-
-  // ═══ Sort ══════════════════════════════════════
-  window.__vt_docsSort = function (btn, dir) {
-    var sorted = DOCS.slice().sort(function (a, b) {
-      return dir === "asc"
-        ? new Date(a.date).getTime() - new Date(b.date).getTime()
-        : new Date(b.date).getTime() - new Date(a.date).getTime();
-    });
-    var list = document.getElementById("doc-list");
-    if (!list) return;
-    var cards = list.querySelectorAll(".doc-card");
-    var map = new Map();
-    cards.forEach(function (c) { map.set(c.getAttribute("data-date") || "", c); });
-    for (var i = 0; i < sorted.length; i++) {
-      var card = map.get(sorted[i].date);
-      if (card) list.appendChild(card);
-    }
-    // Update active state
-    var buttons = document.querySelectorAll(".sort-option");
-    buttons.forEach(function (b) { b.classList.remove("is-active"); });
-    btn.classList.add("is-active");
-  };
-
-  // ═══ Search (Pagefind) ═════════════════════════
-  window.__vt_searchDebounce = 0;
-  window.__vt_searchSelected = -1;
-  window.__vt_searchResults = [];
-  window.__vt_searchTerm = "";
-  window.__vt_searchLoading = false;
-
-  function __vt_formatDate(iso) {
-    if (!iso) return "";
-    var d = new Date(iso);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleDateString(LANG === "zh" ? "zh-CN" : "en-US", {
-      year: "numeric", month: "short", day: "numeric",
-    });
-  }
-
-  function __vt_docsEscapeHtml(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-
-  window.__vt_docsHideResults = function () {
-    var el = document.getElementById("search-results");
-    if (el) { el.hidden = true; el.innerHTML = ""; }
-    window.__vt_searchSelected = -1;
-    window.__vt_searchResults = [];
-    window.__vt_searchLoading = false;
-  };
-
-  window.__vt_docsSetLoading = function (show) {
-    window.__vt_searchLoading = show;
-    var el = document.getElementById("search-results");
-    if (!el) return;
-    if (show) {
-      el.innerHTML = '<div class="search-loading"><span class="search-loading-dot"></span><span class="search-loading-dot"></span><span class="search-loading-dot"></span></div>';
-      el.hidden = false;
-    }
-  };
-
-  window.__vt_docsSearch = function (term) {
-    var q = term.trim();
-    window.__vt_searchTerm = q;
-    clearTimeout(window.__vt_docsDebounce);
-    if (!q) {
-      window.__vt_docsHideResults();
-      return;
-    }
-    window.__vt_docsSetLoading(true);
-    window.__vt_docsDebounce = setTimeout(function () {
-      window.__vt_docsDoSearch(q);
-    }, 200);
-  };
-
-  window.__vt_docsDoSearch = async function (term) {
-    if (!window.__vt_pagefindMod) {
-      window.__vt_docsHideResults();
-      return;
-    }
-    // Guard against stale queries
-    if (window.__vt_searchTerm !== term) return;
-
-    try {
-      var search = await window.__vt_pagefindMod.search(term);
-      var el = document.getElementById("search-results");
-      if (!el || window.__vt_searchTerm !== term) return;
-
-      if (!search || !search.results || search.results.length === 0) {
-        el.innerHTML = '<div class="search-empty"><svg class="search-empty-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty-title">' + (LANG === "zh" ? "未找到匹配的文档" : "No matching documents") + '</div><div class="search-empty-hint">' + (LANG === "zh" ? "试试其他关键词" : "Try different keywords") + '</div></div>';
-        el.hidden = false;
-        window.__vt_searchResults = [];
-        window.__vt_searchSelected = -1;
-        window.__vt_searchLoading = false;
-        return;
-      }
-
-      // Load full data for top results
-      var raw = await Promise.all(search.results.slice(0, 8).map(function (r) { return r.data().catch(function () { return null; }); }));
-      var items = [];
-      for (var i = 0; i < raw.length; i++) {
-        var data = raw[i];
-        if (!data) continue;
-        var url = data.url;
-        if (!url) continue;
-        if (url.charAt(0) !== "/") url = "/" + url;
-        // Filter: only docs under current lang, exclude list page itself
-        if (url.indexOf("/" + LANG + "/docs/") !== 0) continue;
-        if (url === "/" + LANG + "/docs/") continue;
-
-        var title = (data.meta && data.meta.title) ? data.meta.title : url;
-        var excerpt = data.excerpt || "";
-        var date = (data.meta && data.meta.date) ? data.meta.date : "";
-
-        items.push({
-          url: url,
-          title: title,
-          excerpt: excerpt,
-          date: date,
+<script is:inline define:vars={{ lang, pagefindEnabled }}>
+  (() => {
+    const input = document.getElementById("search-input");
+    const results = document.getElementById("search-results");
+    const wrap = document.getElementById("search-wrap");
+    const list = document.getElementById("doc-list");
+    document.querySelectorAll("[data-sort]").forEach(button => {
+      button.addEventListener("click", () => {
+        const direction = button.dataset.sort === "asc" ? 1 : -1;
+        [...list.querySelectorAll(".doc-card")].sort((a, b) => direction * a.dataset.date.localeCompare(b.dataset.date)).forEach(card => list.append(card));
+        document.querySelectorAll("[data-sort]").forEach(other => {
+          other.classList.toggle("is-active", other === button);
+          other.setAttribute("aria-pressed", String(other === button));
         });
-      }
-
-      window.__vt_searchResults = items;
-      window.__vt_searchSelected = -1;
-      window.__vt_searchLoading = false;
-
-      if (items.length === 0) {
-        el.innerHTML = '<div class="search-empty"><svg class="search-empty-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="search-empty-title">' + (LANG === "zh" ? "未找到匹配的文档" : "No matching documents") + '</div><div class="search-empty-hint">' + (LANG === "zh" ? "试试其他关键词" : "Try different keywords") + '</div></div>';
-        el.hidden = false;
-        return;
-      }
-
-      // Build result HTML
-      var html = '';
-      // Header
-      html += '<div class="search-header"><span class="search-header-count">' + (LANG === "zh" ? "找到 " + items.length + " 篇文档" : "Found " + items.length + " document" + (items.length !== 1 ? "s" : "")) + '</span></div>';
-
-      // Items
-      html += '<div class="search-results-list">';
-      for (var j = 0; j < items.length; j++) {
-        var it = items[j];
-        var metaParts = [];
-        if (it.date) metaParts.push('<time class="search-result-date">' + __vt_formatDate(it.date) + '</time>');
-        var metaHtml = metaParts.length ? '<div class="search-result-meta">' + metaParts.join('') + '</div>' : '';
-
-        html += '<a href="' + it.url + '" class="search-result-item" data-search-index="' + j + '" onclick="window.__vt_docsHideResults()"><div class="search-result-body"><div class="search-result-title">' + __vt_docsEscapeHtml(it.title) + '</div>' + (it.excerpt ? '<div class="search-result-excerpt">' + it.excerpt + '</div>' : '') + metaHtml + '</div></a>';
-      }
-      html += '</div>';
-
-      el.innerHTML = html;
-      el.hidden = false;
-    } catch (e) {
-      console.error("Search error:", e);
-      window.__vt_docsHideResults();
-    }
-  };
-
-  // ═══ Keyboard navigation ══════════════════════
-  function __vt_docsUpdateSelection() {
-    var items = document.querySelectorAll(".search-result-item");
-    items.forEach(function (item, idx) {
-      if (idx === window.__vt_searchSelected) {
-        item.classList.add("is-active");
-        item.scrollIntoView({ block: "nearest" });
-      } else {
-        item.classList.remove("is-active");
-      }
+      });
     });
-  }
-
-  window.__vt_docsNavigate = function (direction) {
-    var len = window.__vt_searchResults.length;
-    if (len === 0) return;
-    if (direction === "down") {
-      window.__vt_searchSelected = (window.__vt_searchSelected + 1) % len;
+    if (!input || !results || !wrap) return;
+    let sequence = 0, timer, selected = -1;
+    let ready;
+    function hide() {
+      sequence++; clearTimeout(timer); results.hidden = true; results.replaceChildren(); selected = -1;
+    }
+    function message(text) {
+      const node = document.createElement("p");
+      node.className = "search-empty"; node.textContent = text;
+      results.replaceChildren(node); results.hidden = false;
+    }
+    async function search() {
+      const query = input.value.trim();
+      if (!query) { hide(); return; }
+      const token = ++sequence;
+      clearTimeout(timer); selected = -1;
+      message(lang === "zh" ? "正在搜索…" : "Searching…");
+      timer = setTimeout(async () => {
+        try {
+          ready ||= import("/pagefind/pagefind.js").then(async module => { await module.init(); return module; }).catch(error => { ready = undefined; throw error; });
+          const pagefind = await ready;
+          const found = await pagefind.search(query);
+          const matches = [];
+          for (const result of found.results) {
+            if (token !== sequence) return;
+            const data = await result.data();
+            if (data.url.startsWith(`/${lang}/docs/`) && data.url !== `/${lang}/docs/`) matches.push(data);
+            if (matches.length === 8) break;
+          }
+          if (token !== sequence) return;
+          if (!matches.length) { message(lang === "zh" ? "未找到匹配的文档" : "No matching documents"); return; }
+          results.replaceChildren();
+          for (const data of matches) {
+            const link = document.createElement("a"); link.className = "search-result-item"; link.href = data.url;
+            const body = document.createElement("div"); body.className = "search-result-body";
+            const title = document.createElement("div"); title.className = "search-result-title"; title.textContent = data.meta.title || data.url;
+            const excerpt = document.createElement("div"); excerpt.className = "search-result-excerpt";
+            // Pagefind generates these excerpts from our own built content.
+            excerpt.innerHTML = data.excerpt || "";
+            body.append(title, excerpt); link.append(body); results.append(link);
+          }
+          results.hidden = false;
+        } catch {
+          if (token === sequence) message(lang === "zh" ? "搜索暂时不可用，请稍后重试" : "Search is unavailable. Please try again.");
+        }
+      }, 200);
+    }
+    if (pagefindEnabled) {
+      input.addEventListener("input", search); input.addEventListener("focus", search);
     } else {
-      window.__vt_searchSelected = window.__vt_searchSelected <= 0 ? len - 1 : window.__vt_searchSelected - 1;
+      input.disabled = true;
+      input.title = lang === "zh" ? "全文搜索需构建后预览" : "Search is available in the built preview";
     }
-    __vt_docsUpdateSelection();
-  };
-
-  window.__vt_docsOpenSelected = function () {
-    if (window.__vt_searchSelected >= 0 && window.__vt_searchSelected < window.__vt_searchResults.length) {
-      var item = window.__vt_searchResults[window.__vt_searchSelected];
-      window.__vt_docsHideResults();
-      if (item && item.url) {
-        // Use Astro's navigate if available (View Transitions), fallback to location
-        window.location.href = item.url;
+    document.addEventListener("click", event => { if (!wrap.contains(event.target)) hide(); });
+    input.addEventListener("keydown", event => {
+      if (results.hidden) return;
+      const links = [...results.querySelectorAll("a")];
+      if (event.key === "Escape") { event.preventDefault(); hide(); }
+      if ((event.key === "ArrowDown" || event.key === "ArrowUp") && links.length) {
+        event.preventDefault();
+        selected = (selected + (event.key === "ArrowDown" ? 1 : selected < 0 ? 0 : -1) + links.length) % links.length;
+        links.forEach((link, index) => link.classList.toggle("is-active", index === selected));
+        links[selected].scrollIntoView({ block: "nearest" });
       }
-    }
-  };
-
-  // ═══ Document listeners (outside click / keyboard) ═
-  if (window.__vt_docs_onClick) document.removeEventListener("click", window.__vt_docs_onClick);
-  if (window.__vt_docs_onKeydown) document.removeEventListener("keydown", window.__vt_docs_onKeydown);
-
-  window.__vt_docs_onClick = function (e) {
-    var wrap = document.getElementById("search-wrap");
-    if (wrap && !wrap.contains(e.target)) window.__vt_docsHideResults();
-  };
-
-  window.__vt_docs_onKeydown = function (e) {
-    var results = document.getElementById("search-results");
-    // Only intercept when results are visible
-    if (!results || results.hidden) return;
-
-    switch (e.key) {
-      case "Escape":
-        e.preventDefault();
-        window.__vt_docsHideResults();
-        var inp = document.getElementById("search-input");
-        if (inp) inp.blur();
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        window.__vt_docsNavigate("down");
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        window.__vt_docsNavigate("up");
-        break;
-      case "Enter":
-        e.preventDefault();
-        window.__vt_docsOpenSelected();
-        break;
-    }
-  };
-
-  // 遗留全局监听：remove-before-add，防止 ClientRouter 生命周期中重复注册
-  document.removeEventListener("click", window.__vt_docs_onClick);
-  document.addEventListener("click", window.__vt_docs_onClick);
-  document.removeEventListener("keydown", window.__vt_docs_onKeydown);
-  document.addEventListener("keydown", window.__vt_docs_onKeydown);
-
-  // ═══ Init Pagefind ══════════════════════════════
-  (async function () {
-    if (!pagefindEnabled) return;
-    try {
-      if (window.__vt_pagefindMod) await window.__vt_pagefindMod.destroy();
-      window.__vt_pagefindMod = await import("/pagefind/pagefind.js");
-      await window.__vt_pagefindMod.init();
-    } catch { /* dev mode */ }
+      if (event.key === "Enter" && selected >= 0) { event.preventDefault(); location.assign(links[selected].href); }
+    });
+    window.addEventListener("pageshow", hide);
   })();
 </script>
 
 <style is:global>
   .docs-index .toolbar {
-    justify-content: space-between;
     margin-bottom: 0;
   }
-
-  .docs-index .search-wrap { max-width: 26rem; }
 
   .docs-index .search-results {
     top: calc(100% + 1px);
@@ -683,6 +414,8 @@ const pagefindEnabled = import.meta.env.PROD;
     background: transparent;
     transition: background var(--duration-fast), padding var(--duration-normal) var(--ease-gallery);
   }
+
+  .docs-index .doc-card:first-child { border-top: 0; }
 
   .docs-index .doc-card:hover {
     padding-inline: 1rem;
@@ -718,39 +451,7 @@ const pagefindEnabled = import.meta.env.PROD;
   }
 
   @media (max-width: 700px) {
-    .docs-index .toolbar { align-items: stretch; }
-    .docs-index .search-wrap { max-width: none; flex-basis: 100%; }
     .docs-index .doc-card { grid-template-columns: 1fr; grid-template-areas: "meta" "title" "summary"; gap: 0.65rem; }
     .docs-index .doc-meta { justify-content: flex-start; }
   }
 </style>
-
-<!-- 内容入场:独立 script 块(define:vars 脚本被视为 inline,不能 import/TS 注解)。
-     每次 VT 导航重跑 → 切页后入场动画重放。排序重排只移 DOM 顺序,已入场元素不重放 -->
-<script>
-  import { animate, inView, spring } from "motion";
-
-  (function () {
-    var cards: HTMLElement[] = Array.prototype.slice.call(document.querySelectorAll(".doc-card"));
-    if (!cards.length) return;
-    // JS 设初始态(无 JS 时内容保持可见);每卡片进入视口触发一次,
-    // 延迟按原顺序递增形成交错;reduced-motion 降级为淡入(跳过位移)
-    cards.forEach(function (el) {
-      el.style.opacity = "0";
-      el.style.transform = "translateY(10px)";
-    });
-    inView(".doc-card", function (el) {
-      var card = el as HTMLElement;
-      var idx = cards.indexOf(card);
-      animate(card, { opacity: 1, y: 0 }, {
-        type: spring, visualDuration: 0.55, bounce: 0.1,
-        delay: 0.15 + Math.max(idx, 0) * 0.06,
-        reduceMotion: true,
-      }).finished.then(function () {
-        card.style.opacity = "";
-        card.style.transform = "";
-      }).catch(function () {});
-      return function () {}; // 触发一次后取消观察
-    });
-  })();
-</script>

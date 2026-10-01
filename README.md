@@ -1,78 +1,56 @@
 # doebkweb
 
-doebkblcya 的个人静态网站：个人介绍、技术文档、唱片架和摄影画廊。
+doebkblcya 的个人静态网站：个人介绍、技术文档、专辑与乐评、摄影画廊。
 
-网站使用 Astro 5 生成静态页面，部署在 Cloudflare Pages；音乐和摄影资源存放在 Cloudflare R2。首页以跟随明暗主题的纸白/纯黑背景、`doebkblcya` 大标题和人物画作为核心视觉，单次下拉完成构图重排并显示导航。站内页采用展览画册式排版，以编辑字体、细结构线和留白统一各页面。
+Astro 5 生成静态多页面，Cloudflare Pages 部署；专辑封面和摄影图片存放在 R2。首页保留大标题、人物与展开动效，站内采用编辑字体、细线和留白。内页之间使用浏览器原生页面转场；首页独立，不参与切页动画。
 
 ## 功能
 
-- 技术文档：Astro Content Collections、Shiki 双主题代码高亮、目录 rail、Pagefind 全文搜索。
-- 唱片架：专辑搜索与排序、曲目播放、黑胶和唱臂动效、跨页面连续播放。
-- 摄影画廊：照片墙/时间线切换、札记搜索、响应式 Lightbox。
-- 关于页：内容由 TypeScript 数据文件维护，包含自述与联系方式。
-- 双语 UI：中文和英文路由，正文内容保持原语言。
-- 三段式主题：浅色、深色、跟随系统。
-- 响应式导航：桌面固定侧栏，手机抽屉导航；首页使用独立导航入口。
-- 自托管字体：Newsreader、Hanken Grotesk、JetBrains Mono 与 Noto 中文可变字体，不依赖第三方字体 CDN。
-- 内容工作流：媒体 CLI 负责转码、R2 上传、校验和数据写回。
+- 文档：Astro Content Collections、Shiki 双主题高亮、目录、Pagefind 全文搜索。
+- 唱片：默认“选集”随机展示有乐评的专辑，封套抽出唱片并展开完整乐评；“唱片架”保留全部封面网格、搜索及专辑名/艺术家排序。点击封面打开居中的模糊背景详情弹层。
+- 摄影：照片墙/时间线、说明搜索、大图弹窗与键盘切换。
+- 中英文 UI、浅色/深色/系统主题，桌面侧栏与移动抽屉。
+- 自托管中英文字体，纯静态运行，无后端、音乐播放或跨页面播放器。
 
-ClientRouter 仅用于无刷新的站内导航和播放器持久化。全站根转场已关闭，首页和其他页面各自管理动效生命周期。
+## 本地运行
 
-## 快速开始
+Node.js 22.12+，pnpm：
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 pnpm exec astro check
 pnpm build
 pnpm preview
 ```
 
-开发服务器默认是 `http://localhost:4321`。Pagefind 只在生产构建后存在，搜索请通过 `pnpm build && pnpm preview` 检查。
+默认 `http://localhost:4321`。全文搜索在 build + preview 中验证；开发模式不加载 Pagefind。
 
-## 目录
+## 内容来源
 
-```text
-src/
-├── components/             Sidebar、播放器、设置、页脚
-├── content/docs/           技术文章
-├── data/                   about.ts、music.json、photos.json 及派生 helper
-├── i18n/                   中英文 UI
-├── layouts/BaseLayout.astro
-├── pages/[lang]/           zh/en 页面与文档路由
-└── styles/                 tokens、reset、global、prose
-public/
-├── images/home-figure.webp 首页人物素材
-├── favicon.svg
-├── apple-touch-icon.png
-└── _redirects
-docs/                       项目文档
-scripts/media.mjs           媒体 CLI
-```
-
-## 数据来源
-
-| 内容 | 文件 |
+| 内容 | 位置 |
 |---|---|
 | 关于页 | `src/data/about.ts` |
-| 专辑与曲目 | `src/data/music.json` |
+| 专辑与乐评 | `src/data/albums.json` |
 | 摄影 | `src/data/photos.json` |
-| UI 文案 | `src/i18n/zh.ts`、`src/i18n/en.ts` |
-| 文档 | `src/content/docs/*.md` |
+| 中英文 UI | `src/i18n/zh.ts`、`src/i18n/en.ts` |
+| 技术文章 | `src/content/docs/*.md` |
+| 布局、转场 | `src/layouts/BaseLayout.astro`、`src/styles/transitions.css` |
+| 媒体维护文档与工具 | `maintenance/media/` |
 
-内容数量不在文档中重复维护，始终以这些数据文件和 Content Collection 为准。
+## 更新与发布
 
-## 发布
+让 AI 阅读 [媒体维护入口](maintenance/media/README.md)，按 [专辑录入](maintenance/media/albums.md) 或 [摄影上传](maintenance/media/photos.md) 执行。资料在录入时查找并复审，最终写入静态 JSON；封面和照片上传 R2 后才更新公开记录。没有独立媒体 CLI，也没有网站运行时专辑 API。
 
-推送 `main` 后由 Cloudflare Pages 执行 `pnpm build` 并发布 `dist/`。媒体文件不进入 Git，通过 `pnpm media` 上传到 `cdn.doebkblcya.com`。
+原始素材与派生文件放本地 `materials/`，不进 Git。对象上传使用项目 Wrangler；`main` 推送触发 Cloudflare Pages 的 `pnpm build` 和 `dist/` 部署。R2 已在本轮重置；公开媒体清单只收录重新上传并验证成功的资源。
 
-## 项目文档
+## 文档
 
 - [协作约束](AGENT.md)
 - [产品需求](docs/requirements.md)
-- [架构说明](docs/architecture.md)
-- [部署指南](docs/deployment.md)
-- [内容与媒体上传](docs/upload.md)
+- [架构](docs/architecture.md)
+- [部署](docs/deployment.md)
+- [内容与媒体](docs/upload.md)
 - [路线图](docs/roadmap.md)
 
 Copyright © 2026 doebkblcya。站内原创内容未经授权禁止转载。

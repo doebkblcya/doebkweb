@@ -5,6 +5,8 @@ updated: 2026-09-09
 summary: "从 ViewTransitions 到 ClientRouter：跨页播放器、脚本去重与页面状态残留的原因和修复"
 ---
 
+> 历史记录：本文描述移除音乐播放前的架构。本站现在使用普通多页面导航与原生页面转场，已移除 ClientRouter 和播放器。当前约束见仓库 `AGENT.md`。
+
 # Astro ClientRouter 生命周期故障记录
 
 ## 背景

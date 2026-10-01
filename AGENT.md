@@ -14,7 +14,7 @@ pnpm dev                 # 默认 http://localhost:4321
 pnpm exec astro check    # 类型与 Astro 模板检查
 pnpm build               # Astro 构建 + Pagefind 索引
 pnpm preview             # 验证 dist 与 Pagefind
-pnpm media               # 查看媒体 CLI 用法
+node maintenance/media/tools/validate-media.mjs  # 静态媒体清单检查
 ```
 
 仓库使用 pnpm，提交 `pnpm-lock.yaml`。`pnpm dev` 不生成 Pagefind 索引，搜索必须用 `pnpm build && pnpm preview` 验证。
@@ -23,7 +23,7 @@ pnpm media               # 查看媒体 CLI 用法
 
 | 内容 | 唯一来源 |
 |---|---|
-| 专辑、曲目、札记 | `src/data/music.json` |
+| 专辑、资料、乐评 | `src/data/albums.json` |
 | 照片、日期、说明 | `src/data/photos.json` |
 | 关于页正文 | `src/data/about.ts` |
 | 中英文 UI | `src/types/i18n.ts`、`src/i18n/zh.ts`、`src/i18n/en.ts` |
@@ -35,25 +35,12 @@ pnpm media               # 查看媒体 CLI 用法
 
 ## 不可破坏的架构约束
 
-- Astro 静态输出，无站点后端和数据库。
-- `BaseLayout.astro` 在所有语言页面渲染 `audio`、`VinylPlayer` 和 `Sidebar`。
-- Astro 5 使用 `<ClientRouter />`。它只服务于客户端导航和音乐连续播放；根页面设置 `transition:animate="none"`，不恢复全站左右滑动转场。
-- 只有 `#audio` 与 `#vinyl-app` 持久化。Sidebar、首页 hero 和页面内容必须随导航重建。
-- 首页不显示 Sidebar、移动端汉堡和 VinylPlayer，但持久化播放器仍留在 DOM 中。
-- `tmp/`、`_r2-upload/`、构建目录和浏览器测试产物不提交。
-
-## ClientRouter 生命周期
-
-打包后的 module script 在同一 document 中只执行一次，不能假设返回页面时脚本会重跑。
-
-新交互优先使用 Custom Element：
-
-- `connectedCallback()` 查询自身子树并初始化。
-- `disconnectedCallback()` 停止 Motion 动画、取消 `requestAnimationFrame`、Observer 和定时器。
-- window/document 监听统一绑定同一个 `AbortController.signal`，销毁时一次 `abort()`。
-- 初始化必须幂等，DOM 查询限制在组件自身，不把一次性页面节点长期缓存到全局。
-
-现有 Sidebar、LanguageSettings、文档列表、音乐页和摄影页仍有 `window.__vt_*` 与 inline handler。维护这些代码时继续遵守 remove-before-add；新代码不要扩大这套全局状态。完整背景见 `src/content/docs/vt-bugs.md`。
+- Astro 静态输出，无站点后端和数据库。保留 zh/en 多页面路由。
+- 普通页面导航，不使用 ClientRouter、audio、播放器、跨页面音频持久化或 `window.__vt_*` 全局桥接。
+- 内页用原生跨文档 View Transition：正文 90ms 淡出、280ms 淡入/6px 位移，侧栏稳定。不支持时普通导航，不加兼容依赖。
+- 首页不启用跨文档 VT，保留 `<home-hero>` 自身动效，避免冲突；所有动效遵守 reduced-motion。
+- 页面脚本初始化当前 DOM，使用本页变量与事件监听。弹窗优先用原生 dialog；前进/后退恢复时清理弹窗和抽屉临时状态。
+- `tmp/`、`materials/`、`_r2-upload/`、`.wrangler/`、构建目录、测试产物和凭证不提交。
 
 ## 首页约束
 
@@ -69,8 +56,13 @@ pnpm media               # 查看媒体 CLI 用法
 ## 样式与动效
 
 - 全局颜色、间距和字体参数优先使用 `tokens.css`。
+- 文档、摄影与唱片页的搜索和排序/视图工具栏共用 `global.css` 样式，保持字号、图标、内边距和选中状态一致；页面只保留内容间距等必要差异。
+- 内页标题分隔线与紧接的工具栏共用一条边线，不叠加空白夹层；关于页与文档详情页沿用相同的页头间距规则。
 - 字体通过 Fontsource 自托管：Newsreader、Hanken Grotesk、JetBrains Mono、Noto Serif SC 与 Noto Sans SC 均使用可变 WOFF2。
 - 站内 UI 使用直角、1px 结构线和低对比表面；除唱片等固有圆形外，不恢复大面积圆角、胶囊和悬浮卡片阴影。
+- 全站不显示关闭按钮或叉号；弹窗通过点击背景和 Escape 关闭，移动端抽屉通过遮罩、Escape 或再次点击菜单入口收起。
+- 侧栏底部设置入口为左对齐文字，与导航同宽，上方一条细线，无图标和方框。
+- 设置、专辑和摄影弹层共用 `global.css` 的 `dialog::backdrop`；模糊强度与背景色只在 `tokens.css` 的 `--modal-backdrop-blur`、`--modal-backdrop-bg` 维护，不在组件中单独覆盖。
 - 首页与其余页面共用背景色 token：浅色为纸白，暗色为纯黑。
 - Astro scoped CSS 中引用 `html[data-theme]` 时使用 `:global()`。
 - 简单 hover/focus 用 CSS；可中断的结构变化使用 Motion。
@@ -83,7 +75,7 @@ pnpm media               # 查看媒体 CLI 用法
 
 - 主题模式存于 `localStorage["doebk-theme"]`：`light | dark | auto`。
 - `html[data-theme]` 是实际主题，`html[data-theme-mode]` 是用户选择。
-- 首帧主题脚本在 `BaseLayout` 的 head 内；ClientRouter 换页后由 Sidebar 的 `astro:after-swap` 恢复运行时属性。
+- 首帧主题脚本在 `BaseLayout` 的 head 内；设置组件在页面加载及后退缓存恢复时同步主题。
 - 文档正文、关于页正文不翻译；只翻译 UI。
 - 新增 UI 字段时先修改 `UIStrings`，再同时补齐 zh/en。
 
@@ -91,8 +83,15 @@ pnpm media               # 查看媒体 CLI 用法
 
 - 文档 frontmatter：`title`、`date`、`summary` 必填；`updated`、`draft`、`listed` 可选。
 - 当前实现中 `draft: true` 和 `listed: false` 都不会生成文档详情路由。
-- 本地 UI 素材放 `public/`；音乐、摄影原图、缩略图和封面放 Cloudflare R2。
-- 媒体通过 `pnpm media` 处理。不要提交凭证、原始媒体或 `_r2-upload/`。
+- 本地 UI 素材放 `public/`；专辑封面、摄影网页大图和预览放 Cloudflare R2，原件留本地。
+- 媒体任务先读 `maintenance/media/README.md`，再读 `albums.md` 或 `photos.md`，用文档和小工具执行，无独立媒体 CLI。
+- 专辑资料在录入时查询并由用户复审；乐评保持用户原文。网站运行和构建不查外部专辑 API。
+- 唱片页默认“选集”，仅纳入非空乐评，每次进入随机抽取最多三张，并避开本标签页上一次的排列；阅读及历史返回时顺序稳定。“唱片架”保留全部专辑网格、搜索与专辑名/艺术家排序。
+- 选集由封套、CSS 黑胶和完整乐评组成；IntersectionObserver 在每次进入视线时触发抽出/文字展开，离开视线后复位，阅读时静止且不重排。遵守 reduced-motion，不增加动画依赖，不自动轮播或持续旋转。
+- 专辑封面使用 360px WebP 预览和 1000px JPEG 大图；列表懒加载，选集大图进入视线时加载，详情图打开弹层才设置 `src`、关闭后移除，不预加载整批封面大图。
+- 摄影批目录只放本次上传的照片，全部处理，不做历史自动跳过；RAW 仅提取内嵌 JPEG。
+- 用户已清空 R2。未重新上传并验证的媒体不写公开清单，不恢复旧链接；远程删除由用户手动执行。
+- Wrangler 上传与站点发布分开：对象实际 GET 验证后，AI 更新 JSON、检查与构建，再执行本次已授权的发布。
 - R2 对象使用 immutable 缓存；内容改变时更换文件名，不覆盖同 URL 内容。
 
 ## 修改与验证
@@ -100,12 +99,16 @@ pnpm media               # 查看媒体 CLI 用法
 1. 修改前先检查 `git status`，保留用户已有改动。
 2. 页面交互改动至少验证：直接访问、站内点击进入、离开后返回、浏览器前进/后退。
 3. 首页同时验证桌面和手机视口，检查收起态、展开态、快速反向操作。
-4. 播放器相关改动必须确认 `#audio` 和 `#vinyl-app` 跨页仍是同一实例。
+4. 媒体记录必须通过清单检查，图片必须已上传且能从公共 URL 获取；空清单不能回退到旧媒体。
 5. 交付前运行 `pnpm exec astro check`、`pnpm build` 和 `git diff --check`。
 6. `pnpm dev` 下文档搜索不会初始化 Pagefind，也不应请求 `/pagefind/pagefind.js`；全文搜索只在 build + preview 或生产环境验证。
 7. 页面视觉调整不以自动截图代替验收；完成代码与静态检查后交给站点作者手动确认构图和比例。
 
 ## 文档索引
+
+- `maintenance/media/README.md`：AI 媒体维护入口
+- `maintenance/media/albums.md`：专辑录入、复审、封面与乐评
+- `maintenance/media/photos.md`：摄影处理、上传与记录
 
 - `docs/requirements.md`：当前产品需求与验收标准
 - `docs/architecture.md`：代码、路由、状态和生命周期

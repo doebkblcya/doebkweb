@@ -61,7 +61,7 @@ const toc = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
           <ul class="toc-list">
             {toc.map((h) => (
               <li class={`toc-item toc-depth-${h.depth}`}>
-                <a class="toc-link" href={`#${h.slug}`} onclick="window.__vt_tocClick(this)">{h.text}</a>
+                <a class="toc-link" href={`#${h.slug}`}>{h.text}</a>
               </li>
             ))}
           </ul>
@@ -194,88 +194,37 @@ const toc = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
   }
 </style>
 
-<script is:inline>
-  // TOC 高亮切换（click 与 scroll-spy 共用）。id 为 null 时清除全部高亮。
-  // VT-safe：挂 window，函数内每次取最新 DOM，不依赖闭包。
-  window.__vt_tocSetActive = function (id) {
-    var toc = document.getElementById("toc");
-    if (!toc) return;
-    toc.querySelectorAll(".toc-link").forEach(function (a) {
-      a.classList.toggle("is-active", id !== null && a.getAttribute("href") === "#" + id);
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>(".toc-link")];
+  const headings = [...document.querySelectorAll<HTMLElement>(".page-body h2[id], .page-body h3[id]")];
+  let pending = false;
+  let timer: ReturnType<typeof setTimeout>;
+  function activate(id: string) {
+    links.forEach(link => {
+      const active = link.getAttribute("href") === `#${id}`;
+      link.classList.toggle("is-active", active);
+      if (active) link.setAttribute("aria-current", "location"); else link.removeAttribute("aria-current");
     });
-  };
-
-  // TOC 点击：滚动交给原生锚点（CSS scroll-behavior 平滑，reduced-motion 由媒体查询降级），
-  // 这里只做两件事：即时切高亮 + 锁定 scroll-spy（滚动动画中不抢高亮，手动滚动后交还）。
-  window.__vt_tocClick = function (link) {
-    var id = link.getAttribute("href").slice(1);
-    var target = document.getElementById(id);
-    if (!target) return;
-    window.__vt_tocClickPending = true;
-    window.__vt_tocSetActive(id); // 立即切高亮，不等滚动
-  };
-
-  // 手动滚动（滚轮/触摸/滚动键）后交还 scroll-spy
-  window.__vt_tocUnlock = function (e) {
-    if (e.type === "keydown" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageUp", "PageDown", "Home", "End", " "].indexOf(e.key) === -1) return;
-    window.__vt_tocClickPending = false;
-  };
-  document.removeEventListener("wheel", window.__vt_tocUnlock);
-  document.addEventListener("wheel", window.__vt_tocUnlock, { passive: true });
-  document.removeEventListener("touchstart", window.__vt_tocUnlock);
-  document.addEventListener("touchstart", window.__vt_tocUnlock, { passive: true });
-  document.removeEventListener("keydown", window.__vt_tocUnlock);
-  document.addEventListener("keydown", window.__vt_tocUnlock);
-
-  // TOC scroll-spy: highlight current section in the rail.
-  // VT-safe: stored on window.__vt_tocInit, re-bound on astro:after-swap.
-  window.__vt_tocInit = function () {
-    var toc = document.getElementById("toc");
-    if (!toc) return;
-    if (window.__vt_tocObserver) window.__vt_tocObserver.disconnect();
-    window.__vt_tocClickPending = false; // 切页回来不残留锁定
-
-    var targets = document.querySelectorAll(".page-body h2[id], .page-body h3[id]");
-
-    // 回调只报告"状态变化的元素"，所以每次全量扫描带内标题取最顶。
-    // 观察带 = 视口顶部 0~30%（锚点跳转后标题停在 scroll-margin 处，仍可命中）
-    function updateActive() {
-      if (window.__vt_tocClickPending) return; // 点击跳转中保持点击设置的高亮
-      var bandBottom = window.innerHeight * 0.3;
-      var best = null, bestTop = Infinity;
-      var lastTarget = targets[targets.length - 1];
-      var lastVisible = null;
-      targets.forEach(function (h) {
-        var r = h.getBoundingClientRect();
-        if (r.bottom > 0 && r.top < window.innerHeight) lastVisible = h; // 文档序最后一个可见标题
-        if (r.top < bandBottom && r.bottom > 0 && r.top < bestTop) {
-          bestTop = r.top;
-          best = h.id;
-        }
-      });
-      // 末尾特判：最后标题因末尾内容不足顶不进观察带（scroll-margin 对齐不可达），
-      // 滚到文档底部且视口内最后一个可见标题就是文档最后标题 → 直接高亮它
-      var nearBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
-      if (nearBottom && lastVisible === lastTarget) window.__vt_tocSetActive(lastTarget.id);
-      else if (best) window.__vt_tocSetActive(best); // 带内无标题：保持现状，不清空
-    }
-
-    var observer = new IntersectionObserver(updateActive, {
-      rootMargin: "0px 0px -70% 0px",
-      threshold: 0,
-    });
-    targets.forEach(function (h) { observer.observe(h); });
-    window.__vt_tocObserver = observer;
-    updateActive();
-
-    // 兜底：初始无高亮时默认第一项
-    var links = toc.querySelectorAll(".toc-link");
-    if (!toc.querySelector(".toc-link.is-active") && links.length) links[0].classList.add("is-active");
-  };
-
-  document.removeEventListener("astro:after-swap", window.__vt_tocInit);
-  document.addEventListener("astro:after-swap", window.__vt_tocInit);
-  window.__vt_tocInit();
+  }
+  function update() {
+    if (pending || !headings.length) return;
+    const current = [...headings].reverse().find(heading => heading.getBoundingClientRect().top <= innerHeight * .3) || headings[0];
+    const atBottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 4;
+    activate(atBottom ? headings[headings.length - 1].id : current.id);
+  }
+  links.forEach(link => link.addEventListener("click", () => {
+    pending = true; clearTimeout(timer); activate(link.getAttribute("href")!.slice(1));
+    timer = setTimeout(() => { pending = false; update(); }, 1000);
+  }));
+  let scheduled = false;
+  window.addEventListener("scroll", () => {
+    if (scheduled) return;
+    scheduled = true; requestAnimationFrame(() => { scheduled = false; update(); });
+  }, { passive: true });
+  window.addEventListener("wheel", () => { pending = false; }, { passive: true });
+  window.addEventListener("touchstart", () => { pending = false; }, { passive: true });
+  window.addEventListener("pageshow", update);
+  update();
 </script>
 
 <style is:global>

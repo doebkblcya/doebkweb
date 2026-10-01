@@ -1,5 +1,12 @@
 /* Archival gallery design tokens. Light pages resemble paper; dark pages use ink black. */
 
+/* Set tokens on the backdrop too, independent of pseudo-element inheritance. */
+:root,
+dialog::backdrop {
+  --modal-backdrop-bg: rgb(0 0 0 / .65);
+  --modal-backdrop-blur: 28px;
+}
+
 :root {
   --color-bg-page: #fcfcfd;
   --color-bg-surface: #ffffff;

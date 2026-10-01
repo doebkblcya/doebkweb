@@ -10,9 +10,5 @@ export interface Photo {
   note?: string;
 }
 
-/**
- * Photo collection (data lives in photos.json).
- * Photos stored on R2: photos/originals/ for full-res, photos/thumbs/ for WebP thumbnails.
- * Use `pnpm media photos <raw目录>` to process + upload + append entries.
- */
+/** Static photo records. See maintenance/media/photos.md for processing and publication. */
 export const photos: Photo[] = photosJson satisfies Photo[];

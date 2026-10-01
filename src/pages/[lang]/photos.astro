@@ -1,45 +1,23 @@
 ---
 export { getStaticPaths } from "./_getStaticPaths";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { photos as photosUnsorted } from "../../data/photos";
+import { photos as collection } from "../../data/photos";
 import { ui as zh } from "../../i18n/zh";
 import { ui as en } from "../../i18n/en";
-
 const lang = Astro.currentLocale || "zh";
 const t = lang === "zh" ? zh : en;
-
-const photos = [...photosUnsorted].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-// Group by date for timeline display
-interface PhotoGroup { dateLabel: string; photos: { photo: typeof photos[0]; index: number }[] }
-const groups: PhotoGroup[] = [];
-let lastLabel = "";
-for (let i = 0; i < photos.length; i++) {
-  const d = new Date(photos[i].date);
-  const label = lang === "zh"
-    ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
-    : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  if (label !== lastLabel) { groups.push({ dateLabel: label, photos: [] }); lastLabel = label; }
-  groups[groups.length - 1].photos.push({ photo: photos[i], index: i });
-}
-
-const photosJson = JSON.stringify(photos);
-const noNoteI18n = t.photos.noNote;
-const loadErrorI18n = t.photos.loadError;
+const photos = [...collection].sort((a, b) => b.date.localeCompare(a.date));
+const groups = Map.groupBy(photos, photo => photo.date.slice(0, 10));
+const dateLabel = (date: string) => new Date(`${date}T00:00:00Z`).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+  year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
+});
 ---
 
 <BaseLayout title={t.photos.title} description={t.photos.description} hideFooter>
   <div class="page photos-page">
     <h1 class="page-title">{t.photos.title}</h1>
     <hr class="page-divider" />
-
-    {photos.length === 0 ? (
-      <div class="empty-state">
-        <p>{t.photos.emptyList}</p>
-      </div>
-    ) : (
-      <>
-      <!-- Toolbar:札记搜索在前(弹性占左)+ 视图切换在后(靠右),仿照 music 搜索/排序布局 -->
+    {photos.length === 0 ? <p class="empty-state">{t.photos.emptyList}</p> : <>
       <div class="toolbar">
         <div class="search-wrap">
           <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
@@ -51,7 +29,7 @@ const loadErrorI18n = t.photos.loadError;
             type="search"
             placeholder={t.photos.searchPlaceholder}
             autocomplete="off"
-            oninput="window.__vt_photoSearch(this.value)"
+            aria-label={t.photos.searchPlaceholder}
           />
         </div>
         <div class="view-toggle" role="group" aria-label={t.photos.viewLabel}>
@@ -59,712 +37,172 @@ const loadErrorI18n = t.photos.loadError;
             <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
             <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
           </svg>
-          <button class="view-option is-active" data-view="wall" onclick="window.__vt_photoView(this, 'wall')">{t.photos.viewWall}</button>
+          <button class="view-option is-active" data-view="wall" aria-pressed="true">{t.photos.viewWall}</button>
           <span class="view-sep" aria-hidden="true">·</span>
-          <button class="view-option" data-view="timeline" onclick="window.__vt_photoView(this, 'timeline')">{t.photos.viewTimeline}</button>
+          <button class="view-option" data-view="timeline" aria-pressed="false">{t.photos.viewTimeline}</button>
         </div>
       </div>
 
       <div id="photo-grid" class="is-wall">
-        {groups.map((group) => (
-          <section class="photo-group">
-            <h2 class="photo-group-date">{group.dateLabel}</h2>
-            <div class="photo-grid-inner">
-              {group.photos.map(({ photo, index }) => (
-                <a class="photo-item" href={photo.src} data-index={index} onclick="window.__vt_openPhoto(event, this)">
-                  <img
-                    src={photo.thumb}
-                    alt={photo.alt}
-                    loading="lazy"
-                    width={photo.width}
-                    height={photo.height}
-                  />
-                </a>
-              ))}
-            </div>
-          </section>
-        ))}
+        {[...groups].map(([date, group]) => <section class="photo-group">
+          <h2 class="photo-group-date"><time datetime={date}>{dateLabel(date)}</time></h2>
+          <div class="photo-grid-inner">
+            {group.map(photo => <a class="photo-item" href={photo.src} data-caption={photo.note || ""} data-search={`${photo.alt} ${photo.note || ""} ${photo.date}`}>
+              <img src={photo.thumb} alt={photo.alt} width={photo.width} height={photo.height} loading="lazy" />
+            </a>)}
+          </div>
+        </section>)}
       </div>
-      <div class="no-results" id="photo-no-results" hidden>{t.photos.noResults}</div>
-      </>
-    )}
-  </div>
-
-  <!-- Lightbox -->
-  <div class="lightbox" id="lightbox" aria-hidden="true" onclick="window.__vt_closeIfBackdrop(event, this)">
-    <button class="lightbox-close" aria-label={t.photos.close} onclick="window.__vt_closePhoto()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-
-    <button class="lightbox-prev" aria-label={t.photos.previous} onclick="window.__vt_navPhoto(-1)">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <button class="lightbox-next" aria-label={t.photos.next} onclick="window.__vt_navPhoto(1)">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-
-    <div class="lightbox-body">
-      <div class="lightbox-img-wrap" id="lightbox-img-wrap">
-        <img class="lightbox-img" id="lightbox-img" src="" alt="" />
-        <div class="lightbox-spinner" id="lightbox-spinner" hidden aria-hidden="true"></div>
-        <p class="lightbox-error" id="lightbox-error" hidden></p>
-      </div>
-      <p class="lightbox-caption" id="lightbox-caption"></p>
-    </div>
+      <p id="photo-no-results" class="empty-state" hidden role="status">{t.photos.noResults}</p>
+      <dialog id="lightbox" class="lightbox" aria-label={t.photos.title} aria-describedby="lightbox-caption" data-no-note={t.photos.noNote} autofocus>
+        <span id="lightbox-counter"></span>
+        <button id="lightbox-prev" class="lightbox-control" aria-label={t.photos.previous}>←</button>
+        <button id="lightbox-next" class="lightbox-control" aria-label={t.photos.next}>→</button>
+        <div class="lightbox-body">
+          <div id="lightbox-stage" class="lightbox-stage" aria-busy="false">
+            <img id="lightbox-image" alt="" hidden />
+            <p id="lightbox-loading" aria-hidden="true">···</p>
+            <p id="lightbox-error" hidden role="status">{t.photos.loadError}</p>
+          </div>
+          <p id="lightbox-caption"></p>
+        </div>
+      </dialog>
+    </>}
   </div>
 </BaseLayout>
 
-<script define:vars={{ photosJson, noNoteI18n, loadErrorI18n }}>
-  var PHOTOS = JSON.parse(photosJson);
-  var NO_NOTE = noNoteI18n;
-  var LOAD_ERROR = loadErrorI18n;
-
-  var VIEW_KEY = "doebk-photo-view";
-
-  window.__vt_photoView = function (btn, view) {
-    var grid = document.getElementById("photo-grid");
-    if (!grid) return;
-    var btns = document.querySelectorAll(".view-option");
-    for (var i = 0; i < btns.length; i++) btns[i].classList.remove("is-active");
-    btn.classList.add("is-active");
-    grid.classList.toggle("is-wall", view === "wall");
-    try { localStorage.setItem(VIEW_KEY, view); } catch (e) {}
-    // 切换重放入场动画(stagger 淡入,与时间线入场一致;独立脚本经 window 桥接)
-    if (window.__vt_photoReplay) window.__vt_photoReplay();
-  };
-
-  // 按札记(note)文本过滤照片;无札记的照片不匹配;显示/隐藏由 inline style 控制
-  window.__vt_photoSearch = function (val) {
-    var q = (val || "").trim().toLowerCase();
-    var grid = document.getElementById("photo-grid");
-    var noRes = document.getElementById("photo-no-results");
-    if (!grid) return;
-    var items = grid.querySelectorAll(".photo-item");
-    var shown = 0;
-    for (var i = 0; i < items.length; i++) {
-      var idx = parseInt(items[i].getAttribute("data-index") || "-1", 10);
-      var p = PHOTOS[idx];
-      var note = p && p.note ? p.note.toLowerCase() : "";
-      var match = !q || note.indexOf(q) !== -1;
-      items[i].style.display = match ? "" : "none";
-      if (match) shown++;
-    }
-    if (noRes) noRes.hidden = shown !== 0;
-  };
-
-  // 恢复上次选择(切页/刷新保持;页面独有脚本 VT 后重跑,每次进页应用)
-  // 默认照片墙:HTML 初始即 is-wall,仅当存储为 timeline 时切回
-  (function () {
-    var view = "wall";
-    try { if (localStorage.getItem(VIEW_KEY) === "timeline") view = "timeline"; } catch (e) {}
-    var grid = document.getElementById("photo-grid");
-    var btns = document.querySelectorAll(".view-option");
-    if (grid) grid.classList.toggle("is-wall", view === "wall");
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].classList.toggle("is-active", btns[i].getAttribute("data-view") === view);
-    }
-  })();
-
-  // 切换/打开共用:换图进入加载态——立即隐藏旧图(transition:none 防上一张残留)+ spinner,
-  // 新图 load 完成才淡入。onload/onerror 每次换图重新绑定:浏览器改 src 会中止上一次加载,
-  // 只有最后一次 src 会触发 load,快速连点不会误显示旧图
-  window.__vt_showPhoto = function (idx) {
-    var p = PHOTOS[idx];
-    if (!p) return;
-    window.__vt_photoIdx = idx;
-    var lbImg = document.getElementById("lightbox-img");
-    var lbCap = document.getElementById("lightbox-caption");
-    var spinner = document.getElementById("lightbox-spinner");
-    var errEl = document.getElementById("lightbox-error");
-    if (!lbImg) return;
-    lbImg.alt = p.alt;
-    if (lbCap) {
-      lbCap.textContent = p.note || NO_NOTE;
-      lbCap.classList.toggle("is-placeholder", !p.note);
-    }
-    if (errEl) { errEl.textContent = ""; errEl.hidden = true; }
-    lbImg.classList.add("is-loading");
-    if (spinner) spinner.hidden = false;
-    lbImg.onload = function () {
-      lbImg.classList.remove("is-loading");
-      if (spinner) spinner.hidden = true;
-      lbImg.onload = null;
-      lbImg.onerror = null;
-    };
-    lbImg.onerror = function () {
-      lbImg.classList.remove("is-loading");
-      if (spinner) spinner.hidden = true;
-      if (errEl) { errEl.textContent = LOAD_ERROR; errEl.hidden = false; }
-      lbImg.onload = null;
-      lbImg.onerror = null;
-    };
-    lbImg.src = p.src;
-    // 已缓存图片的 load 是异步事件,spinner 会闪一帧;rAF 时若已加载完成则直接跳过加载态
-    requestAnimationFrame(function () {
-      if (lbImg.complete && lbImg.naturalWidth > 0) {
-        lbImg.classList.remove("is-loading");
-        if (spinner) spinner.hidden = true;
-      }
-    });
-  };
-
-  window.__vt_openPhoto = function (e, link) {
-    e.preventDefault();
-    var idx = parseInt(link.getAttribute("data-index") || "0", 10);
-    var p = PHOTOS[idx];
-    if (!p) return;
-    window.__vt_showPhoto(idx);
-    var lb = document.getElementById("lightbox");
-    if (!lb) return;
-    lb.classList.add("is-open");
-    lb.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-  };
-
-  window.__vt_closePhoto = function () {
-    var lb = document.getElementById("lightbox");
-    if (!lb) return;
-    lb.classList.remove("is-open");
-    lb.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-  };
-
-  window.__vt_closeIfBackdrop = function (e, el) {
-    if (e.target === el) window.__vt_closePhoto();
-  };
-
-  window.__vt_navPhoto = function (dir) {
-    if (!PHOTOS.length) return;
-    var cur = window.__vt_photoIdx || 0;
-    var idx = dir < 0 ? (cur - 1 + PHOTOS.length) % PHOTOS.length : (cur + 1) % PHOTOS.length;
-    window.__vt_showPhoto(idx);
-  };
-
-  // Keyboard — document listener, remove stale then re-add
-  if (window.__vt_photos_onKeydown) {
-    document.removeEventListener("keydown", window.__vt_photos_onKeydown);
-  }
-  window.__vt_photos_onKeydown = function (e) {
-    var lb = document.getElementById("lightbox");
-    if (!lb || !lb.classList.contains("is-open")) return;
-    if (e.key === "Escape") window.__vt_closePhoto();
-    if (e.key === "ArrowLeft") window.__vt_navPhoto(-1);
-    if (e.key === "ArrowRight") window.__vt_navPhoto(1);
-  };
-  document.addEventListener("keydown", window.__vt_photos_onKeydown);
-</script>
-
-<!-- 内容入场:独立 script 块(define:vars 脚本被视为 inline,不能 import/TS 注解)。
-     作用于 a 容器,不与 img 的 hover scale 冲突;每次 VT 导航重跑 → 切页后入场动画重放 -->
 <script>
-  import { animate, inView, spring } from "motion";
-
-  declare global {
-    interface Window {
-      __vt_photoReplay: () => void;
-    }
-  }
-
-  (function () {
-    var items: HTMLElement[] = Array.prototype.slice.call(document.querySelectorAll(".photo-item"));
-    if (!items.length) return;
-    // JS 设初始态(无 JS 时内容保持可见);每元素进入视口触发一次,
-    // 延迟按原顺序递增形成交错;reduced-motion 降级为淡入(跳过位移)
-    items.forEach(function (el) {
-      el.style.opacity = "0";
-      el.style.transform = "translateY(10px)";
-    });
-    inView(".photo-item", function (el) {
-      var card = el as HTMLElement;
-      var idx = items.indexOf(card);
-      animate(card, { opacity: 1, y: 0 }, {
-        type: spring, visualDuration: 0.55, bounce: 0.1,
-        delay: 0.15 + Math.max(idx, 0) * 0.05,
-        reduceMotion: true,
-      }).finished.then(function () {
-        card.style.opacity = "";
-        card.style.transform = "";
-      }).catch(function () {});
-      return function () {}; // 触发一次后取消观察
-    });
-
-    // 视图切换重放:全部照片重新 stagger 淡入(与时间线入场一致)。
-    // 主脚本(define:vars 内联,不能 import)经 window 桥接调用
-    window.__vt_photoReplay = function () {
-      var all: HTMLElement[] = Array.prototype.slice.call(document.querySelectorAll(".photo-item"));
-      if (!all.length) return;
-      all.forEach(function (el) {
-        el.style.opacity = "0";
-        el.style.transform = "translateY(10px)";
-      });
-      all.forEach(function (el, idx) {
-        animate(el, { opacity: 1, y: 0 }, {
-          type: spring, visualDuration: 0.55, bounce: 0.1,
-          delay: 0.1 + idx * 0.05,
-          reduceMotion: true,
-        }).finished.then(function () {
-          el.style.opacity = "";
-          el.style.transform = "";
-        }).catch(function () {});
-      });
+  const grid = document.querySelector<HTMLElement>("#photo-grid");
+  const cards = [...document.querySelectorAll<HTMLAnchorElement>(".photo-item")];
+  const dialog = document.querySelector<HTMLDialogElement>("#lightbox");
+  const stage = document.querySelector<HTMLElement>("#lightbox-stage");
+  const lightboxBody = document.querySelector<HTMLElement>(".lightbox-body");
+  const image = document.querySelector<HTMLImageElement>("#lightbox-image");
+  const loading = document.querySelector<HTMLElement>("#lightbox-loading");
+  const error = document.querySelector<HTMLElement>("#lightbox-error");
+  const caption = document.querySelector<HTMLElement>("#lightbox-caption");
+  const counter = document.querySelector<HTMLElement>("#lightbox-counter");
+  const prev = document.querySelector<HTMLButtonElement>("#lightbox-prev");
+  const next = document.querySelector<HTMLButtonElement>("#lightbox-next");
+  let current = 0;
+  let request = 0;
+  const visible = () => cards.filter(card => !card.hidden);
+  function show(index: number) {
+    const list = visible();
+    if (!list.length || !image || !loading || !error || !caption || !counter) return;
+    current = (index + list.length) % list.length;
+    const card = list[current];
+    const token = ++request;
+    image.hidden = true;
+    image.removeAttribute("src");
+    loading.hidden = false;
+    error.hidden = true;
+    stage?.setAttribute("aria-busy", "true");
+    const note = card.dataset.caption || "";
+    caption.textContent = note || dialog?.dataset.noNote || "";
+    caption.classList.toggle("is-placeholder", !note);
+    counter.textContent = `${current + 1} / ${list.length}`;
+    if (prev) prev.disabled = list.length < 2;
+    if (next) next.disabled = list.length < 2;
+    // An independent loader prevents a slow previous request from replacing the current image.
+    const pending = new Image();
+    pending.onload = () => {
+      if (token !== request) return;
+      image.src = card.href;
+      image.alt = card.querySelector("img")?.alt || "";
+      image.hidden = false;
+      loading.hidden = true;
+      stage?.setAttribute("aria-busy", "false");
     };
-  })();
+    pending.onerror = () => {
+      if (token !== request) return;
+      loading.hidden = true;
+      error.hidden = false;
+      stage?.setAttribute("aria-busy", "false");
+    };
+    pending.src = card.href;
+  }
+  cards.forEach(card => card.addEventListener("click", event => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !dialog) return;
+    event.preventDefault();
+    show(visible().indexOf(card));
+    dialog.showModal();
+    document.body.classList.add("photo-open");
+  }));
+  prev?.addEventListener("click", () => show(current - 1));
+  next?.addEventListener("click", () => show(current + 1));
+  dialog?.addEventListener("keydown", event => {
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault(); show(current + (event.key === "ArrowLeft" ? -1 : 1));
+    }
+  });
+  dialog?.addEventListener("click", event => {
+    if (event.target === dialog || event.target === stage || event.target === lightboxBody) dialog.close();
+  });
+  dialog?.addEventListener("close", () => { request++; document.body.classList.remove("photo-open"); });
+  window.addEventListener("pageshow", () => dialog?.close());
+  const input = document.querySelector<HTMLInputElement>("#photo-search");
+  input?.addEventListener("input", () => {
+    const query = input.value.trim().toLocaleLowerCase();
+    cards.forEach(card => { card.hidden = !card.dataset.search?.toLocaleLowerCase().includes(query); });
+    document.querySelectorAll<HTMLElement>(".photo-group").forEach(group => {
+      group.hidden = ![...group.querySelectorAll<HTMLElement>(".photo-item")].some(card => !card.hidden);
+    });
+    const noResults = document.querySelector<HTMLElement>("#photo-no-results");
+    if (noResults) noResults.hidden = visible().length > 0;
+  });
+  function setView(view: string) {
+    grid?.classList.toggle("is-wall", view !== "timeline");
+    document.querySelectorAll<HTMLElement>("[data-view]").forEach(button => {
+      const active = button.dataset.view === view;
+      button.setAttribute("aria-pressed", String(active));
+      button.classList.toggle("is-active", active);
+    });
+  }
+  try { setView(localStorage.getItem("doebk-photo-view") === "timeline" ? "timeline" : "wall"); } catch { setView("wall"); }
+  document.querySelectorAll<HTMLElement>("[data-view]").forEach(button => button.addEventListener("click", () => {
+    const view = button.dataset.view!;
+    setView(view);
+    try { localStorage.setItem("doebk-photo-view", view); } catch { /* The current view remains usable. */ }
+  }));
 </script>
 
 <style>
-  .page {
-    padding: var(--space-16) var(--space-8) var(--space-24);
-  }
-
-  .page-subtitle {
-    margin-top: var(--space-4);
-    font-size: var(--text-lg);
-    color: var(--color-text-secondary);
-  }
-
-  /* ── Empty ──────────────────────────────────────── */
-  .empty-state {
-    text-align: center;
-    padding: var(--space-20) 0;
-    color: var(--color-text-tertiary);
-  }
-
-  .empty-state p {
-    font-size: var(--text-lg);
-  }
-
-  /* ── Toolbar (参考 music) ──────────────────────── */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-10);
-    flex-wrap: wrap;
-  }
-
-  .search-wrap {
-    position: relative;
-    flex: 1;
-    /* 比 music 少 14px:view-toggle 比 sort-group 宽 1 个汉字(14px),
-       两页换行临界同为 toolbar 322px,任意宽度下两页布局一致
-       (166+16+140 = 180+16+126 = 322) */
-    min-width: 166px;
-    max-width: 320px;
-  }
-
-  .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    color: var(--color-text-tertiary);
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 8px 14px 8px 36px;
-    border: none;
-    border-radius: var(--radius-full);
-    background: var(--color-bg-page);
-    font-size: var(--text-sm);
-    color: var(--color-text-primary);
-    outline: none;
-    transition: background 200ms, box-shadow 200ms;
-    font-family: inherit;
-  }
-
-  .search-input::placeholder {
-    color: var(--color-text-tertiary);
-  }
-
-  .search-input:focus {
-    background: var(--color-bg-surface);
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
-  }
-
-  /* WebKit search input reset */
-  .search-input::-webkit-search-decoration,
-  .search-input::-webkit-search-cancel-button,
-  .search-input::-webkit-search-results-button,
-  .search-input::-webkit-search-results-decoration {
-    -webkit-appearance: none;
-  }
-
-  /* ── No results ───────────────────────────────── */
-  .no-results {
-    text-align: center;
-    padding: var(--space-16) 0;
-    color: var(--color-text-tertiary);
-  }
-
-  /* ── View toggle (与 music .sort-group 严格一致:无自身 margin,间距由 .toolbar 统一) ── */
-  .view-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .view-icon {
-    color: var(--color-text-tertiary);
-    flex-shrink: 0;
-    margin-right: 2px;
-  }
-
-  .view-option {
-    padding: 4px 6px;
-    border: none;
-    background: none;
-    border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    font-family: inherit;
-    color: var(--color-text-tertiary);
-    cursor: pointer;
-    transition: color 150ms;
-    white-space: nowrap;
-  }
-
-  .view-option:hover {
-    color: var(--color-text-secondary);
-  }
-
-  .view-option.is-active {
-    color: var(--color-accent);
-    font-weight: 600;
-  }
-
-  .view-sep {
-    color: var(--color-border);
-    font-size: var(--text-sm);
-    user-select: none;
-  }
-
-  /* ── 照片墙:display:contents 打破日期分组,所有照片进入同一个连续 grid——
-         auto-fill 自动均分行宽,前面行填满、尾行留空、图片大小一致不放大 ── */
-  #photo-grid.is-wall {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-4);
-  }
-
-  #photo-grid.is-wall .photo-group,
-  #photo-grid.is-wall .photo-grid-inner {
-    display: contents;
-  }
-
-  #photo-grid.is-wall .photo-group-date {
-    display: none;
-  }
-
-  /* ── Photo group ────────────────────────────────── */
-  .photo-group {
-    margin-bottom: var(--space-12);
-  }
-
-  .photo-group-date {
-    font-size: var(--text-lg);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    margin-bottom: var(--space-4);
-    letter-spacing: var(--tracking-normal);
-  }
-
-  /* ── Photo grid ─────────────────────────────────── */
-  .photo-grid-inner {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-4);
-  }
-
-  .photo-item {
-    position: relative;
-    display: block;
-    overflow: hidden;
-    border-radius: var(--radius-lg);
-    background: var(--color-bg-surface);
-    cursor: pointer;
-    text-decoration: none;
-    aspect-ratio: 4 / 3;
-  }
-
-  .photo-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
-  }
-
-  .photo-item:hover img {
-    transform: scale(1.03);
-  }
-
-  /* ── Lightbox ───────────────────────────────────── */
-  .lightbox {
-    position: fixed;
-    inset: 0;
-    z-index: 500;
-    background: rgba(28, 28, 30, 0.88);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition:
-      opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      visibility 0ms 300ms;
-  }
-
-  .lightbox.is-open {
-    opacity: 1;
-    visibility: visible;
-    transition:
-      opacity 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      visibility 0ms 0ms;
-  }
-
-  /* ── Close button ──────────────────────────────── */
-  .lightbox-close {
-    position: absolute;
-    top: var(--space-5);
-    right: var(--space-5);
-    z-index: 20;
-    width: 2.5rem;
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.9);
-    cursor: pointer;
-    transition: background 150ms, transform 150ms;
-    padding: 0;
-  }
-
-  .lightbox-close:hover {
-    background: rgba(255, 255, 255, 0.22);
-    transform: scale(1.05);
-  }
-
-  /* ── Prev / Next ───────────────────────────────── */
-  .lightbox-prev,
-  .lightbox-next {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    width: 2.75rem;
-    height: 2.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
-    cursor: pointer;
-    transition: background 150ms, transform 150ms;
-    padding: 0;
-  }
-
-  .lightbox-prev { left: var(--space-5); }
-  .lightbox-next { right: var(--space-5); }
-
-  .lightbox-prev:hover,
-  .lightbox-next:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-50%) scale(1.05);
-  }
-
-  /* ── Body: image + caption ─────────────────────── */
-  .lightbox-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-4);
-    max-width: 85vw;
-    max-height: 88vh;
-  }
-
-  .lightbox-img-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    min-height: 0;
-  }
-
-  .lightbox-img {
-    max-width: 85vw;
-    max-height: 72vh;
-    object-fit: contain;
-    border-radius: var(--radius-lg);
-    box-shadow:
-      0 4px 40px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(255, 255, 255, 0.06);
-    transition: opacity 250ms;
-  }
-
-  /* 加载态:立即隐藏旧图(无淡出,防切换瞬间残留上一张),load 完成后淡入 */
-  .lightbox-img.is-loading {
-    opacity: 0;
-    transition: none;
-  }
-
-  /* ── Loading spinner ─────────────────────────── */
-  .lightbox-spinner {
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--radius-full);
-    border: 2px solid rgba(255, 255, 255, 0.22);
-    border-top-color: rgba(255, 255, 255, 0.9);
-    animation: lightbox-spin 0.8s linear infinite;
-  }
-
-  @keyframes lightbox-spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* reduced-motion:旋转降级为透明度呼吸 */
-  @media (prefers-reduced-motion: reduce) {
-    .lightbox-spinner {
-      animation: lightbox-pulse 2s ease-in-out infinite;
-    }
-  }
-
-  @keyframes lightbox-pulse {
-    0%, 100% { opacity: 0.35; }
-    50% { opacity: 0.9; }
-  }
-
-  /* ── Load error ──────────────────────────────── */
-  .lightbox-error {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    padding: var(--space-6);
-    color: rgba(255, 255, 255, 0.75);
-    font-size: var(--text-lg);
-    text-align: center;
-  }
-
-  /* 显式兜底:hidden 属性需压过上方 display:flex */
-  .lightbox-error[hidden] {
-    display: none;
-  }
-
-  .lightbox-caption {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: var(--text-sm);
-    text-align: center;
-    line-height: var(--leading-relaxed);
-    max-width: 48ch;
-    padding: 0 var(--space-4);
-    min-height: 1.5em;
-  }
-  /* 札记引文样式（占位文案不加引号）：斜体衬线 + 双引号 + 大字号 */
-  .lightbox-caption:not(.is-placeholder) {
-    font-style: italic;
-    font-family: Georgia, "Songti SC", "Noto Serif SC", serif;
-    font-size: var(--text-lg);
-  }
-  .lightbox-caption:not(.is-placeholder)::before { content: "“"; }
-  .lightbox-caption:not(.is-placeholder)::after { content: "”"; }
-
-  .lightbox-caption.is-placeholder {
-    color: rgba(255, 255, 255, 0.2);
-    font-style: italic;
-    /* 与真实札记同字体字号,切换时视觉不跳变(引号除外:占位不加) */
-    font-family: Georgia, "Songti SC", "Noto Serif SC", serif;
-    font-size: var(--text-lg);
-  }
-
-  /* ── Mobile ────────────────────────────────────── */
+  #photo-grid.is-wall, .photo-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: clamp(0.75rem, 1.6vw, 1.5rem); }
+  #photo-grid.is-wall .photo-group, #photo-grid.is-wall .photo-grid-inner { display: contents; }
+  #photo-grid.is-wall .photo-group-date { display: none; }
+  .photo-group { margin-bottom: clamp(4rem, 8vw, 7rem); }
+  .photo-group-date { margin-bottom: 1rem; padding-top: .75rem; border-top: 1px solid var(--color-border); color: var(--color-text-tertiary); font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 500; letter-spacing: .035em; }
+  .photo-item { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 3; border: 1px solid var(--color-border-light); background: var(--color-bg-muted); cursor: pointer; text-decoration: none; }
+  .photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 500ms var(--ease-gallery), filter 500ms ease; }
+  .photo-item:hover img { transform: scale(1.018); }
+  #photo-grid .photo-item[hidden], #photo-grid .photo-group[hidden] { display: none; }
+  .empty-state { color: var(--color-text-tertiary); }
+  .lightbox { position: fixed; inset: 0; margin: 0; width: 100%; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: max(2rem, env(safe-area-inset-top), env(safe-area-inset-bottom)) max(3.5rem, env(safe-area-inset-right), env(safe-area-inset-left)); border: 0; background: transparent; box-shadow: none; color: rgb(255 255 255 / .85); }
+  .lightbox[open] { display: flex; align-items: center; justify-content: center; }
+  .lightbox-body { display: flex; flex-direction: column; align-items: center; gap: 1rem; width: min(76vw, 1000px); max-width: 100%; }
+  #lightbox-counter { position: absolute; top: max(1rem, env(safe-area-inset-top)); left: max(1.5rem, env(safe-area-inset-left)); line-height: 44px; color: rgb(255 255 255 / .5); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .lightbox-control { position: absolute; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 1.75rem; }
+  .lightbox-control:hover { color: white; }
+  .lightbox-control:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+  .lightbox-control:disabled { opacity: .25; cursor: default; }
+  #lightbox-prev, #lightbox-next { top: 50%; transform: translateY(-50%); }
+  #lightbox-prev { left: max(.5rem, env(safe-area-inset-left)); }
+  #lightbox-next { right: max(.5rem, env(safe-area-inset-right)); }
+  .lightbox-stage { width: 100%; min-height: 3rem; display: grid; grid-template: auto / minmax(0, 1fr); place-items: center; }
+  .lightbox-stage > * { grid-area: 1 / 1; min-width: 0; min-height: 0; }
+  .lightbox-stage img { width: auto; height: auto; max-width: 100%; max-height: 64vh; max-height: 64dvh; object-fit: contain; border: 0; box-shadow: none; }
+  .lightbox-stage [hidden] { display: none; }
+  #lightbox-caption { max-width: 48ch; max-height: 18vh; max-height: 18dvh; overflow-y: auto; margin: 0 auto; padding: 0 var(--space-4); min-height: 1.5em; text-align: center; white-space: pre-wrap; font-family: var(--font-editorial); font-style: italic; font-size: var(--text-lg); line-height: var(--leading-relaxed); color: rgb(255 255 255 / .7); }
+  #lightbox-caption:not(.is-placeholder)::before { content: "“"; }
+  #lightbox-caption:not(.is-placeholder)::after { content: "”"; }
+  #lightbox-caption.is-placeholder { color: rgb(255 255 255 / .35); }
+  :global(body.photo-open) { overflow: hidden; }
   @media (max-width: 640px) {
-    .photo-grid-inner {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: var(--space-2);
-    }
-
-    #photo-grid.is-wall {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: var(--space-2);
-    }
-
-
-    .lightbox-prev { left: var(--space-2); }
-    .lightbox-next { right: var(--space-2); }
+    #photo-grid.is-wall, .photo-grid-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+    .lightbox { padding-inline: max(3rem, env(safe-area-inset-left), env(safe-area-inset-right)); }
+    .lightbox-body { width: 100%; }
+    #lightbox-caption { padding: 0; font-size: var(--text-base); }
   }
-</style>
-
-<style is:global>
-  .photos-page .toolbar { justify-content: space-between; margin-bottom: clamp(3rem, 6vw, 5rem); }
-  .photos-page .search-wrap { max-width: 26rem; }
-
-  .photos-page #photo-grid.is-wall,
-  .photos-page .photo-grid-inner {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: clamp(0.75rem, 1.6vw, 1.5rem);
-  }
-
-  .photos-page .photo-group { margin-bottom: clamp(4rem, 8vw, 7rem); }
-
-  .photos-page .photo-group-date {
-    margin-bottom: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--color-border);
-    color: var(--color-text-tertiary);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: 500;
-    letter-spacing: 0.035em;
-  }
-
-  .photos-page .photo-item {
-    border: 1px solid var(--color-border-light);
-    border-radius: 0;
-    background: var(--color-bg-muted);
-  }
-
-  .photos-page .photo-item img { transition: transform 500ms var(--ease-gallery), filter 500ms ease; }
-  .photos-page .photo-item:hover img { transform: scale(1.018); }
-
-  .photos-page .lightbox {
-    background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  .photos-page .lightbox-close,
-  .photos-page .lightbox-prev,
-  .photos-page .lightbox-next {
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    border-radius: 0;
-    background: rgba(0, 0, 0, 0.35);
-  }
-
-  .photos-page .lightbox-img { border-radius: 0; box-shadow: none; }
-  .photos-page .lightbox-caption { font-family: var(--font-editorial); }
-
-  @media (max-width: 640px) {
-    .photos-page .toolbar { align-items: stretch; }
-    .photos-page .search-wrap { flex-basis: 100%; max-width: none; }
-    .photos-page #photo-grid.is-wall,
-    .photos-page .photo-grid-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-  }
+  @media (prefers-reduced-motion: reduce) { .photo-item img { transition: none; } }
 </style>

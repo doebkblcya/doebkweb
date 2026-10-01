@@ -1,254 +1,49 @@
 # 架构说明
 
-更新日期：2026-09-09
+更新日期：2026-10-01
 
-## 技术栈
+## 静态多页面
 
-| 层 | 实现 |
-|---|---|
-| 页面与静态生成 | Astro 5，`output: "static"` |
-| 语言与检查 | TypeScript、`@astrojs/check` |
-| 动效 | Motion 12 + CSS animation/transition |
-| 内容 | Astro Content Collections、Markdown、Shiki |
-| 搜索 | Pagefind 1.5，构建后生成索引 |
-| 发布 | Cloudflare Pages |
-| 媒体 | Cloudflare R2 + 自定义 CDN 域名 |
+Astro 5 的 `output: static` 生成 zh/en 独立 HTML，路由保持 `/[lang]/about/`、`docs/`、`music/`、`photos/`。BaseLayout 提供元信息、主题首帧、侧栏、页脚；首页设置 `hideHeader`，保留独立 `<home-hero>` 交互。
 
-版本以 `package.json` 和 `pnpm-lock.yaml` 为准，不在本文复制补丁版本。
+导航是普通链接，每个新页面独立加载脚本。已移除 ClientRouter、持久化 audio、VinylPlayer、曲目派生数据和 `window.__vt_*` 全局桥接。页面脚本只负责本页 DOM，无跨页播放状态或交换 DOM 的生命周期兼容逻辑。历史记录 `src/content/docs/vt-bugs.md` 不再代表当前实现。
 
-## 目录结构
+## 页面转场
 
-```text
-public/
-├── images/home-figure.webp
-├── favicon.svg
-├── apple-touch-icon.png
-├── _redirects
-└── 404.html
-src/
-├── components/
-│   ├── Sidebar.astro
-│   ├── LanguageSettings.astro
-│   ├── VinylPlayer.astro
-│   └── Footer.astro
-├── content/
-│   ├── config.ts
-│   └── docs/*.md
-├── data/
-│   ├── about.ts
-│   ├── music.json
-│   ├── playlist.ts
-│   ├── photos.json
-│   └── photos.ts
-├── i18n/
-│   ├── zh.ts
-│   └── en.ts
-├── layouts/BaseLayout.astro
-├── pages/
-│   ├── index.astro
-│   └── [lang]/
-│       ├── _getStaticPaths.ts
-│       ├── index.astro
-│       ├── about.astro
-│       ├── docs/
-│       ├── music.astro
-│       ├── photos.astro
-│       └── 404.astro
-├── styles/
-│   ├── tokens.css
-│   ├── reset.css
-│   ├── global.css
-│   └── prose.css
-└── types/i18n.ts
-scripts/media.mjs
-docs/
-```
+内页 head 输出 `@view-transition { navigation: auto; }`，`transitions.css` 将正文与侧栏分开命名。正文离场约 90ms 淡出、入场 280ms 淡入并上移 6px；侧栏保持静态。只动画化透明度与位移，不动画化模糊、不逐项编排内容。首页不输出 opt-in，进出首页为普通导航，避免与 hero 冲突。
 
-## 构建与路由
+浏览器需同时支持且源/目标页均启用跨文档转场。不支持时普通切页，不引入兼容库。`prefers-reduced-motion` 禁用原生转场。转场只负责视觉，不控制导航和业务状态。
 
-Astro 为 zh/en 预渲染完整 HTML：
+## 页面数据与交互
 
-```text
-/                         → /zh/
-/[lang]/                  → 首页
-/[lang]/about/            → 关于我
-/[lang]/docs/             → 文档列表
-/[lang]/docs/[slug]/      → 文档详情
-/[lang]/music/            → 音乐
-/[lang]/photos/           → 摄影
-/[lang]/404/              → 语言内 404
-```
+- `albums.json` + `albums.ts`：静态专辑、封面 URL、用户原文乐评、Apple Music 专辑链接和资料来源。唱片页默认“选集”，可切换为完整“唱片架”；搜索/排序只处理唱片架现有 DOM。两种视图共用原生 dialog，在模糊背景上居中展示封面、资料和乐评，无关闭按钮；底部“播放”通过 `appleMusicUrl` 跳转 Apple Music，`sources` 仅供维护核对。支持点击背景、Escape 和焦点返回，长内容在弹层内滚动。
+- `AlbumSelection.astro`：只渲染非空乐评候选，封套、CSS 黑胶、名称/艺术家/年份和完整乐评组成一组。页面脚本用 Fisher–Yates 打散候选并选出最多三张；sessionStorage 只保存本标签页上一次展示的 ID 序列，避免相邻重复。初次进入和从唱片架切回时重选，历史缓存返回不重排，阅读中不换作品。
+- IntersectionObserver 持续观察当前展示的作品，每次进入视线时触发 CSS 抽出和文字展开，离开视线后复位，滚动回来时重播且不改变顺序；视图切换/页面离开时断开，历史返回时恢复观察。没有持续旋转、轮播或额外动画依赖。减少动态效果时直接显示静态展开状态。
+- 专辑列表与唱片中心标签使用 `thumb`（360px WebP）懒加载；选集封套进入视线时升级为 `cover`（1000px JPEG）。详情大图只在打开对应 dialog 时写入 `src`，关闭时移除，隐藏弹层不提前请求大图。无 JS 时显示服务器生成的前三篇乐评和完整唱片架。
+- `photos.json` + `photos.ts`：图片 URL、尺寸、拍摄日、alt 和 note。摄影页沿用统一 4:3 缩略图网格，时间线按日期分组；札记只在大图下方以斜体衬线和引号展示；原生 dialog 使用半透明模糊背景，图片和札记整体居中，无边框和关闭按钮，支持点击背景关闭、焦点管理、Escape 和方向键。请求序号防止慢加载旧图片覆盖新图片。
+- `about.ts`：关于页正文。
+- Content Collections：Markdown 文档和 frontmatter；构建 Shiki 双主题高亮，Pagefind 建立双语索引。
+- 文档列表脚本：本页闭包管理搜索防抖、异步结果序号与键盘选择，直接 DOM 日期排序；开发模式不导入 Pagefind。
+- 文档详情：普通锚点，滚动时以 rAF 更新目录高亮，无全局导航事件。
+- 侧栏：服务器标记当前链接，移动端用 inert 和焦点循环限制关闭抽屉的可达性。
+- 设置：侧栏底部同宽文字入口，左对齐、上方细线，无图标和方框；原生 dialog，无关闭按钮，通过点击背景或 Escape 关闭；主题读取 `doebk-theme`（light/dark/auto），页面 head 防首帧闪烁；语言切换普通链接。
 
-`astro.config.mjs` 同时配置：
+设置、专辑和摄影弹层共用 `global.css` 的 `dialog::backdrop`。`tokens.css` 集中定义 `--modal-backdrop-blur: 28px` 与 `--modal-backdrop-bg`（65% 黑色），组件不单独定义遮罩效果。
 
-- `prefixDefaultLocale: true`
-- Shiki 的 github-light/github-dark 双主题
-- Markdown 表格包裹器
-- 移除正文开头与 frontmatter 重复的 h1
-- sitemap 集成
+页面后退缓存恢复时关闭弹窗/抽屉并同步主题；无需恢复共享播放器。
 
-`pnpm build` 先执行 Astro，再以 `dist/` 为输入生成 Pagefind 索引。文档列表通过 `import.meta.env.PROD` 控制搜索初始化：开发服务器跳过动态导入，preview 与正式部署从 `/pagefind/pagefind.js` 加载索引。
+## 本地媒体流程
 
-## 页面骨架
+`maintenance/media/` 放 AI 文档与小工具。sharp 负责派生图，ExifTool 只提取 RAW 内嵌 JPEG 和拍摄日；Wrangler 上传远程 R2。工具不修改公开数据或执行 Git。AI 核对资料与图片、上传并验证对象后，更新网站 JSON，再构建/发布。
 
-```text
-BaseLayout
-├── head：SEO、首帧主题脚本、ClientRouter
-└── body
-    ├── skip link
-    ├── audio                         persist: audio
-    ├── VinylPlayer                   persist: vinyl-player
-    ├── Sidebar + LanguageSettings    每页重建
-    └── content-area
-        ├── main / slot               每页重建
-        └── Footer                    按页面决定是否显示
-```
+R2 已清空，公开媒体数组从空开始。旧专辑名和乐评存放在 maintenance 示例目录中，仅作重新录入参考。静态构建和访客加载不访问外部专辑 API。
 
-`hideHeader` 实际控制 body 是否带 `has-sidebar`。共享组件仍会渲染；首页通过这个 class 隐藏 Sidebar、汉堡按钮和 VinylPlayer，以满足持久化元素必须在前后页面都存在的条件。
+## 样式与资源
 
-## ClientRouter 与持久化
+`tokens.css`、reset、global、prose 与页面 scoped CSS 组成样式体系；转场集中于 `transitions.css`。字体由 Fontsource 自托管。Motion 仅用于现有首页动画，图片和专辑展示不增加动效依赖。
 
-`BaseLayout` 使用 Astro 5 的 `<ClientRouter fallback="swap" />`。根元素声明 `transition:animate="none"`，因此路由只负责：
+文档、摄影与唱片工具栏的搜索框、图标、排序/视图按钮与移动端换行规则集中在 `global.css`，使用相同字号、内边距和 `aria-pressed` 选中样式。页面只保留工具栏与内容之间的必要间距差异。
 
-- 拦截站内链接并替换页面 body
-- 保持 history、前进与后退
-- 移动持久化元素到新页面
-- 触发 Astro 导航生命周期事件
+内页页头间距由共享 `.page-divider` 维护；紧接工具栏时取消分隔线下方间距及工具栏上边框，共用一条线。唱片架的两层工具栏直接相接，文档列表首行不重复画上边框。
 
-只有两个持久化节点：
-
-- `#audio`：真实播放源和播放时间
-- `#vinyl-app`：播放器 UI 与运行状态
-
-Sidebar 不持久化，因为语言、链接和激活状态依赖当前页面。首页标题、人物、导航也不持久化。
-
-### 脚本生命周期
-
-Astro 打包的 module script 在同一个 document 中去重执行。ClientRouter 返回一个已访问页面时，新 DOM 会出现，但原 module 不一定再次执行。因此：
-
-- 新页面交互优先封装为 Custom Element。
-- `connectedCallback` 初始化当前实例。
-- `disconnectedCallback` 释放全局监听、Observer、定时器、rAF 和 Motion 控制器。
-- 全局事件通过 `AbortController.signal` 成组清理。
-- 只有跨页真实状态进入 persist 或全局存储。
-
-首页 `<home-hero>` 已采用这个模式。旧组件仍存在 inline handler + `window.__vt_*`，它们是兼容债务，不是新代码模板。
-
-### 首页状态
-
-首页只有两个稳定状态：
-
-```text
-collapsed
-├── 大标题居中
-├── 人物占据前景
-└── portal 不可见、不可点击
-
-expanded
-├── 标题缩小并移向左上区域
-├── 人物缩放并移到右侧/中部
-└── portal 在左下区域显示
-```
-
-滚轮、触摸和键盘只决定目标状态，不把真实页面滚动量当作动画进度。Motion 插值直接更新标题、人物和导航的变换及透明度；离开首页时由 Custom Element 统一停止。
-
-`<home-hero>` 是 deferred 模块脚本，首帧可能早于元素升级。因此 BaseLayout 的同步 head 脚本在解析期写入 `html[data-hero="pending"]`，`index.astro` 据此先把 portal 画到画面外并禁用点击，保证首帧就是 collapsed；`render()` 接管后以内联样式控制动画。`prefers-reduced-motion` 下不写标记，直接呈现 expanded 终态；模块脚本加载失败时由 `DOMContentLoaded` 清除标记，同样回落到可操作终态。
-
-## 数据流
-
-### 音乐
-
-```text
-music.json
-  ↓ playlist.ts：类型、排序、URL 派生
-  ├── music.astro：专辑架与搜索
-  └── BaseLayout → VinylPlayer：扁平曲目列表
-                       ↕
-                    #audio 自定义事件
-```
-
-`trackNo` 是曲序；封面和音频 URL 根据专辑目录派生。播放器初始化使用 ready 守卫，因为其 DOM 跨页不销毁。播放器同时监听 `astro:after-swap`，在语言切换后同步按钮文案、无障碍名称和唱片架链接。
-
-播放器的迷你唱片是面板入口，面板不保留独立关闭按钮；点击面板外部或按 Escape 收起。桌面面板让唱片、唱臂与曲目信息并列，文字区域保留唱臂安全间距；手机端把播放控制独占首行，播放列表、音量和唱片架放在第二行，避免窄屏形成不平衡的 T 形布局。未选择专辑时，唱片架入口占满工具区。
-
-### 摄影
-
-```text
-photos.json → photos.ts 类型薄层 → photos.astro
-```
-
-页面按日期排序并生成照片墙、时间线和 Lightbox。原图与缩略图 URL 指向 R2。
-
-### 关于页
-
-```text
-about.ts → about.astro
-```
-
-关于页已经脱离 Markdown collection；只有页面标题等 UI 使用 i18n。
-
-### 文档
-
-```text
-src/content/docs/*.md
-  ↓ content schema
-  ├── docs/index.astro：列表、排序、Pagefind 搜索
-  └── docs/[slug].astro：正文、Shiki、TOC、Pagefind 元数据
-```
-
-`draft: true` 或 `listed: false` 的条目既不出现在列表，也不生成详情路径。
-
-## 主题与 i18n
-
-主题状态：
-
-```text
-localStorage["doebk-theme"] = light | dark | auto
-html[data-theme-mode]       = 用户选择
-html[data-theme]            = 当前实际 light/dark
-```
-
-BaseLayout 的同步 head 脚本在首帧前写入属性，避免闪烁。ClientRouter 替换文档属性后，Sidebar 的 `astro:after-swap` 处理器重新应用主题并同步 UI。
-
-`UIStrings` 约束 zh/en 结构。路由 UI 翻译，文章和关于页正文保持原语言。
-
-## 样式层级
-
-| 文件 | 职责 |
-|---|---|
-| `tokens.css` | 纸白/纯黑颜色、编辑/正文/元数据字体、字号和间距 |
-| `reset.css` | 浏览器样式归一化 |
-| `global.css` | body、画册页框、共享标题、工具栏与输入框 |
-| `prose.css` | 编辑型 Markdown 正文、结构线和 Shiki 双主题 |
-| 组件内 `<style>` | 页面与组件局部布局 |
-
-字体由 Fontsource 包随构建产物自托管，拉丁与中文均使用可变 WOFF2，并由 Unicode range 按实际字形请求。首页与其余页面共用明暗主题背景：浅色为纸白、暗色为纯黑。
-
-## 动效策略
-
-- 根页面切换：无动画，避免新旧页面快照叠加。
-- 首页构图：Motion 数值动画，可中断和反向。
-- 抽屉、播放器、设置面板：Motion spring。
-- hover、focus、颜色变化：CSS transition。
-- 黑胶旋转等循环效果：CSS keyframes。
-- reduced-motion：移除位移和循环动画，核心控件直接可用。
-
-同一 transform/opacity 不允许同时被 Motion 和 CSS transition 控制。
-
-## 本地状态
-
-| Key/位置 | 内容 |
-|---|---|
-| `doebk-theme` | 主题模式 |
-| audio dataset/属性 | 当前专辑、曲目、播放位置 |
-| 照片页 localStorage | 照片墙/时间线偏好 |
-
-页面可派生状态应从当前 DOM 和 URL 重建，不放入全局对象。
-
-## 已知技术债务
-
-- Sidebar、LanguageSettings、文档列表、音乐页、摄影页仍有 inline event 与 `window.__vt_*`。
-- `define:vars` 脚本是 inline 脚本，不能直接 import Motion；现有代码使用独立 module 与 window 桥接。
-- 项目还没有提交到仓库的自动化浏览器回归测试。
-
-后续迁移顺序见 `docs/roadmap.md`，历史 ClientRouter 问题见 `src/content/docs/vt-bugs.md`。
+public 保存 UI 素材；R2 保存封面、大图和预览。原始素材、派生输出、Wrangler 状态和凭证不进 Git。

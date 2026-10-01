@@ -1,0 +1,21 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { derivative, slug } from './images.mjs';
+
+const configPath = process.argv[2];
+if (!configPath) throw new Error('Pass the path to a cover request JSON. See maintenance/media/albums.md.');
+const config = JSON.parse(await readFile(configPath, 'utf8'));
+const id = slug(config.id, 'id'), version = slug(config.version, 'version');
+const output = path.resolve(config.output || `materials/processed/${id}-${version}`);
+await mkdir(path.dirname(output), { recursive: true });
+await mkdir(output);
+const file = path.join(output, 'cover.jpg');
+const source = { bytes: await readFile(config.input) };
+const info = await derivative(source, file, { edge: config.edge ?? 1000, quality: config.quality ?? 82, format: 'jpeg' });
+const previewFile = path.join(output, 'preview.webp');
+const preview = await derivative(source, previewFile, { edge: config.previewEdge ?? 360, quality: config.previewQuality ?? 78, format: 'webp' });
+const key = `albums/${id}/${version}/cover.jpg`;
+const previewKey = `albums/${id}/${version}/preview.webp`;
+await writeFile(path.join(output, 'cover.draft.json'), JSON.stringify({ cover: `https://cdn.doebkblcya.com/${key}`, thumb: `https://cdn.doebkblcya.com/${previewKey}` }, null, 2) + '\n');
+await writeFile(path.join(output, 'uploads.json'), JSON.stringify([{ key, file, contentType: 'image/jpeg', size: info.size }, { key: previewKey, file: previewFile, contentType: 'image/webp', size: preview.size }], null, 2) + '\n');
+process.stdout.write(`Prepared ${info.width}×${info.height} cover: ${output}\n`);
