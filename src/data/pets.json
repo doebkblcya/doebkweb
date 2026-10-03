@@ -2,14 +2,14 @@
   {
     "id": "xiaolang",
     "name": "小狼",
-    "width": 360,
-    "height": 480,
-    "poster": "https://cdn.doebkblcya.com/pets/20261004-v4/xiaolang/poster.webp",
+    "width": 342,
+    "height": 408,
+    "poster": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaolang/poster.webp",
     "clips": {
       "idle": {
         "durationMs": 3417,
-        "webm": "https://cdn.doebkblcya.com/pets/20261004-v4/xiaolang/idle.webm",
-        "hevc": "https://cdn.doebkblcya.com/pets/20261004-v4/xiaolang/idle.mov"
+        "webm": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaolang/idle.webm",
+        "hevc": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaolang/idle.mov"
       },
       "tilt": {
         "durationMs": 4042,
@@ -293,19 +293,37 @@
           "returnIdleMs": 3333
         }
       }
+    },
+    "idleRange": {
+      "first": 6,
+      "last": 84,
+      "loopBlendFrames": 3,
+      "sourceFrames": 97
+    },
+    "framing": {
+      "referenceWidth": 360,
+      "referenceHeight": 480,
+      "anchorX": 166,
+      "footY": 405,
+      "crop": {
+        "left": 14,
+        "top": 50,
+        "width": 342,
+        "height": 408
+      }
     }
   },
   {
     "id": "xiaoxiaolang",
     "name": "小小狼",
-    "width": 360,
-    "height": 480,
-    "poster": "https://cdn.doebkblcya.com/pets/20261004-v3/xiaoxiaolang/poster.webp",
+    "width": 186,
+    "height": 304,
+    "poster": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaoxiaolang/poster.webp",
     "clips": {
       "idle": {
         "durationMs": 5583,
-        "webm": "https://cdn.doebkblcya.com/pets/20261004-v3/xiaoxiaolang/idle.webm",
-        "hevc": "https://cdn.doebkblcya.com/pets/20261004-v3/xiaoxiaolang/idle.mov"
+        "webm": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaoxiaolang/idle.webm",
+        "hevc": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaoxiaolang/idle.mov"
       },
       "tilt": {
         "durationMs": 4042,
@@ -745,19 +763,37 @@
           "returnIdleMs": 292
         }
       }
+    },
+    "idleRange": {
+      "first": 7,
+      "last": 137,
+      "loopBlendFrames": 3,
+      "sourceFrames": 145
+    },
+    "framing": {
+      "referenceWidth": 360,
+      "referenceHeight": 480,
+      "anchorX": 122,
+      "footY": 301,
+      "crop": {
+        "left": 58,
+        "top": 36,
+        "width": 186,
+        "height": 304
+      }
     }
   },
   {
     "id": "xiaoshu",
     "name": "小薯",
-    "width": 360,
-    "height": 480,
-    "poster": "https://cdn.doebkblcya.com/pets/20261004-v5/xiaoshu/poster.webp",
+    "width": 286,
+    "height": 370,
+    "poster": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaoshu/poster.webp",
     "clips": {
       "idle": {
         "durationMs": 6167,
-        "webm": "https://cdn.doebkblcya.com/pets/20261004-v5/xiaoshu/idle.webm",
-        "hevc": "https://cdn.doebkblcya.com/pets/20261004-v5/xiaoshu/idle.mov"
+        "webm": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaoshu/idle.webm",
+        "hevc": "https://cdn.doebkblcya.com/pets/20261004-v6/xiaoshu/idle.mov"
       },
       "tilt": {
         "durationMs": 4042,
@@ -1238,6 +1274,24 @@
           ],
           "returnIdleMs": 208
         }
+      }
+    },
+    "idleRange": {
+      "first": 0,
+      "last": 144,
+      "loopBlendFrames": 3,
+      "sourceFrames": 145
+    },
+    "framing": {
+      "referenceWidth": 360,
+      "referenceHeight": 480,
+      "anchorX": 110,
+      "footY": 358.5,
+      "crop": {
+        "left": 70,
+        "top": 34,
+        "width": 286,
+        "height": 370
       }
     }
   }

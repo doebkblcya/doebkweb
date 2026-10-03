@@ -9,6 +9,11 @@ import { ui as en } from "../../i18n/en";
 
 const lang = Astro.currentLocale || "zh";
 const t = lang === "zh" ? zh : en;
+const cats: Array<{
+  name: string; poster: string; width: number; height: number;
+  clips: { idle: { webm: string; hevc: string } };
+  framing?: { referenceWidth: number; referenceHeight: number; anchorX: number; footY: number };
+}> = pets;
 ---
 
 <BaseLayout title={t.about.title} description={t.about.description} hideFooter>
@@ -29,12 +34,19 @@ const t = lang === "zh" ? zh : en;
         </div>
 
         <div class="cats-grid">
-          {pets.map(cat => <figure class="cat">
+          {cats.map(cat => <figure class="cat" style={
+            `--cat-crop-width:${cat.width / (cat.framing?.referenceWidth ?? cat.width) * 100}%;`
+            + `--cat-crop-ratio:${cat.width} / ${cat.height};`
+            + `--cat-anchor:${(cat.framing?.anchorX ?? cat.width / 2) / cat.width * 100}%;`
+            + `--cat-foot-offset:${(cat.height - (cat.framing?.footY ?? cat.height)) / (cat.framing?.referenceHeight ?? cat.height) * 100}%;`
+          }>
             <div class="cat-media" data-about-cat>
+              <div class="cat-stage"><div class="cat-crop">
               <img src={cat.poster} alt={cat.name} width={cat.width} height={cat.height} decoding="async" draggable="false" />
               <video muted loop playsinline preload="none" disablepictureinpicture disableRemotePlayback
                 aria-hidden="true" tabindex="-1" width={cat.width} height={cat.height}
                 data-webm={cat.clips.idle.webm} data-hevc={cat.clips.idle.hevc}></video>
+              </div></div>
             </div>
             <figcaption>{cat.name}</figcaption>
           </figure>)}
@@ -103,14 +115,34 @@ const t = lang === "zh" ? zh : en;
   }
 
   .cat {
+    --cat-row-height: clamp(12rem, 20vw, 18rem);
     display: grid;
-    grid-template-rows: clamp(12rem, 20vw, 18rem) auto;
+    grid-template-rows: var(--cat-row-height) auto;
     gap: var(--space-4);
     min-width: 0;
     margin: 0;
   }
 
   .cat-media { position: relative; min-height: 0; }
+
+  /* Use the same original-canvas scale for all cats, then align their paws.
+     Cropped files must not each expand to fill the entire column. */
+  .cat-stage {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: min(100%, calc(var(--cat-row-height) * .75));
+    aspect-ratio: 3 / 4;
+    transform: translateX(-50%);
+  }
+  .cat-crop {
+    position: absolute;
+    bottom: calc(-1 * var(--cat-foot-offset));
+    left: 50%;
+    width: var(--cat-crop-width);
+    aspect-ratio: var(--cat-crop-ratio);
+    transform: translateX(calc(-1 * var(--cat-anchor)));
+  }
 
   .cat img, .cat video {
     position: absolute;
@@ -190,7 +222,7 @@ const t = lang === "zh" ? zh : en;
   @media (max-width: 1024px) {
     .about-hero { grid-template-columns: minmax(0, 1fr); }
     .about-intro { max-width: 32ch; }
-    .cat { grid-template-rows: clamp(12rem, 25vw, 18rem) auto; }
+    .cat { --cat-row-height: clamp(12rem, 25vw, 18rem); }
   }
 
   @media (max-width: 640px) {
@@ -198,7 +230,7 @@ const t = lang === "zh" ? zh : en;
     .hero-name { font-size: clamp(2.75rem, 12vw, 4rem); }
     .about-intro { font-size: var(--text-lg); }
     .cats-grid { gap: var(--space-3); }
-    .cat { grid-template-rows: clamp(7rem, 30vw, 11rem) auto; gap: var(--space-3); }
+    .cat { --cat-row-height: clamp(7rem, 30vw, 11rem); gap: var(--space-3); }
     .cat figcaption { font-size: var(--text-sm); }
     .contact-section { margin-top: var(--space-12); }
   }

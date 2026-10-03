@@ -32,13 +32,23 @@ FFMPEG_BINARY=/absolute/path/to/ffmpeg PET_HEVC_ENCODER="$PWD/tmp/export-pet-hev
 
 导出时增加 `--cat <id> --analysis <报告.json>`，仅生成指定猫的草稿。待机在首尾各半秒内选择接近的边界，补三帧预乘 alpha 过渡；三个交互动作保留全部原帧。验证上传后仅替换这只猫的数据，其余猫保持现状。
 
+已验收的循环选帧保存为 `idleRange`：`first`、`last` 是原始时间线从零起算的索引，`sourceFrames` 是原母版帧数，`loopBlendFrames` 是补充过渡帧数。修改裁切时复用这一范围，不重新筛选或对已截取的片段再次删帧。当前范围：小狼 6～84、小小狼 7～137、小薯 0～144，均补 3 帧过渡。
+
+## 透明留白与脚底对齐
+
+只调整待机裁切时，给导出命令增加 `--idle-only --crop-idle`，并用 `--cat` 和 `--analysis` 传入该猫已验收的选帧范围、保留的 `seams`。只导出待机及封面，草稿中其他动作由 AI 从现有公开清单原样保留，不替换或预加载。
+
+程序扫描全部保留帧的非零 alpha，取轮廓并集作为一个固定矩形，包含尾巴甩动的最大范围；少量边缘余量保留毛发与编码安全边。补充过渡是首尾帧的混合，其轮廓也在并集内。不要按单帧或逐帧分别裁切，不需要 AI 逐张看图，不改变猫的比例、大小或原母版。
+
+待机与封面尺寸随矩形变化，不再强制 3:4。公开 `framing` 保存参考画布尺寸、固定裁切位置、横向锚点和 `footY`（前爪底部在裁切画布中的位置）；从保留段开头五帧测量前爪基线，用中位数减少边缘噪声。关于页使用共同的参考画布缩放比例和前爪基线，保持猫咪各自原有大小；不让每个裁切矩形分别撑满整列。尾巴可以保留在前爪基线下方。`width`、`height` 与 `framing` 当前对应待机及封面，其他动作未来需独立匹配布局资料。
+
 草稿的可选 `seams` 保存 `fps`、`blendMs`，以及各动作的 `startWaitFrames` 和 `returnIdleMs`，供后续动作衔接开发使用。当前网页只播放待机，不读取动作衔接表、不预热其他动作。后续若启用交互，优先处理“待机 → 单个动作 → 待机”，保留动作主体，不要求不同动作直接互切；首尾匹配与短过渡不能保证生成视频的姿态完全一致。
 
 ## 验证与录入
 
 1. 解码全部 WebM，确认宽高、时间和 alpha；FFmpeg 解码时显式选择 `libvpx-vp9`，不能仅检查像素格式声明。HEVC 用 `tools/verify-pet-hevc.swift` 的 Apple 原生解码核验透明背景与不透明主体，检查完整帧序列，不只读扩展名或头部。该工具用 `swiftc -parse-as-library` 编译到 tmp 后，以参数数组传入全部 MOV 文件；失败会返回非零。黑白背景的毛发边缘、动作衔接及实际流畅度交给用户手动测试。
 2. 按 `uploads.json` 用 Wrangler 上传；WebM 为 `video/webm`，MOV 为 `video/quicktime`，封面为 `image/webp`，使用新 URL 和 immutable 缓存。全部 CDN GET 返回 200、类型和字节数正确，SHA-256 与已核验的本地文件一致后，才将草稿写入公开清单。
-3. 数据含 `id`、`name`、`width`、`height`、`poster` 与 `clips`。`clips` 的 `idle/tilt/lick/yawn` 分别有 `webm`、`hevc`、`durationMs`；时长只供维护，网页通过视频事件切换动作。
+3. 数据含 `id`、`name`、`width`、`height`、`poster` 与 `clips`。`clips` 的 `idle/tilt/lick/yawn` 分别有 `webm`、`hevc`、`durationMs`；时长只供维护；当前网页仅使用待机，其他动作字段保留供后续开发。
 4. 执行媒体清单校验、Astro 检查、构建、diff 检查。交付本地预览，由用户手动测试 Chrome 与 Safari/iPhone 的透明背景、三猫待机循环、离开视野与后台暂停、切页和移动端布局。未经本次发布授权不提交或推送页面。
 
 ## 网页使用与本地交付

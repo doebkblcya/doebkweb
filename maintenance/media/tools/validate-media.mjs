@@ -81,6 +81,23 @@ export function validate(albums, photos, groups = [], pets = []) {
     assert(pet && text(pet.id) && /^[a-z0-9-]+$/.test(pet.id) && !petIds.has(pet.id) && text(pet.name), 'Invalid or duplicate pet.');
     petIds.add(pet.id);
     assert(Number.isInteger(pet.width) && pet.width > 0 && Number.isInteger(pet.height) && pet.height > 0, `Pet ${pet.id}: invalid dimensions.`);
+    if (pet.framing !== undefined) {
+      const f = pet.framing;
+      assert(f && [240, 360].includes(f.referenceWidth) && f.referenceHeight === f.referenceWidth * 4 / 3,
+        `Pet ${pet.id}: invalid reference canvas.`);
+      assert(Number.isFinite(f.footY) && f.footY > 0 && f.footY <= pet.height
+        && Number.isFinite(f.anchorX) && f.anchorX >= 0 && f.anchorX <= pet.width, `Pet ${pet.id}: invalid paw or horizontal anchor.`);
+      const c = f.crop;
+      assert(c && [c.left, c.top, c.width, c.height].every(Number.isInteger)
+        && c.left >= 0 && c.top >= 0 && c.width === pet.width && c.height === pet.height
+        && c.left + c.width <= f.referenceWidth && c.top + c.height <= f.referenceHeight, `Pet ${pet.id}: invalid fixed crop.`);
+    }
+    if (pet.idleRange !== undefined) {
+      const r = pet.idleRange;
+      assert(r && [r.first, r.last, r.sourceFrames, r.loopBlendFrames].every(Number.isInteger)
+        && r.first >= 0 && r.last > r.first && r.last < r.sourceFrames && r.loopBlendFrames >= 0 && r.loopBlendFrames <= 4
+        && r.last - r.first + 1 + r.loopBlendFrames === Math.round(pet.clips?.idle?.durationMs * 24 / 1000), `Pet ${pet.id}: invalid retained idle frame range.`);
+    }
     assert(mediaUrl(pet.poster, 'pets') && pet.poster.endsWith('.webp'), `Pet ${pet.id}: invalid poster.`); unique(pet.poster);
     for (const action of ['idle', 'tilt', 'lick', 'yawn']) {
       const clip = pet.clips?.[action];
