@@ -79,12 +79,14 @@ export interface PhotosStrings {
   noResults: string;
   loadError: string;
   viewLabel: string;
-  previous: string;
-  next: string;
   sortName: string;
   sortTime: string;
   sortLabel: string;
   noTime: string;
+  focalLength: string;
+  aperture: string;
+  shutter: string;
+  iso: string;
 }
 
 export interface NotFoundStrings {

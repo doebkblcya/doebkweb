@@ -56,7 +56,7 @@ a:not([class]):hover { color: var(--color-accent-hover); }
 .page-title {
   max-width: 19ch;
   font-family: var(--font-editorial);
-  font-size: clamp(2.75rem, 5vw, 5rem);
+  font-size: var(--page-title-size);
   font-weight: 400;
   line-height: 0.98;
   letter-spacing: -0.028em;
@@ -72,7 +72,7 @@ html[lang="zh"] .page-title {
   height: 1px;
   border: 0;
   background: var(--color-border-light);
-  margin: clamp(1.5rem, 3vw, 3rem) 0 clamp(1.5rem, 3vw, 2.5rem);
+  margin: var(--page-heading-gap) 0 clamp(1.5rem, 3vw, 2.5rem);
 }
 
 /* Astro can insert invisible script tags between the divider and toolbar. */
@@ -82,7 +82,7 @@ html[lang="zh"] .page-title {
 .has-sidebar .content-area .page {
   width: min(100%, var(--max-width-wide));
   margin: 0 auto;
-  padding: clamp(3rem, 6vw, 6rem) clamp(1.5rem, 5vw, 5rem) clamp(5rem, 10vw, 9rem);
+  padding: var(--page-top-space) clamp(1.5rem, 5vw, 5rem) clamp(5rem, 10vw, 9rem);
 }
 
 .toolbar {
@@ -142,11 +142,20 @@ html[lang="zh"] .page-title {
 }
 
 @media (max-width: 640px) {
+  :root { --page-title-size: clamp(2.25rem, 10vw, 3rem); --page-top-space: 4.5rem; --page-heading-gap: 1.25rem; }
   .toolbar { align-items: stretch; }
   .toolbar .search-wrap { flex-basis: 100%; max-width: none; }
-  .has-sidebar .content-area .page { padding: 5.5rem 1.25rem 5rem; }
-  .page-title { font-size: clamp(2.5rem, 13vw, 3.75rem); }
-  .page-divider { margin: 1.5rem 0 1.75rem; }
+  .has-sidebar .content-area .page { padding: var(--page-top-space) 1.25rem 5rem; }
+  .page-divider { margin-bottom: 1.75rem; }
+  .page-divider:has(~ .toolbar) { margin-bottom: 0; }
+}
+
+@media (max-height: 540px) {
+  :root { --page-title-size: 2rem; --page-top-space: 1.5rem; --page-heading-gap: .75rem; }
+}
+
+@media (max-width: 640px) and (max-height: 540px) {
+  :root { --page-top-space: 4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

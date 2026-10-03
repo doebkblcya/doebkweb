@@ -11,7 +11,7 @@ export const isJpeg = file => ['.jpg', '.jpeg'].includes(path.extname(file).toLo
 export const isRasterPhoto = file => isJpeg(file) || path.extname(file).toLowerCase() === '.png';
 
 export async function metadata(file) {
-  const { stdout } = await exec('exiftool', ['-json', '-n', '-Orientation', '-DateTimeOriginal', '-OffsetTimeOriginal', file], { maxBuffer: 1024 * 1024 });
+  const { stdout } = await exec('exiftool', ['-json', '-n', '-Orientation', '-DateTimeOriginal', '-OffsetTimeOriginal', '-FocalLength', '-FNumber', '-ExposureTime', '-ISO', file], { maxBuffer: 1024 * 1024 });
   return JSON.parse(stdout)[0];
 }
 
@@ -25,6 +25,15 @@ export function captureTime(exif) {
   const match = /^(\d{4}):(\d{2}):(\d{2})(?: (\d{2}):(\d{2}):(\d{2}))?/.exec(exif.DateTimeOriginal || '');
   if (!match) return null;
   return `${match[1]}-${match[2]}-${match[3]}${match[4] ? `T${match[4]}:${match[5]}:${match[6]}` : ''}`;
+}
+
+// Store physical values, not display strings: millimetres, f-number and seconds.
+export function captureSettings(exif) {
+  return Object.fromEntries([
+    ['focalLength', exif.FocalLength], ['aperture', exif.FNumber],
+    ['exposureTime', exif.ExposureTime], ['iso', exif.ISO],
+  ].filter(([field, value]) => typeof value === 'number' && Number.isFinite(value)
+    && value > 0 && (field !== 'iso' || Number.isInteger(value))));
 }
 
 export async function largestPreview(candidates, minimumEdge = 1600) {

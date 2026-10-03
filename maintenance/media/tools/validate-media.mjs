@@ -18,8 +18,8 @@ function mediaUrl(value, prefix) {
     return url.origin === base && url.pathname.startsWith(`/${prefix}/`) && !url.search && !url.hash;
   } catch { return false; }
 }
-export function validate(albums, photos, groups = [], cats = []) {
-  assert(Array.isArray(albums) && Array.isArray(photos) && Array.isArray(cats), 'Albums, photos and cats must be arrays.');
+export function validate(albums, photos, groups = [], pets = []) {
+  assert(Array.isArray(albums) && Array.isArray(photos), 'Albums and photos must be arrays.');
   const ids = new Set(), urls = new Set();
   const unique = url => { assert(!urls.has(url), `Duplicate image URL: ${url}`); urls.add(url); };
   for (const [index, album] of albums.entries()) {
@@ -46,17 +46,20 @@ export function validate(albums, photos, groups = [], cats = []) {
     }
   }
   const photoIds = new Set(), imageIds = new Set();
-  for (const [index, photo] of [...photos, ...cats].entries()) {
-    const label = index < photos.length ? `Photo ${index + 1}` : `Cat ${index - photos.length + 1}`;
+  for (const [index, photo] of photos.entries()) {
+    const label = `Photo ${index + 1}`;
     assert(photo && mediaUrl(photo.src, 'photos') && mediaUrl(photo.thumb, 'photos'), `${label}: invalid R2 URLs.`);
     unique(photo.src); unique(photo.thumb);
     assert(text(photo.id) && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(photo.id) && !imageIds.has(photo.id), `${label}: missing or duplicate photo id.`);
     imageIds.add(photo.id);
-    if (index < photos.length) photoIds.add(photo.id);
+    photoIds.add(photo.id);
     assert(text(photo.name) && !/[\\/]/.test(photo.name), `${label}: original filename is required.`);
     assert(!('alt' in photo), `${label}: the description field has been removed.`);
     assert(Number.isInteger(photo.width) && photo.width > 0 && Number.isInteger(photo.height) && photo.height > 0, `${label}: invalid image dimensions.`);
     if (photo.date !== undefined) assert(captureTime(photo.date), `${label}: invalid capture time.`);
+    for (const field of ['focalLength', 'aperture', 'exposureTime', 'iso']) {
+      if (photo[field] !== undefined) assert(typeof photo[field] === 'number' && Number.isFinite(photo[field]) && photo[field] > 0 && (field !== 'iso' || Number.isInteger(photo[field])), `${label}: invalid ${field}.`);
+    }
     if (photo.note !== undefined) assert(typeof photo.note === 'string', `${label}: note must be text.`);
   }
   assert(Array.isArray(groups), 'Photo groups must be an array.');
@@ -72,12 +75,39 @@ export function validate(albums, photos, groups = [], cats = []) {
       exhibited.add(id);
     }
   }
+  assert(Array.isArray(pets), 'Pets must be an array.');
+  const petIds = new Set();
+  for (const pet of pets) {
+    assert(pet && text(pet.id) && /^[a-z0-9-]+$/.test(pet.id) && !petIds.has(pet.id) && text(pet.name), 'Invalid or duplicate pet.');
+    petIds.add(pet.id);
+    assert(Number.isInteger(pet.width) && pet.width > 0 && Number.isInteger(pet.height) && pet.height > 0, `Pet ${pet.id}: invalid dimensions.`);
+    assert(mediaUrl(pet.poster, 'pets') && pet.poster.endsWith('.webp'), `Pet ${pet.id}: invalid poster.`); unique(pet.poster);
+    for (const action of ['idle', 'tilt', 'lick', 'yawn']) {
+      const clip = pet.clips?.[action];
+      assert(clip && Number.isFinite(clip.durationMs) && clip.durationMs > 0, `Pet ${pet.id}: missing ${action} timing.`);
+      for (const [format, suffix] of [['webm', '.webm'], ['hevc', '.mov']]) {
+        assert(mediaUrl(clip[format], 'pets') && clip[format].endsWith(suffix), `Pet ${pet.id}: invalid ${action} ${format}.`);
+        unique(clip[format]);
+      }
+    }
+    if (pet.seams !== undefined) {
+      const seams = pet.seams;
+      assert(seams && seams.fps === 24 && Number.isFinite(seams.blendMs) && seams.blendMs > 0 && seams.blendMs <= 200, `Pet ${pet.id}: invalid seam settings.`);
+      const idleFrames = Math.round(pet.clips.idle.durationMs * seams.fps / 1000);
+      for (const action of ['tilt', 'lick', 'yawn']) {
+        const plan = seams.actions?.[action];
+        assert(plan && Array.isArray(plan.startWaitFrames) && plan.startWaitFrames.length === idleFrames
+          && plan.startWaitFrames.every(wait => Number.isInteger(wait) && wait >= 0 && wait <= 4), `Pet ${pet.id}: invalid ${action} entry plan.`);
+        assert(Number.isFinite(plan.returnIdleMs) && plan.returnIdleMs >= 0 && plan.returnIdleMs < pet.clips.idle.durationMs - 50, `Pet ${pet.id}: invalid ${action} return frame.`);
+      }
+    }
+  }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const albums = JSON.parse(await readFile(process.argv[2] || 'src/data/albums.json', 'utf8'));
   const photos = JSON.parse(await readFile(process.argv[3] || 'src/data/photos.json', 'utf8'));
   const groups = JSON.parse(await readFile(process.argv[4] || 'src/data/photo-groups.json', 'utf8'));
-  const cats = JSON.parse(await readFile(process.argv[5] || 'src/data/cats.json', 'utf8'));
-  validate(albums, photos, groups, cats);
-  process.stdout.write(`Validated ${albums.length} albums, ${photos.length} photos, ${groups.length} exhibition groups and ${cats.length} about-page cats.\n`);
+  const pets = JSON.parse(await readFile(process.argv[5] || 'src/data/pets.json', 'utf8'));
+  validate(albums, photos, groups, pets);
+  process.stdout.write(`Validated ${albums.length} albums, ${photos.length} photos, ${groups.length} exhibition groups and ${pets.length} about-page cats.\n`);
 }

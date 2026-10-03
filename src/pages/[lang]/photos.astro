@@ -22,7 +22,7 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
           <button class="view-option" data-photo-view="wall" aria-pressed="false" aria-controls="photo-wall-panel">{t.photos.viewWall}</button>
         </div>
       </div>
-      <PhotoExhibition photos={photos} groups={photoGroups} label={t.photos.viewExhibition} />
+      <PhotoExhibition photos={photos} groups={photoGroups} t={t.photos} />
       <section id="photo-wall-panel" class="wall-panel" aria-label={t.photos.viewWall} hidden>
         <div class="toolbar">
           <div class="search-wrap">
@@ -49,9 +49,6 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
       </section>
       <noscript><style is:inline>#photo-wall-panel[hidden] { display: block; } .photo-view-toolbar { display: none; }</style></noscript>
       <dialog id="lightbox" class="lightbox" aria-label={t.photos.title} autofocus>
-        <span id="lightbox-counter"></span>
-        <button id="lightbox-prev" class="lightbox-control" aria-label={t.photos.previous}>←</button>
-        <button id="lightbox-next" class="lightbox-control" aria-label={t.photos.next}>→</button>
         <div class="lightbox-body">
           <div id="lightbox-stage" class="lightbox-stage" aria-busy="false">
             <img id="lightbox-image" alt="" hidden />
@@ -66,6 +63,8 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
 </BaseLayout>
 
 <script>
+  import { createMediaStage } from "../../scripts/media-stage";
+
   const page = document.querySelector<HTMLElement>(".photos-page");
   const exhibition = page?.querySelector<HTMLElement>("#photo-exhibition");
   const wallPanel = page?.querySelector<HTMLElement>("#photo-wall-panel");
@@ -81,16 +80,30 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
   const loading = page?.querySelector<HTMLElement>("#lightbox-loading");
   const error = page?.querySelector<HTMLElement>("#lightbox-error");
   const caption = page?.querySelector<HTMLElement>("#lightbox-caption");
-  const counter = page?.querySelector<HTMLElement>("#lightbox-counter");
-  const prev = page?.querySelector<HTMLButtonElement>("#lightbox-prev");
-  const next = page?.querySelector<HTMLButtonElement>("#lightbox-next");
   const collator = new Intl.Collator(page?.dataset.locale, { numeric: true });
-  let view: "exhibition" | "wall" = "exhibition";
+  const exhibitionStage = exhibition ? createMediaStage(exhibition, {
+    storageKey: "doebk-photo-exhibition-order",
+    onActivate(photo) { photo.classList.add("is-presented"); },
+    onDeactivate(photo) { photo.classList.remove("is-presented"); },
+  }) : undefined;
+  let view: "exhibition" | "wall" = exhibition?.querySelector("[data-stage-item]") ? "exhibition" : "wall";
+  if (view === "wall" && exhibition && wallPanel) {
+    exhibition.hidden = true;
+    wallPanel.hidden = false;
+    page?.querySelectorAll<HTMLElement>("[data-photo-view]").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.photoView === view));
+    });
+  }
   let sort: "name" | "time" = "name";
   let current = 0;
   let request = 0;
   let pending: HTMLImageElement | undefined;
-  const activeCards = () => [...((view === "wall" ? wallPanel : exhibition)?.querySelectorAll<HTMLAnchorElement>(".photo-item") || [])].filter(card => !card.hidden);
+  const activeCards = () => {
+    const cards = [...((view === "wall" ? wallPanel : exhibition)?.querySelectorAll<HTMLAnchorElement>(".photo-item") || [])];
+    // The exhibition retains its complete shuffled order for lightbox navigation,
+    // including the figures temporarily hidden by the single-work stage.
+    return view === "wall" ? cards.filter(card => !card.hidden) : cards;
+  };
 
   function discardLoader() {
     if (!pending) return;
@@ -111,7 +124,7 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
   }
   function show(index: number) {
     const list = activeCards();
-    if (!list.length || !image || !loading || !error || !caption || !counter || !dialog) return;
+    if (!list.length || !image || !loading || !error || !caption || !dialog) return;
     current = (index + list.length) % list.length;
     const card = list[current];
     const token = ++request;
@@ -127,9 +140,6 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
     caption.hidden = !note.trim();
     if (caption.hidden) dialog.removeAttribute("aria-describedby");
     else dialog.setAttribute("aria-describedby", "lightbox-caption");
-    counter.textContent = `${current + 1} / ${list.length}`;
-    if (prev) prev.disabled = list.length < 2;
-    if (next) next.disabled = list.length < 2;
     const loader = new Image();
     pending = loader;
     loader.onload = () => {
@@ -156,8 +166,6 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
     dialog.showModal();
     document.body.classList.add("photo-open");
   }));
-  prev?.addEventListener("click", () => show(current - 1));
-  next?.addEventListener("click", () => show(current + 1));
   dialog?.addEventListener("keydown", event => {
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       event.preventDefault(); show(current + (event.key === "ArrowLeft" ? -1 : 1));
@@ -173,9 +181,13 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
 
   page?.querySelectorAll<HTMLButtonElement>("[data-photo-view]").forEach(button => button.addEventListener("click", () => {
     if (!exhibition || !wallPanel) return;
-    view = button.dataset.photoView === "wall" ? "wall" : "exhibition";
+    const nextView = button.dataset.photoView === "wall" ? "wall" : "exhibition";
+    if (nextView === view) return;
+    if (nextView === "wall") exhibitionStage?.suspend();
+    view = nextView;
     exhibition.hidden = view !== "exhibition";
     wallPanel.hidden = view !== "wall";
+    if (view === "exhibition") exhibitionStage?.restart();
     page.querySelectorAll("[data-photo-view]").forEach(other => other.setAttribute("aria-pressed", String(other === button)));
   }));
 
@@ -205,8 +217,8 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
   .wall-panel > .toolbar { border-top: 0; }
   .wall-panel[hidden], .without-time[hidden], .wall-photo[hidden] { display: none; }
   .wall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: clamp(1rem, 2vw, 2rem); align-items: start; }
-  .wall-photo { display: block; text-decoration: none; }
-  .wall-photo img { display: block; width: 100%; height: auto; }
+  .wall-photo { display: block; aspect-ratio: 3 / 2; overflow: hidden; text-decoration: none; }
+  .wall-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
   .wall-photo:focus-visible { outline-offset: 6px; }
   .without-time { margin-top: clamp(3rem, 5vw, 5rem); }
   .without-time h2 { padding-top: 1rem; margin-bottom: 1.5rem; border-top: 1px solid var(--color-border-light); font-family: var(--font-editorial); font-size: 1.5rem; font-weight: 400; }
@@ -214,14 +226,6 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
   .lightbox { position: fixed; inset: 0; margin: 0; width: 100%; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: max(2rem, env(safe-area-inset-top), env(safe-area-inset-bottom)) max(3.5rem, env(safe-area-inset-right), env(safe-area-inset-left)); border: 0; background: transparent; box-shadow: none; color: rgb(255 255 255 / .85); }
   .lightbox[open] { display: flex; align-items: center; justify-content: center; }
   .lightbox-body { display: flex; flex-direction: column; align-items: center; gap: 1rem; width: min(76vw, 1000px); max-width: 100%; }
-  #lightbox-counter { position: absolute; top: max(1rem, env(safe-area-inset-top)); left: max(1.5rem, env(safe-area-inset-left)); line-height: 44px; color: rgb(255 255 255 / .5); font-family: var(--font-mono); font-size: var(--text-xs); }
-  .lightbox-control { position: absolute; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 1.75rem; }
-  .lightbox-control:hover { color: white; }
-  .lightbox-control:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
-  .lightbox-control:disabled { opacity: .25; cursor: default; }
-  #lightbox-prev, #lightbox-next { top: 50%; transform: translateY(-50%); }
-  #lightbox-prev { left: max(.5rem, env(safe-area-inset-left)); }
-  #lightbox-next { right: max(.5rem, env(safe-area-inset-right)); }
   .lightbox-stage { width: 100%; min-height: 3rem; display: grid; grid-template: auto / minmax(0, 1fr); place-items: center; }
   .lightbox-stage > * { grid-area: 1 / 1; min-width: 0; min-height: 0; }
   .lightbox-stage img { width: auto; height: auto; max-width: 100%; max-height: 64vh; max-height: 64dvh; object-fit: contain; border: 0; box-shadow: none; }

@@ -73,23 +73,6 @@ const pageDescription = description || t.site.description;
         document.head.appendChild(meta);
       })();
     </script>
-    <!-- 首页首帧防闪：模块脚本是 deferred 的，首帧可能早于 <home-hero> 升级。
-         这里在解析期先把首页标记为“导航还在终态之外”，让 CSS 直接画出收起态；
-         index.astro 的 render() 接管后该标记即失效。
-         reduced-motion 要求直接呈现可操作终态，因此不设置标记；
-         模块脚本若加载失败，deferred 脚本全部结束后由 DOMContentLoaded 兜底恢复终态。 -->
-    {hideHeader && (
-      <script is:inline>
-        (function () {
-          var doc = document.documentElement;
-          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-          doc.dataset.hero = "pending";
-          window.addEventListener("DOMContentLoaded", function () {
-            if (doc.dataset.hero === "pending") delete doc.dataset.hero;
-          });
-        })();
-      </script>
-    )}
     {!hideHeader && <style is:inline>
       @view-transition { navigation: auto; }
       @media (prefers-reduced-motion: reduce) {

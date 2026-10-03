@@ -51,6 +51,9 @@ test('invalid or duplicate public records are rejected', () => {
   assert.throws(() => validate([], [{ ...photo, name: '' }]), /filename/);
   assert.throws(() => validate([], [{ ...photo, alt: 'A river' }]), /description field/);
   validate([], [{ ...photo, date: undefined }]);
+  validate([], [{ ...photo, focalLength: 103, aperture: 5.6, exposureTime: .0025, iso: 100 }]);
+  assert.throws(() => validate([], [{ ...photo, exposureTime: 0 }]), /invalid exposureTime/);
+  assert.throws(() => validate([], [{ ...photo, iso: 100.5 }]), /invalid iso/);
   assert.throws(() => validate([], [photo], [{ id: 'group', name: 'Group', photos: ['missing'] }]), /unknown or repeated/);
   assert.throws(() => validate([], [photo], [{ id: 'group', name: 'Group', photos: [photo.id, photo.id] }]), /unknown or repeated/);
   assert.throws(() => validate([{ ...album, tracks: [] }], []), /playback/);
@@ -64,7 +67,7 @@ test('preparation preserves originals, corrects orientation, strips metadata and
     await mkdir(input);
     const original = path.join(input, 'camera.jpg');
     await sharp({ create: { width: 1200, height: 800, channels: 3, background: 'green' } }).jpeg().toFile(original);
-    await exec('exiftool', ['-overwrite_original', '-Orientation#=6', '-DateTimeOriginal=2026:09:29 23:59:59', '-GPSLatitude=31', '-GPSLongitude=121', original]);
+    await exec('exiftool', ['-overwrite_original', '-Orientation#=6', '-DateTimeOriginal=2026:09:29 23:59:59', '-FocalLength=103', '-FNumber=5.6', '-ExposureTime=1/400', '-ISO=100', '-GPSLatitude=31', '-GPSLongitude=121', original]);
     const before = createHash('sha256').update(await readFile(original)).digest('hex');
     const png = path.join(input, 'second.png');
     await sharp({ create: { width: 300, height: 200, channels: 3, background: 'blue' } }).png().toFile(png);
@@ -75,10 +78,13 @@ test('preparation preserves originals, corrects orientation, strips metadata and
     const draft = JSON.parse(await readFile(path.join(output, 'photos.draft.json'), 'utf8'));
     assert.equal(draft[0].width, 800); assert.equal(draft[0].height, 1200); assert.equal(draft[0].date, '2026-09-29T23:59:59');
     assert.equal(draft[0].name, 'camera.jpg'); assert.equal(draft[0].alt, undefined);
+    assert.equal(draft[0].focalLength, 103); assert.equal(draft[0].aperture, 5.6);
+    assert.equal(draft[0].exposureTime, 1 / 400); assert.equal(draft[0].iso, 100);
     validate([], draft);
     assert.equal(draft.length, 2);
     assert.equal(draft[1].width, 300); assert.equal(draft[1].height, 200);
     assert.equal(draft[1].date, undefined);
+    for (const field of ['focalLength', 'aperture', 'exposureTime', 'iso']) assert.equal(draft[1][field], undefined);
     assert.deepEqual(await readFile(png), originalPng);
     for (const file of ['001-large.jpg', '001-preview.webp']) {
       const info = await sharp(path.join(output, file)).metadata();

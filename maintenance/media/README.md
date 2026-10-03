@@ -1,16 +1,16 @@
 # AI 媒体维护入口
 
-本目录提供 AI 媒体维护说明和本地图片小工具。用户提供素材或专辑名后，AI 按文档完成资料整理、图片处理、R2 上传、验证和静态数据更新。更新专辑读 [albums.md](albums.md)，更新摄影读 [photos.md](photos.md)。音乐模块展示专辑信息、封面与乐评。
+本目录提供 AI 媒体维护说明和本地处理小工具。用户提供素材或专辑名后，AI 完成资料整理、处理、R2 上传、验证和静态数据更新。专辑流程见 [albums.md](albums.md)，摄影流程见 [photos.md](photos.md)，萌宠视频见 [pets.md](pets.md)；项目运行与部署见 [项目 README](../../README.md)。
 
 ## 数据与素材约定
 
-- `src/data/albums.json`、`src/data/photos.json` 是公开媒体数据源；新增图片先上传并验证公共 URL，再更新相应记录。
-- R2 bucket：`doebkweb`；公共域名：`https://cdn.doebkblcya.com`。上传使用现有 bucket 与绑定；远程删除由站点作者执行。
-- 新对象：`albums/<id>/<version>/cover.jpg`、`albums/<id>/<version>/preview.webp`、`photos/<batch>/<序号>-large.jpg` 和 `<序号>-preview.webp`。
+- `src/data/albums.json`、`src/data/photos.json` 保存公开图片地址与资料，图片文件不提交 Git。
+- R2 bucket：`doebkweb`；公共域名：`https://cdn.doebkblcya.com`。上传直接使用该 bucket 名称；远程删除由站点作者执行。
+- 新对象：`albums/<id>/<version>/cover.jpg`、`albums/<id>/<version>/preview.webp`、`photos/<batch>/<序号>-large.jpg` 和 `<序号>-preview.webp`；透明图的大图改用 `-large.webp`。
 - `version`/`batch` 使用不重复的日期加版本号，例如 `20260930-v1`；内容修改换新版本，禁止覆盖旧 URL。
-- 本地 `materials/inbox/photos/` 可按用户分类放入子目录，也可直接提供现有照片目录；AI 将每个仅含本批照片的分组作为工具输入，处理全部文件，不维护历史、不自动跳过。原始素材由用户保留，工具不删除、不修改输入。
-- 关于页猫咪图片与名字独立存于 `src/data/cats.json`，摄影清单和展览编排不引用；媒体清单工具会同时校验这份数据。
-- 处理输出和请求 JSON 放 `materials/`，它已被 Git 忽略。网站代码不包含这些素材。
+- 本地 `materials/inbox/photos/` 可按用户分类放入子目录，也可直接提供现有照片目录；每个分组只含本批照片，逐组处理全部文件，不维护历史、不自动跳过。处理工具不删除、不修改输入。
+- 关于页猫咪独立使用 `src/data/pets.json` 与 R2 的 `pets/<version>/<id>/`，摄影清单和展览编排不引用；媒体清单工具同时校验猫咪数据。当前展示待机循环与名字，其他动作资料仅供维护。视频上传后验证类型、字节数和校验值；上传前还要验证透明通道。
+- 处理输出和请求 JSON 放被 Git 忽略的 `materials/`；本地图片副本不参与网站构建或展示。
 
 ## 准备环境
 
@@ -58,13 +58,13 @@ pnpm build
 git diff --check
 ```
 
-还要用 build + preview 看页面。检查摄影展编排、照片墙文件名/时间排序、缺少时间分组、可选札记、专辑乐评、搜索、详情弹层、大图和移动布局。用户要求手动验收外观时，只做数据与编译检查，把预览交给用户。本次任务未授权推送时，将已经完成并验证的改动交给用户；已授权发布时执行现有发布流程。
+默认完成数据与编译检查后，把预览交给用户手动验收外观和交互。需要检查构建结果时使用 `pnpm preview`；仅在任务明确要求时补充浏览器检查。本次已授权发布就执行发布流程，否则交付本地改动。
 
 ## 小工具边界
 
 | 文件 | 作用 |
 |---|---|
-| `tools/prepare-photos.mjs` | 本分组 RAW/JPEG/PNG → 大图、预览 WebP、摄影草稿与上传清单；透明图可保留 alpha |
+| `tools/prepare-photos.mjs` | 本分组 RAW/JPEG/PNG → 大图、预览 WebP、含拍摄时间/曝光参数的摄影草稿与上传清单；透明图可保留 alpha |
 | `tools/prepare-cover.mjs` | 本地封面 → 1000px JPEG、360px WebP 预览、URL 草稿与上传清单 |
 | `tools/images.mjs` | ExifTool 提取、方向处理、sRGB 派生图共享函数 |
 | `tools/validate-media.mjs` | 检查静态清单的数据格式、重复项、图片 URL |
@@ -75,4 +75,6 @@ git diff --check
 
 ## 完成后的本地清理
 
-确认对象上传、公开数据更新和检查通过后，清理本批查询结果、封面下载副本、压缩派生图、尺寸试验、请求 JSON、草稿、上传回执、日志和一次性脚本。`tmp/` 中的检查日志、截图与临时浏览器缓存也可清理。保留用户原始素材和最终编辑成果（例如透明抠图）；不要把它们当成中间产物。清理仅限本地文件。
+确认对象上传、公开数据更新和检查通过后，清理本批查询结果、下载副本、压缩派生图、请求 JSON、草稿、上传回执、日志和一次性脚本，以及 `tmp/` 中的临时产物。
+
+用户原始素材和最终编辑成果默认保留；用户明确要求删除时执行指定范围的本地清理。网站不需要本地媒体副本，不能把保留副本当作运行要求。R2 删除仍由站点作者执行。

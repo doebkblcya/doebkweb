@@ -1,0 +1,28 @@
+---
+import { signatureLetters } from "../data/home-signature";
+// Overlap letters slightly, with longer beats for the tall strokes and descender.
+const writing = [[120, 520], [340, 350], [475, 340], [625, 480], [875, 450],
+  [1090, 460], [1290, 300], [1390, 390], [1580, 580], [1870, 420]];
+---
+
+<svg class="signature" viewBox="90 170 700 210" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <defs>
+    {signatureLetters.map((letter, index) => <clipPath id={`signature-letter-${index}`} clipPathUnits="userSpaceOnUse">
+      <rect class="signature-reveal" x={letter.x} y={letter.y} width={letter.width} height={letter.height} style={`--letter-delay: ${writing[index][0]}ms; --letter-duration: ${writing[index][1]}ms`} />
+    </clipPath>)}
+  </defs>
+  <g fill="currentColor">
+    {signatureLetters.map((letter, index) => <path d={letter.path} clip-path={`url(#signature-letter-${index})`} />)}
+  </g>
+</svg>
+
+<style>
+  .signature { display: block; width: 100%; height: auto; overflow: visible; }
+  .signature-reveal {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: signature-write var(--letter-duration) cubic-bezier(.3, .1, .45, 1) var(--letter-delay) backwards;
+  }
+  @keyframes signature-write { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @media (prefers-reduced-motion: reduce) { .signature-reveal { animation: none; } }
+</style>

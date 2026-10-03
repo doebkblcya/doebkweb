@@ -75,12 +75,14 @@ export const ui: UIStrings = {
     noResults: "No results",
     loadError: "Failed to load image",
     viewLabel: "Photo view",
-    previous: "Previous photo",
-    next: "Next photo",
     sortName: "Filename",
     sortTime: "Capture time",
     sortLabel: "Sort by",
     noTime: "No capture time",
+    focalLength: "Focal length",
+    aperture: "Aperture",
+    shutter: "Shutter",
+    iso: "ISO",
   },
 
   notFound: {

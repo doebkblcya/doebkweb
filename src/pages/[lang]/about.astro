@@ -2,6 +2,7 @@
 export { getStaticPaths } from "./_getStaticPaths";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { about } from "../../data/about";
+import pets from "../../data/pets.json";
 
 import { ui as zh } from "../../i18n/zh";
 import { ui as en } from "../../i18n/en";
@@ -12,276 +13,201 @@ const t = lang === "zh" ? zh : en;
 
 <BaseLayout title={t.about.title} description={t.about.description} hideFooter>
   <div class="page about-page">
-    <!-- 标准页头：与其他页面一致（.page-title / .page-divider 为 global.css 共享样式） -->
-    <div class="page-header">
+    <header class="page-header">
       <h1 class="page-title">{t.about.title}</h1>
       <hr class="page-divider" />
-    </div>
+    </header>
 
     <div class="page-body">
-      <!-- 引导区 -->
-      <header class="hero">
-        <p class="hero-name">{about.hero.name}</p>
-      </header>
+      <section class="about-hero" aria-labelledby="about-name">
+        <h2 id="about-name" class="hero-name">{about.hero.name}</h2>
 
-      <blockquote class="body-quote">
-        <p>{about.hero.quote}</p>
-      </blockquote>
+        <div class="about-copy">
+          <div class="about-intro">
+            {about.hero.intro.split("\n").map(paragraph => <p>{paragraph}</p>)}
+          </div>
+        </div>
 
-      <section class="cats-section" aria-labelledby="about-cats-title">
-        <h2 id="about-cats-title" class="section-title">{about.cats.title}</h2>
         <div class="cats-grid">
-          {about.cats.items.map(cat => <figure class="cat">
-            <img src={cat.thumb} alt={cat.note || cat.name} width={cat.width} height={cat.height} loading="lazy" decoding="async" />
-            {cat.note?.trim() && <figcaption>{cat.note}</figcaption>}
+          {pets.map(cat => <figure class="cat">
+            <div class="cat-media" data-about-cat>
+              <img src={cat.poster} alt={cat.name} width={cat.width} height={cat.height} decoding="async" draggable="false" />
+              <video muted loop playsinline preload="none" disablepictureinpicture disableRemotePlayback
+                aria-hidden="true" tabindex="-1" width={cat.width} height={cat.height}
+                data-webm={cat.clips.idle.webm} data-hevc={cat.clips.idle.hevc}></video>
+            </div>
+            <figcaption>{cat.name}</figcaption>
           </figure>)}
         </div>
       </section>
 
-      <!-- 联系 -->
-      <section class="section">
-        <h2 class="section-title">{about.contact.title}</h2>
-        <div class="contact-row">
-          <a
-            class="contact-btn"
-            href={about.contact.github}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
-          <a class="contact-btn" href={`mailto:${about.contact.email}`}>
-            {about.contact.email}
-          </a>
+      <section class="contact-section" aria-labelledby="about-contact-title">
+        <h2 id="about-contact-title" class="contact-title">{about.contact.title}</h2>
+        <div class="contact-links">
+          <a href={about.contact.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href={`mailto:${about.contact.email}`}>{about.contact.email}</a>
         </div>
       </section>
     </div>
   </div>
 </BaseLayout>
 
+<script>
+  import { initAboutCats } from "../../scripts/about-cats";
+  initAboutCats();
+</script>
+
 <style>
-  /* 布局与文档详情页一致：80rem 左对齐 */
-  .page {
-    padding: var(--space-16) var(--space-8) var(--space-24);
-  }
+  .page-body { min-width: 0; }
 
-  .page-header {
-    max-width: 80rem;
-  }
-
-  .page-body {
-    max-width: 80rem;
-    min-width: 0;
-  }
-
-  /* ── 入场动画：整页一次、分区级联（轻量，无 JS / 无滚动触发） ──
-     页面级样式随 VT 换页重建 DOM，切页回来动画自然重放 */
-  .page-header,
-  .page-body > * {
-    animation: fadeUp 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .page-body > *:nth-child(2) { animation-delay: 100ms; }
-  .page-body > *:nth-child(3) { animation-delay: 200ms; }
-  .page-body > *:nth-child(4) { animation-delay: 300ms; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── 引导区 ────────────────────────────────── */
-  .hero {
-    margin-bottom: var(--space-16);
+  .about-hero {
+    display: grid;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    column-gap: clamp(2.5rem, 5vw, 5rem);
+    row-gap: clamp(2rem, 4vw, 3rem);
+    padding-top: var(--space-4);
   }
 
   .hero-name {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: var(--tracking-tight);
-    color: var(--color-text-primary);
-  }
-
-  /* ── 分区 ──────────────────────────────────── */
-  .section {
-    margin-top: var(--space-16);
-  }
-
-  .section-title {
-    margin-bottom: var(--space-6);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: var(--tracking-wide);
-    color: var(--color-text-tertiary);
-  }
-
-  /* ── 联系 ──────────────────────────────────── */
-  .contact-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4);
-  }
-
-  .contact-btn {
-    padding: var(--space-3) var(--space-5);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    color: var(--color-text-primary);
-    text-decoration: none;
-    transition:
-      background-color var(--duration-fast),
-      border-color var(--duration-fast);
-  }
-
-  .contact-btn:hover {
-    background: var(--color-bg-surface-hover);
-    border-color: var(--color-text-tertiary);
-  }
-
-  .contact-btn:active {
-    transform: scale(0.98);
-  }
-
-  /* ── 响应式（640px 手机分界） ─────────────── */
-  @media (max-width: 640px) {
-    .page {
-      padding: var(--space-10) var(--space-6) var(--space-16);
-    }
-
-    .contact-row {
-      flex-direction: column;
-    }
-
-    .contact-btn {
-      text-align: center;
-    }
-  }
-
-  /* ── 系统偏好降级 ─────────────────────────── */
-  @media (prefers-reduced-motion: reduce) {
-    .page-header,
-    .page-body > * {
-      animation: none;
-    }
-
-    .contact-btn {
-      transition: none;
-    }
-  }
-</style>
-
-<style>
-  .about-page .page-header { max-width: none; }
-
-  .about-page .page-body {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1.25rem, 2.5vw, 2rem);
-    max-width: none;
-  }
-
-  .about-page .hero {
     grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: inherit;
-    margin-bottom: clamp(2.75rem, 5vw, 4.5rem);
-  }
-
-  .about-page .hero-name {
-    grid-column: 1 / span 8;
+    margin: 0;
     font-family: var(--font-editorial);
-    font-size: clamp(3.25rem, 6.5vw, 6rem);
+    font-size: clamp(3.25rem, 7vw, 6.5rem);
     font-weight: 400;
-    line-height: 0.88;
-    letter-spacing: -0.045em;
+    line-height: 1;
+    letter-spacing: -.045em;
+    overflow-wrap: anywhere;
   }
 
-  .about-page .body-quote {
-    grid-column: 4 / span 7;
-    margin: 0 0 clamp(5rem, 9vw, 8rem);
-    padding: clamp(1.5rem, 3vw, 2.5rem) 0 0;
-    border-top: 1px solid var(--color-border-light);
-    border-left: 0;
+  .about-copy { min-width: 0; align-self: center; }
+
+  .about-intro {
+    max-width: 26ch;
+    font-family: var(--font-editorial);
+    font-size: clamp(1.125rem, 1.8vw, 1.5rem);
+    line-height: 1.9;
+    text-wrap: pretty;
+  }
+
+  .about-intro p { margin: 0; }
+  .about-intro p + p { margin-top: var(--space-2); }
+
+  .cats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(.75rem, 1.5vw, 1.5rem);
+    align-self: center;
+    width: 100%;
+    max-width: 660px;
+    justify-self: end;
+  }
+
+  .cat {
+    display: grid;
+    grid-template-rows: clamp(12rem, 20vw, 18rem) auto;
+    gap: var(--space-4);
+    min-width: 0;
+    margin: 0;
+  }
+
+  .cat-media { position: relative; min-height: 0; }
+
+  .cat img, .cat video {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+
+  .cat video { opacity: 0; pointer-events: none; }
+  .cat-media[data-ready] video { opacity: 1; }
+  .cat-media[data-ready] img { visibility: hidden; }
+
+  .cat figcaption {
     color: var(--color-text-secondary);
     font-family: var(--font-editorial);
-    font-size: clamp(1.5rem, 2.8vw, 2.5rem);
+    font-size: var(--text-base);
     font-style: italic;
-    line-height: 1.35;
-    text-wrap: balance;
+    text-align: center;
   }
 
-  .about-page .body-quote p { margin: 0; }
-
-  .cats-section {
-    grid-column: 4 / span 7;
-    margin-bottom: clamp(4rem, 8vw, 7rem);
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border-light);
-  }
-
-  .cats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.75rem, 2vw, 2rem); max-width: 720px; margin-top: var(--space-8); }
-  .cat { display: grid; grid-template-rows: clamp(8rem, 18vw, 14rem) auto; gap: 1rem; min-width: 0; margin: 0; }
-  .cat img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
-  .cat figcaption { color: var(--color-text-secondary); font-family: var(--font-editorial); font-size: var(--text-sm); font-style: italic; text-align: center; }
-
-  .about-page .section {
-    grid-column: 4 / span 7;
+  .contact-section {
     display: grid;
-    grid-template-columns: minmax(7rem, 1fr) minmax(0, 4fr);
-    gap: 2rem;
-    margin: 0 0 clamp(4rem, 8vw, 7rem);
-    padding-top: 1rem;
+    gap: var(--space-4);
+    margin-top: clamp(3rem, 5vw, 4rem);
+    padding-top: var(--space-5);
     border-top: 1px solid var(--color-border-light);
   }
 
-  .about-page .section-title {
+  .contact-title {
     margin: 0;
     color: var(--color-text-tertiary);
     font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: 500;
+    font-size: var(--text-sm);
+    font-weight: 400;
     letter-spacing: var(--tracking-wide);
+    line-height: var(--leading-normal);
   }
 
-  .about-page .contact-row { gap: 0; align-items: flex-start; }
-
-  .about-page .contact-btn {
-    padding: 0.75rem 1.25rem;
-    border: 1px solid var(--color-text-primary);
-    border-radius: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    letter-spacing: 0.02em;
-    transition: color var(--duration-fast), background var(--duration-fast);
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-8);
   }
 
-  .about-page .contact-btn + .contact-btn { border-left: 0; }
-  .about-page .contact-btn:hover { border-color: var(--color-text-primary); background: var(--color-text-primary); color: var(--color-bg-page); }
+  .contact-links a {
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+    text-decoration: underline;
+    text-decoration-color: var(--color-border);
+    text-decoration-thickness: 1px;
+    text-underline-offset: .3em;
+    transition: color var(--duration-fast), text-decoration-color var(--duration-fast);
+  }
 
-  @media (max-width: 900px) {
-    .about-page .hero-name { grid-column: 1 / span 9; }
-    .about-page .body-quote { grid-column: 2 / span 10; }
-    .about-page .section { grid-column: 2 / span 10; }
-    .cats-section { grid-column: 2 / span 10; }
+  .contact-links a:hover {
+    color: var(--color-text-primary);
+    text-decoration-color: currentColor;
+  }
+
+  .hero-name,
+  .about-copy,
+  .cats-grid,
+  .contact-section { animation: about-enter 480ms var(--ease-gallery) both; }
+  .about-copy { animation-delay: 60ms; }
+  .cats-grid { animation-delay: 120ms; }
+  .contact-section { animation-delay: 180ms; }
+
+  @keyframes about-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 1024px) {
+    .about-hero { grid-template-columns: minmax(0, 1fr); }
+    .about-intro { max-width: 32ch; }
+    .cat { grid-template-rows: clamp(12rem, 25vw, 18rem) auto; }
   }
 
   @media (max-width: 640px) {
-    .about-page .page-body,
-    .about-page .hero { display: block; }
-    .about-page .hero { margin-bottom: 3.5rem; }
-    .about-page .hero-name { font-size: clamp(3rem, 16vw, 4.25rem); }
-    .about-page .body-quote {
-      max-width: 32rem;
-      margin-bottom: 4.5rem;
-    }
-    .about-page .section { display: block; margin-bottom: 4.5rem; }
-    .about-page .section-title { margin-bottom: 2rem; }
-    .cats-section { margin-bottom: 4.5rem; }
-    .cat { grid-template-rows: clamp(7rem, 28vw, 11rem) auto; gap: .75rem; }
-    .about-page .contact-row { flex-direction: row; }
-    .about-page .contact-btn { text-align: left; }
+    .about-hero { row-gap: var(--space-8); padding-top: 0; }
+    .hero-name { font-size: clamp(2.75rem, 12vw, 4rem); }
+    .about-intro { font-size: var(--text-lg); }
+    .cats-grid { gap: var(--space-3); }
+    .cat { grid-template-rows: clamp(7rem, 30vw, 11rem) auto; gap: var(--space-3); }
+    .cat figcaption { font-size: var(--text-sm); }
+    .contact-section { margin-top: var(--space-12); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-name,
+    .about-copy,
+    .cats-grid,
+    .contact-section { animation: none; }
+    .contact-links a { transition: none; }
   }
 </style>

@@ -7,9 +7,9 @@ const { albums, t } = Astro.props;
 const reviewed = albums.filter(album => album.review.trim());
 ---
 
-<section id="album-selection" class="selection" aria-label={t.viewSelection}>
-  {reviewed.length === 0 ? <p class="empty-state">{t.emptySelection}</p> : <div class="selection-list">
-    {reviewed.map((album, index) => <article class="selection-record" data-record-id={album.id} aria-labelledby={`selection-title-${album.id}`} hidden={index >= 3}>
+<section id="album-selection" class="selection media-stage" aria-label={t.viewSelection} tabindex="0">
+  {reviewed.length === 0 ? <p class="empty-state">{t.emptySelection}</p> : <div class="selection-list media-stage-track" data-stage-track>
+    {reviewed.map(album => <article class="selection-record" data-record-id={album.id} data-stage-item data-stage-id={album.id} aria-labelledby={`selection-title-${album.id}`}>
       <div class="selection-art">
         <div class="vinyl" aria-hidden="true">
           <div class="vinyl-label"><img src={album.thumb || album.cover} alt="" width="360" height="360" loading="lazy" decoding="async" /></div>
@@ -18,7 +18,7 @@ const reviewed = albums.filter(album => album.review.trim());
           <img src={album.thumb || album.cover} data-cover={album.cover} alt={`${album.name} — ${album.artist}`} width="1000" height="1000" loading="lazy" decoding="async" />
         </button>
       </div>
-      <div class="selection-copy">
+      <div class="selection-copy" data-stage-scroll tabindex="0">
         <header class="selection-heading">
           <h2 id={`selection-title-${album.id}`}>{album.name}</h2>
           <div class="selection-info"><span>{album.artist}</span>{album.released && <time datetime={album.released}>{album.released.slice(0, 4)}</time>}</div>
@@ -31,7 +31,7 @@ const reviewed = albums.filter(album => album.review.trim());
     </article>)}
   </div>}
   <script is:inline>
-    // Hide the initial order only while the page module prepares it. Without JS,
+    // Hide the initial order only while the page module prepares the stage. Without JS,
     // the server-rendered reviews remain readable; a failed module also falls back.
     (function () {
       var selection = document.currentScript.parentElement;
@@ -46,14 +46,15 @@ const reviewed = albums.filter(album => album.review.trim());
 <style>
   .selection[data-pending] { visibility: hidden; }
   .selection[hidden] { display: none; }
-  .selection-record { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); align-items: center; gap: clamp(2rem, 5vw, 5rem); padding: clamp(3.5rem, 7vw, 7rem) 0; }
+  .selection-record { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: var(--selection-column-gap); padding: clamp(3.5rem, 7vw, 7rem) 0; }
   .selection-record[hidden] { display: none; }
   .selection-record:first-child { padding-top: 1.5rem; }
   .selection-record + .selection-record { border-top: 1px solid var(--color-border-light); }
-  .selection-art { position: relative; width: 100%; max-width: 510px; aspect-ratio: 1.5; isolation: isolate; }
+  .selection-art { position: relative; width: 100%; max-width: var(--selection-art-width); aspect-ratio: 1.5; isolation: isolate; }
   .record-sleeve { position: relative; display: block; width: calc(100% / 1.5); aspect-ratio: 1; padding: 0; z-index: 1; background: var(--color-bg-muted); }
+  .record-sleeve::before { content: ""; position: absolute; top: 1%; left: 100%; width: 8px; height: 98%; background: linear-gradient(90deg, rgb(0 0 0 / .32), transparent); pointer-events: none; }
   .record-sleeve::after { content: ""; position: absolute; inset: 0; border: 1px solid rgb(127 127 127 / .14); pointer-events: none; }
-  .record-sleeve img { width: 100%; height: 100%; object-fit: cover; }
+  .record-sleeve img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .record-sleeve:focus-visible { outline-offset: 6px; }
   .vinyl { position: absolute; top: 0; left: 0; width: calc(100% / 1.5); aspect-ratio: 1; border-radius: 50%; border: 1px solid #363636; background: radial-gradient(circle at center, transparent 0 27%, rgb(255 255 255 / .07) 27.3% 27.7%, transparent 28%), repeating-radial-gradient(circle at center, #151515 0 2px, #242424 2.5px 3px, #151515 3.5px 5px); transform: translateX(48%) rotate(8deg); pointer-events: none; }
   .vinyl::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: conic-gradient(from 30deg, transparent, rgb(255 255 255 / .09) 14%, transparent 27% 58%, rgb(255 255 255 / .07) 70%, transparent 84%); }
@@ -71,15 +72,27 @@ const reviewed = albums.filter(album => album.review.trim());
   .selection-playback { display: flex; align-items: baseline; gap: .75rem; margin-top: 1.75rem; font-size: var(--text-xs); color: var(--color-text-tertiary); }
   .selection-playback a { text-decoration: underline; text-underline-offset: .3em; text-decoration-color: var(--color-border); }
   .selection-playback a:hover { color: var(--color-text-primary); }
-  .selection[data-animated] .vinyl { transform: translateX(3%) rotate(-6deg); }
-  .selection[data-animated] .selection-copy { opacity: 0; transform: translateX(-10px); }
-  .selection[data-animated] .is-revealed .vinyl { transform: translateX(48%) rotate(8deg); transition: transform 620ms var(--ease-gallery); }
-  .selection[data-animated] .is-revealed .selection-copy { opacity: 1; transform: none; transition: opacity 480ms ease 140ms, transform 560ms var(--ease-gallery) 140ms; }
+  .selection[data-stage-ready] .selection-record { height: 100%; min-height: 0; padding: 1rem 0; border: 0; }
+  .selection[data-stage-ready] .selection-art { width: min(100%, calc(var(--media-stage-height) * 1.15)); justify-self: center; }
+  .selection[data-stage-ready] .selection-copy { max-height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; padding-right: .5rem; }
+  .selection[data-stage-ready] .selection-copy:focus-visible { outline-offset: 4px; }
+  .selection[data-stage-ready] .vinyl { transform: translateX(3%) rotate(0deg); }
+  .selection[data-stage-ready] .is-revealed .vinyl { transform: translateX(48%) rotate(8deg); transition: transform 900ms cubic-bezier(.28, .12, .2, 1); }
+  .selection[data-stage-ready] :is(.selection-heading, .selection-review, .selection-playback) { opacity: 0; }
+  .selection[data-stage-ready] :is(.selection-review, .selection-playback) { transform: translateY(4px); }
+  .selection[data-stage-ready] .is-readable .selection-heading { opacity: 1; transition: opacity 420ms ease 60ms; }
+  .selection[data-stage-ready] .is-readable :is(.selection-review, .selection-playback) { opacity: 1; transform: none; transition: opacity 540ms ease 280ms, transform 640ms var(--ease-gallery) 280ms; }
+  .selection[data-stage-ready] [data-stage-preview] :is(.selection-heading, .selection-review, .selection-playback) { opacity: 1; transform: none; transition: none; }
   .empty-state { color: var(--color-text-tertiary); }
   @media (max-width: 960px) {
     .selection-record { grid-template-columns: minmax(0, 1fr); gap: 2.75rem; }
     .selection-art { max-width: 460px; justify-self: center; }
     .selection-copy { width: min(100%, 580px); justify-self: center; }
+    .selection[data-stage-ready] .selection-record { grid-template-rows: minmax(0, .42fr) minmax(0, .58fr); gap: 1.25rem; }
+    .selection[data-stage-ready] .selection-art { height: 100%; width: auto; max-width: min(100%, 380px); align-self: center; }
+    .selection[data-stage-ready] .selection-copy { width: min(100%, 580px); height: 100%; }
+    .selection[data-stage-ready] .selection-heading h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); }
+    .selection[data-stage-ready] .selection-review { margin-top: 1rem; }
   }
   @media (max-width: 640px) {
     .selection-record { gap: 2rem; padding-block: 3.5rem; }
@@ -89,9 +102,9 @@ const reviewed = albums.filter(album => album.review.trim());
     .selection-playback { margin-top: 1.5rem; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .selection[data-animated] .vinyl,
-    .selection[data-animated] .is-revealed .vinyl { transform: translateX(48%) rotate(8deg); transition: none; }
-    .selection[data-animated] .selection-copy,
-    .selection[data-animated] .is-revealed .selection-copy { opacity: 1; transform: none; transition: none; }
+    .selection[data-stage-ready] .vinyl,
+    .selection[data-stage-ready] .is-revealed .vinyl { transform: translateX(48%) rotate(8deg); transition: none; }
+    .selection[data-stage-ready] :is(.selection-heading, .selection-review, .selection-playback),
+    .selection[data-stage-ready] .is-readable :is(.selection-heading, .selection-review, .selection-playback) { opacity: 1; transform: none; transition: none; }
   }
 </style>

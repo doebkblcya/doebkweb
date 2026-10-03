@@ -1,17 +1,10 @@
-import catsJson from "./cats.json";
-import type { Photo } from "./photos";
-
-/** 关于页正文使用中文；猫咪图片与名字来自 cats.json，页面抬头走 i18n。 */
+/** 关于页正文使用中文，页面抬头走 i18n；猫咪媒体独立维护在 pets.json。 */
 
 export interface AboutData {
   /** 页面头下方的引导区 */
   hero: {
     name: string;
-    quote: string;
-  };
-  cats: {
-    title: string;
-    items: Photo[];
+    intro: string;
   };
   /** 联系分区 */
   contact: {
@@ -24,11 +17,7 @@ export interface AboutData {
 export const about: AboutData = {
   hero: {
     name: "doebkblcya",
-    quote: "And it'll be a long time, before you ever see me again, me again",
-  },
-  cats: {
-    title: "我的猫",
-    items: catsJson satisfies Photo[],
+    intro: "住在上海。\n平时写代码，也拍照、听音乐、玩游戏。\n养过三只猫。",
   },
   contact: {
     title: "联系",

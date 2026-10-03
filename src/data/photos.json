@@ -7,7 +7,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-15T18:03:59",
-    "note": "川西的山"
+    "note": "川西的山",
+    "focalLength": 46,
+    "aperture": 5.6,
+    "exposureTime": 0.004,
+    "iso": 100
   },
   {
     "id": "20261002-01-v1-002",
@@ -17,7 +21,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-16T13:03:24",
-    "note": "川西的山"
+    "note": "川西的山",
+    "focalLength": 18,
+    "aperture": 5,
+    "exposureTime": 0.0015625,
+    "iso": 100
   },
   {
     "id": "20261002-02-v1-001",
@@ -27,7 +35,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-17T12:47:30",
-    "note": "川西公路牦牛"
+    "note": "川西公路牦牛",
+    "focalLength": 105,
+    "aperture": 5.6,
+    "exposureTime": 0.004,
+    "iso": 100
   },
   {
     "id": "20261002-03-v1-001",
@@ -37,7 +49,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-17T13:19:30",
-    "note": "川西县城老奶奶"
+    "note": "川西县城老奶奶",
+    "focalLength": 28,
+    "aperture": 4.5,
+    "exposureTime": 0.000625,
+    "iso": 100
   },
   {
     "id": "20261002-04-v1-001",
@@ -47,7 +63,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-17T16:29:04",
-    "note": "川西墨石"
+    "note": "川西墨石",
+    "focalLength": 18,
+    "aperture": 5,
+    "exposureTime": 0.001,
+    "iso": 100
   },
   {
     "id": "20261002-05-v1-001",
@@ -57,7 +77,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-17T17:38:33",
-    "note": "川西木雅大寺僧人和一只羊"
+    "note": "川西木雅大寺僧人和一只羊",
+    "focalLength": 108,
+    "aperture": 5.6,
+    "exposureTime": 0.002,
+    "iso": 100
   },
   {
     "id": "20261002-05-v1-002",
@@ -67,7 +91,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-17T17:47:30",
-    "note": "川西木雅大寺僧人和一只羊"
+    "note": "川西木雅大寺僧人和一只羊",
+    "focalLength": 103,
+    "aperture": 5.6,
+    "exposureTime": 0.0025,
+    "iso": 100
   },
   {
     "id": "20261002-06-v1-001",
@@ -77,7 +105,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-17T18:34:51",
-    "note": "川西日照金山"
+    "note": "川西日照金山",
+    "focalLength": 119,
+    "aperture": 5.6,
+    "exposureTime": 0.005,
+    "iso": 200
   },
   {
     "id": "20261002-07-v1-001",
@@ -87,7 +119,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-01-18T15:32:58",
-    "note": "川西434省道旁"
+    "note": "川西434省道旁",
+    "focalLength": 32,
+    "aperture": 5,
+    "exposureTime": 0.00125,
+    "iso": 100
   },
   {
     "id": "20261002-08-v1-001",
@@ -97,7 +133,11 @@
     "width": 1600,
     "height": 2400,
     "date": "2026-01-19T14:42:56",
-    "note": "成都戏剧演出"
+    "note": "成都戏剧演出",
+    "focalLength": 59,
+    "aperture": 5.6,
+    "exposureTime": 0.00625,
+    "iso": 200
   },
   {
     "id": "20261002-09-v1-001",
@@ -107,7 +147,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-04-06T17:36:46",
-    "note": "上海打的鸟"
+    "note": "上海打的鸟",
+    "focalLength": 350,
+    "aperture": 6.3,
+    "exposureTime": 0.004,
+    "iso": 6400
   },
   {
     "id": "20261002-09-v1-002",
@@ -117,7 +161,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-04-19T16:43:20",
-    "note": "上海打的鸟"
+    "note": "上海打的鸟",
+    "focalLength": 350,
+    "aperture": 6.3,
+    "exposureTime": 0.002,
+    "iso": 1600
   },
   {
     "id": "20261002-10-v1-001",
@@ -127,7 +175,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-09-05T14:56:01",
-    "note": "南京拍的野猫和鸟"
+    "note": "南京拍的野猫和鸟",
+    "focalLength": 56,
+    "aperture": 1.4,
+    "exposureTime": 0.01,
+    "iso": 250
   },
   {
     "id": "20261002-10-v1-002",
@@ -137,7 +189,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-09-05T15:46:12",
-    "note": "南京拍的野猫和鸟"
+    "note": "南京拍的野猫和鸟",
+    "focalLength": 70,
+    "aperture": 2.8,
+    "exposureTime": 0.008,
+    "iso": 400
   },
   {
     "id": "20261002-10-v1-003",
@@ -147,7 +203,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-09-06T14:52:13",
-    "note": "南京拍的野猫和鸟"
+    "note": "南京拍的野猫和鸟",
+    "focalLength": 350,
+    "aperture": 6.3,
+    "exposureTime": 0.002,
+    "iso": 5000
   },
   {
     "id": "20261002-11-v1-001",
@@ -157,7 +217,11 @@
     "width": 2400,
     "height": 1600,
     "date": "2026-09-06T15:28:28",
-    "note": "南京阅江楼城景"
+    "note": "南京阅江楼城景",
+    "focalLength": 32,
+    "aperture": 10,
+    "exposureTime": 0.008,
+    "iso": 100
   },
   {
     "id": "20261002-11-v1-002",
@@ -167,6 +231,10 @@
     "width": 1600,
     "height": 2400,
     "date": "2026-09-06T15:36:19",
-    "note": "南京阅江楼城景"
+    "note": "南京阅江楼城景",
+    "focalLength": 69,
+    "aperture": 8,
+    "exposureTime": 0.00625,
+    "iso": 100
   }
 ]

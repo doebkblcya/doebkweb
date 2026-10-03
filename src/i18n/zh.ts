@@ -74,12 +74,14 @@ export const ui: UIStrings = {
     noResults: "无结果",
     loadError: "图片加载失败",
     viewLabel: "照片显示方式",
-    previous: "上一张",
-    next: "下一张",
     sortName: "文件名",
     sortTime: "拍摄时间",
     sortLabel: "排序方式",
     noTime: "没有时间",
+    focalLength: "焦距",
+    aperture: "光圈",
+    shutter: "快门",
+    iso: "感光度",
   },
 
   notFound: {

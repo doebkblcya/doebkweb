@@ -1,0 +1,75 @@
+/* Exhibition mode fills the viewport; the shelf/wall restores the normal document. */
+html:has(.media-stage-page) {
+  overflow: hidden;
+  overscroll-behavior-y: none;
+}
+
+.has-sidebar .content-area .page.media-stage-page {
+  --stage-edge-space: max(var(--space-5), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  padding-bottom: var(--stage-edge-space);
+}
+
+/* Balance the space below the toolbar with the viewport's bottom inset. */
+.media-stage-page > .toolbar { margin-bottom: var(--stage-edge-space); }
+
+.media-stage-page > :not(.media-stage) {
+  flex-shrink: 0;
+  touch-action: pinch-zoom;
+}
+
+.media-stage[data-stage-ready] {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.media-stage[data-stage-ready][hidden] { display: none; }
+
+.media-stage[data-stage-ready] [data-stage-track] {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+}
+
+.media-stage[data-stage-ready] [data-stage-track] > [data-stage-item] {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.media-stage[data-stage-ready] [data-stage-item][hidden] { display: none; }
+.media-stage[data-stage-ready] [data-stage-item][inert] { pointer-events: none; }
+.media-stage[data-stage-ready] [data-stage-item] > :not([data-stage-scroll]) { touch-action: pinch-zoom; }
+
+.media-stage[data-stage-ready] [data-stage-scroll] {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y pinch-zoom;
+  scrollbar-width: thin;
+}
+
+.media-stage[data-stage-ready]:focus { outline: none; }
+
+.media-stage[data-stage-ready][data-stage-keyboard]:focus-visible {
+  outline: 1px solid var(--color-border);
+  outline-offset: 6px;
+}
+
+@media (max-height: 540px) {
+  .has-sidebar .content-area .page.media-stage-page { --stage-edge-space: max(var(--space-2), env(safe-area-inset-bottom)); }
+  .media-stage-page > .toolbar { padding-block: .25rem; }
+}

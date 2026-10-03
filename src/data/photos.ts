@@ -9,6 +9,11 @@ export interface Photo {
   width: number;
   height: number;
   date?: string;
+  /** Actual focal length in millimetres, f-number, exposure in seconds, and ISO. */
+  focalLength?: number;
+  aperture?: number;
+  exposureTime?: number;
+  iso?: number;
   note?: string;
 }
 

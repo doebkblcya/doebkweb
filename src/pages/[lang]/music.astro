@@ -72,91 +72,36 @@ const albums = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang)
 </BaseLayout>
 
 <script>
+  import { createMediaStage } from "../../scripts/media-stage";
+
   const page = document.querySelector<HTMLElement>(".records-page");
   const shelf = page?.querySelector<HTMLElement>("#album-shelf");
   const shelfPanel = page?.querySelector<HTMLElement>("#album-shelf-panel");
   const cards = [...(page?.querySelectorAll<HTMLElement>(".album") || [])];
   const dialogs = [...(page?.querySelectorAll<HTMLDialogElement>(".album-dialog") || [])];
   const selection = page?.querySelector<HTMLElement>("#album-selection");
-  const selectionList = selection?.querySelector<HTMLElement>(".selection-list");
-  const selectionRecords = [...(selection?.querySelectorAll<HTMLElement>("[data-record-id]") || [])];
   const viewButtons = [...(page?.querySelectorAll<HTMLButtonElement>("[data-record-view]") || [])];
-  const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const orderKey = "doebk-album-selection-order";
-  let lastOrder = "";
-  let selectionObserver: IntersectionObserver | undefined;
-  try { lastOrder = sessionStorage.getItem(orderKey) || ""; } catch {}
+  const selectionStage = selection ? createMediaStage(selection, {
+    storageKey: "doebk-album-selection-order",
+    onActivate(record) {
+      const cover = record.querySelector<HTMLImageElement>(".record-sleeve img");
+      if (cover?.dataset.cover && cover.src !== cover.dataset.cover) cover.src = cover.dataset.cover;
+      record.classList.add("is-revealed", "is-readable");
+    },
+    onDeactivate(record) { record.classList.remove("is-revealed", "is-readable"); },
+  }) : undefined;
 
-  function shuffleSelection() {
-    if (!selectionList) return;
-    const shuffled = [...selectionRecords];
-    for (let index = shuffled.length - 1; index > 0; index--) {
-      const other = Math.floor(Math.random() * (index + 1));
-      [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
-    }
-    const signature = (records: HTMLElement[]) => JSON.stringify(records.slice(0, 3).map(record => record.dataset.recordId));
-    // Randomness can repeat; avoid the previous displayed order explicitly.
-    if (shuffled.length > 1 && signature(shuffled) === lastOrder) {
-      shuffled.push(shuffled.shift()!);
-    }
-    lastOrder = signature(shuffled);
-    try { sessionStorage.setItem(orderKey, lastOrder); } catch {}
-    shuffled.forEach((record, index) => {
-      record.hidden = index >= 3;
-      record.classList.remove("is-revealed");
-      selectionList.append(record);
-    });
-  }
-
-  function revealRecord(record: HTMLElement) {
-    const cover = record.querySelector<HTMLImageElement>(".record-sleeve img");
-    if (cover?.dataset.cover && cover.src !== cover.dataset.cover) cover.src = cover.dataset.cover;
-    record.classList.add("is-revealed");
-  }
-
-  function observeSelection() {
-    selectionObserver?.disconnect();
-    if (!selection || selection.hidden) return;
-    const visible = selectionRecords.filter(record => !record.hidden);
-    const canObserve = "IntersectionObserver" in window;
-    selection.toggleAttribute("data-animated", !motionPreference.matches && canObserve);
-    if (canObserve) {
-      selectionObserver = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          const record = entry.target as HTMLElement;
-          if (record.hidden || selection.hidden) return;
-          if (entry.isIntersecting) {
-            revealRecord(record);
-          } else {
-            // Reset offscreen so scrolling back replays the entrance animation.
-            record.classList.remove("is-revealed");
-          }
-        });
-      }, { rootMargin: "0px 0px -8% 0px", threshold: 0 });
-      visible.forEach(record => selectionObserver?.observe(record));
-    } else {
-      visible.forEach(revealRecord);
-    }
-    selection.removeAttribute("data-pending");
-  }
-
-  shuffleSelection();
-  observeSelection();
   viewButtons.forEach(button => {
     button.addEventListener("click", () => {
       if (button.getAttribute("aria-pressed") === "true" || !selection || !shelfPanel) return;
       const showSelection = button.dataset.recordView === "selection";
-      selectionObserver?.disconnect();
+      selectionStage?.suspend();
       selection.hidden = !showSelection;
       shelfPanel.hidden = showSelection;
       viewButtons.forEach(other => other.setAttribute("aria-pressed", String(other === button)));
-      if (showSelection) {
-        shuffleSelection();
-        observeSelection();
-      }
+      if (showSelection) selectionStage?.restart();
     });
   });
-  motionPreference.addEventListener("change", observeSelection);
 
   page?.querySelectorAll<HTMLButtonElement>('[aria-controls^="album-dialog-"]').forEach(trigger => {
     trigger.addEventListener("click", () => {
@@ -184,15 +129,8 @@ const albums = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang)
     });
     document.body.classList.remove("album-open");
   }
-  window.addEventListener("pagehide", () => {
-    closeDialogs();
-    selectionObserver?.disconnect();
-  });
-  window.addEventListener("pageshow", event => {
-    closeDialogs();
-    // History restoration keeps the current reading order and scroll position.
-    if (event.persisted) observeSelection();
-  });
+  window.addEventListener("pagehide", closeDialogs);
+  window.addEventListener("pageshow", closeDialogs);
 
   const input = page?.querySelector<HTMLInputElement>("#album-search");
   const noResults = page?.querySelector<HTMLElement>("#album-no-results");

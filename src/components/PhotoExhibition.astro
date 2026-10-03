@@ -1,70 +1,77 @@
 ---
 import type { Photo, PhotoGroup } from "../data/photos";
-interface Props { photos: Photo[]; groups: PhotoGroup[]; label: string; }
-const { photos, groups, label } = Astro.props;
+import type { PhotosStrings } from "../types/i18n";
+interface Props { photos: Photo[]; groups: PhotoGroup[]; t: PhotosStrings; }
+const { photos, groups, t } = Astro.props;
 const byId = new Map(photos.map(photo => [photo.id, photo]));
-const ordered = groups.flatMap(group => group.photos.map(id => byId.get(id)!));
+const ordered = groups.flatMap(group => group.photos.map(id => byId.get(id)))
+  .filter((photo): photo is Photo => !!photo?.note?.trim());
+const captureDate = (date: string) => date.slice(0, 10).replaceAll("-", ".");
+function shutter(seconds: number) {
+  if (seconds >= 1) return `${Number(seconds.toPrecision(4))} s`;
+  const denominator = 1 / seconds;
+  const rounded = Math.round(denominator);
+  return Math.abs(denominator - rounded) / denominator < .005
+    ? `1/${rounded} s` : `${Number(seconds.toPrecision(3))} s`;
+}
+function settings(photo: Photo) {
+  return [
+    { label: t.focalLength, value: photo.focalLength ? `${photo.focalLength} mm` : "" },
+    { label: t.aperture, value: photo.aperture ? `f/${photo.aperture}` : "" },
+    { label: t.shutter, value: photo.exposureTime ? shutter(photo.exposureTime) : "" },
+    { label: t.iso, value: photo.iso ? String(photo.iso) : "" },
+  ].filter(setting => setting.value);
+}
 ---
 
-<section id="photo-exhibition" class="exhibition" aria-label={label}>
-  {ordered.map(photo => <figure class="exhibition-photo">
-    <a class="photo-item" href={photo.src} data-photo-id={photo.id} data-caption={photo.note || ""} aria-label={photo.name}>
-      <img src={photo.thumb} alt={photo.name} width={photo.width} height={photo.height} loading="lazy" decoding="async" />
-    </a>
-    {photo.note?.trim() && <figcaption>{photo.note}</figcaption>}
-  </figure>)}
+<section id="photo-exhibition" class="exhibition media-stage" aria-label={t.viewExhibition} tabindex="0">
+  <div class="media-stage-track" data-stage-track>
+    {ordered.map(photo => <figure class="exhibition-photo" data-stage-item data-stage-id={photo.id}>
+      <div class="exhibition-composition">
+      <a class="photo-item" href={photo.src} data-photo-id={photo.id} data-caption={photo.note || ""} aria-label={photo.name}>
+        <img src={photo.thumb} alt={photo.name} width={photo.width} height={photo.height} loading="lazy" decoding="async" />
+      </a>
+      <figcaption data-stage-scroll tabindex="0">
+        {photo.date && <time class="photo-date" datetime={photo.date}>
+          <span>{captureDate(photo.date)}</span>
+          {photo.date.includes("T") && <span class="photo-clock"><span class="date-separator" aria-hidden="true"> · </span>{photo.date.slice(11, 16)}</span>}
+        </time>}
+        <p class:list={{ "photo-note": true, "latin-note": !/[\u3400-\u9fff]/.test(photo.note || "") }}>{photo.note}</p>
+        {settings(photo).length > 0 && <dl class="photo-settings">
+          {settings(photo).map(setting => <div><dt>{setting.label}</dt><dd>{setting.value}</dd></div>)}
+        </dl>}
+      </figcaption>
+      </div>
+    </figure>)}
+  </div>
 </section>
 
-<script>
-  const exhibition = document.querySelector<HTMLElement>("#photo-exhibition");
-  const targets = [...(exhibition?.querySelectorAll<HTMLElement>(".photo-item") || [])];
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let observer: IntersectionObserver | undefined;
-
-  function stopReveal() {
-    observer?.disconnect();
-    observer = undefined;
-    exhibition?.classList.remove("reveal-ready");
-    targets.forEach(target => target.classList.remove("is-visible"));
-  }
-  function startReveal() {
-    stopReveal();
-    if (!exhibition || reducedMotion.matches || !("IntersectionObserver" in window)) return;
-    observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => entry.target.classList.toggle("is-visible", entry.isIntersecting));
-    }, { rootMargin: "0px 0px -48px 0px", threshold: .1 });
-    exhibition.classList.add("reveal-ready");
-    targets.forEach(target => observer?.observe(target));
-  }
-  reducedMotion.addEventListener("change", startReveal);
-  window.addEventListener("pagehide", stopReveal);
-  window.addEventListener("pageshow", startReveal);
-  startReveal();
-</script>
-
 <style>
-  .exhibition {
-    --exhibition-image-height: clamp(16rem, 64vh, 38rem);
-  }
   .exhibition[hidden] { display: none; }
   .exhibition-photo {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.25rem;
-    min-height: min(88vh, 52rem);
-    min-height: min(88svh, 52rem);
     margin: 0;
-    padding-block: clamp(1.5rem, 4vh, 3rem);
+    padding-block: clamp(2rem, 5vh, 4rem);
+  }
+  .exhibition-composition {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, .32fr);
+    align-items: center;
+    gap: clamp(2.5rem, 4.5vw, 4.5rem);
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
   }
   .photo-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    width: min(100%, 960px);
-    height: var(--exhibition-image-height);
+    min-width: 0;
+    width: 100%;
+    height: clamp(16rem, 64vh, 38rem);
+    height: clamp(16rem, 64svh, 38rem);
     text-decoration: none;
   }
   .photo-item img {
@@ -77,39 +84,98 @@ const ordered = groups.flatMap(group => group.photos.map(id => byId.get(id)!));
   }
   .photo-item:focus-visible { outline-offset: 6px; }
   figcaption {
-    max-width: 48ch;
+    min-width: 0;
+    width: 100%;
+    max-width: 19rem;
     margin: 0;
     color: var(--color-text-secondary);
-    font-family: var(--font-editorial);
-    font-style: italic;
-    font-size: var(--text-sm);
-    line-height: var(--leading-relaxed);
-    white-space: pre-wrap;
-    text-align: center;
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+    text-align: left;
   }
-  .reveal-ready .photo-item, .reveal-ready figcaption { opacity: 0; }
-  .reveal-ready .photo-item.is-visible,
-  .reveal-ready .exhibition-photo:focus-within .photo-item { animation: exhibition-enter 600ms cubic-bezier(.22, .61, .36, 1) both; }
-  .reveal-ready .photo-item.is-visible + figcaption,
-  .reveal-ready .exhibition-photo:focus-within figcaption { animation: exhibition-enter 600ms cubic-bezier(.22, .61, .36, 1) 140ms both; }
-  @keyframes exhibition-enter {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+  .photo-date { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .5rem; margin-bottom: 1.25rem; font-family: var(--font-sans); font-style: normal; font-size: var(--photo-label-size); font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: .025em; line-height: 1.5; color: var(--color-text-secondary); }
+  .photo-clock { white-space: nowrap; }
+  .date-separator { margin-right: .5rem; color: var(--color-text-tertiary); }
+  .photo-note { margin: 0; font-family: var(--font-editorial); font-style: normal; font-size: var(--photo-caption-size); font-weight: 400; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--color-text-primary); }
+  .photo-note.latin-note { font-style: italic; }
+  .photo-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1.25rem; margin: 1.75rem 0 0; padding-top: 1rem; border-top: 1px solid var(--color-border-light); font-style: normal; line-height: 1.5; }
+  .photo-settings > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .5rem; }
+  .photo-settings dt { font-family: var(--font-sans); font-style: normal; font-size: var(--photo-label-size); font-weight: 400; color: var(--color-text-tertiary); }
+  .photo-settings dd { margin: 0; font-family: var(--font-sans); font-style: normal; font-size: var(--text-sm); font-weight: 400; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--color-text-secondary); }
+  .exhibition[data-stage-ready] .exhibition-photo {
+    min-height: 0;
+    padding-block: clamp(1rem, 3vh, 2.5rem);
   }
-  @media (prefers-reduced-motion: reduce) {
-    .exhibition.reveal-ready .exhibition-photo .photo-item,
-    .exhibition.reveal-ready .exhibition-photo figcaption { opacity: 1; transform: none; animation: none; }
+  .exhibition[data-stage-ready] .exhibition-composition {
+    width: 88%;
+    max-width: 72rem;
+    height: 88%;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .exhibition[data-stage-ready] .photo-item {
+    min-height: 0;
+    height: 100%;
+  }
+  .exhibition[data-stage-ready] .photo-item img {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: translateY(16px) scale(.985);
+  }
+  .exhibition[data-stage-ready] .is-presented .photo-item img {
+    opacity: 1;
+    transform: none;
+    transition: opacity 500ms ease, transform 850ms cubic-bezier(.22, .61, .36, 1);
+  }
+  .exhibition[data-stage-ready] figcaption {
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding-right: .5rem;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .exhibition[data-stage-ready] .is-presented figcaption {
+    opacity: 1;
+    transform: none;
+    transition: opacity 600ms ease 140ms, transform 750ms var(--ease-gallery) 140ms;
+  }
+  .exhibition[data-stage-ready] [data-stage-preview] .photo-item img {
+    opacity: 1;
+    transform: translateY(12px) scale(.985);
+    transition: none;
+  }
+  .exhibition[data-stage-ready] [data-stage-preview] figcaption {
+    opacity: 1;
+    transform: translateY(6px);
+    transition: none;
+  }
+  @media (max-width: 960px) {
+    .exhibition-composition { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+    figcaption { width: min(100%, 580px); max-width: none; justify-self: center; }
+    .exhibition[data-stage-ready] .exhibition-composition { width: 100%; height: 92%; grid-template-rows: minmax(0, 1fr) minmax(0, auto); gap: 1.5rem; }
+    .exhibition[data-stage-ready] figcaption { max-height: min(28vh, 14rem); max-height: min(28dvh, 14rem); }
+    .photo-date { margin-bottom: 1rem; }
+    .photo-settings { margin-top: 1.25rem; }
   }
   @media (max-width: 640px) {
-    .exhibition {
-      --exhibition-image-height: clamp(14rem, 58vh, 32rem);
-    }
-    .exhibition-photo { min-height: 78vh; min-height: 78svh; gap: 1rem; padding-block: 1.5rem; }
+    .exhibition-photo { padding-block: 1.5rem; }
+    .exhibition-composition { gap: 1rem; }
+    .photo-item { height: clamp(14rem, 58vh, 32rem); height: clamp(14rem, 58svh, 32rem); }
+    .exhibition[data-stage-ready] .exhibition-photo { padding-block: .5rem; }
   }
-  @supports (height: 1svh) {
-    .exhibition { --exhibition-image-height: clamp(16rem, 64svh, 38rem); }
-    @media (max-width: 640px) {
-      .exhibition { --exhibition-image-height: clamp(14rem, 58svh, 32rem); }
+  @media (prefers-reduced-motion: reduce) {
+    .exhibition[data-stage-ready] .photo-item img,
+    .exhibition[data-stage-ready] figcaption {
+      opacity: 1;
+      transform: none;
+      transition: none;
     }
+    .exhibition[data-stage-ready] .is-presented .photo-item img,
+    .exhibition[data-stage-ready] .is-presented figcaption,
+    .exhibition[data-stage-ready] [data-stage-preview] .photo-item img,
+    .exhibition[data-stage-ready] [data-stage-preview] figcaption { transform: none; transition: none; }
   }
 </style>
