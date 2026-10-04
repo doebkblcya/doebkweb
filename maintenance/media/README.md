@@ -9,7 +9,7 @@
 - 新对象：`albums/<id>/<version>/cover.jpg`、`albums/<id>/<version>/preview.webp`、`photos/<batch>/<序号>-large.jpg` 和 `<序号>-preview.webp`；透明图的大图改用 `-large.webp`。
 - `version`/`batch` 使用不重复的日期加版本号，例如 `20260930-v1`；内容修改换新版本，禁止覆盖旧 URL。
 - 本地 `materials/inbox/photos/` 可按用户分类放入子目录，也可直接提供现有照片目录；每个分组只含本批照片，逐组处理全部文件，不维护历史、不自动跳过。处理工具不删除、不修改输入。
-- 关于页猫咪独立使用 `src/data/pets.json` 与 R2 的 `pets/<version>/<id>/`，摄影清单和展览编排不引用；媒体清单工具同时校验猫咪数据。当前展示待机循环与名字，其他动作资料仅供维护。视频上传后验证类型、字节数和校验值；上传前还要验证透明通道。
+- 关于页猫咪独立使用 `src/data/pets.json` 与 R2 的 `pets/<version>/<id>/`，摄影清单和展览编排不引用；媒体清单工具同时校验猫咪数据。当前在关于页展示待机与悬停/点击/闲置动作，所有动作使用各自定位参数对齐脚底。视频上传后验证类型、字节数和校验值；上传前还要验证透明通道；Canvas 播放要求 CDN 返回 GET/HEAD 的跨域读取许可。
 - 处理输出和请求 JSON 放被 Git 忽略的 `materials/`；本地图片副本不参与网站构建或展示。
 
 ## 准备环境

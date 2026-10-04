@@ -9,11 +9,7 @@ import { ui as en } from "../../i18n/en";
 
 const lang = Astro.currentLocale || "zh";
 const t = lang === "zh" ? zh : en;
-const cats: Array<{
-  name: string; poster: string; width: number; height: number;
-  clips: { idle: { webm: string; hevc: string } };
-  framing?: { referenceWidth: number; referenceHeight: number; anchorX: number; footY: number };
-}> = pets;
+const cats = pets;
 ---
 
 <BaseLayout title={t.about.title} description={t.about.description} hideFooter>
@@ -34,19 +30,14 @@ const cats: Array<{
         </div>
 
         <div class="cats-grid">
-          {cats.map(cat => <figure class="cat" style={
-            `--cat-crop-width:${cat.width / (cat.framing?.referenceWidth ?? cat.width) * 100}%;`
-            + `--cat-crop-ratio:${cat.width} / ${cat.height};`
-            + `--cat-anchor:${(cat.framing?.anchorX ?? cat.width / 2) / cat.width * 100}%;`
-            + `--cat-foot-offset:${(cat.height - (cat.framing?.footY ?? cat.height)) / (cat.framing?.referenceHeight ?? cat.height) * 100}%;`
-          }>
-            <div class="cat-media" data-about-cat>
-              <div class="cat-stage"><div class="cat-crop">
-              <img src={cat.poster} alt={cat.name} width={cat.width} height={cat.height} decoding="async" draggable="false" />
-              <video muted loop playsinline preload="none" disablepictureinpicture disableRemotePlayback
-                aria-hidden="true" tabindex="-1" width={cat.width} height={cat.height}
-                data-webm={cat.clips.idle.webm} data-hevc={cat.clips.idle.hevc}></video>
-              </div></div>
+          {cats.map(cat => <figure class="cat">
+            <div class="cat-media" data-about-cat data-clips={JSON.stringify(cat.clips)}>
+              <button class="cat-stage" type="button" disabled
+                aria-label={lang === 'zh' ? `${cat.name}：点击打哈欠` : `${cat.name}: click to yawn`}>
+                <img src={cat.poster} alt={cat.name} width={cat.width} height={cat.height} decoding="async" draggable="false"
+                  style={`left:${cat.clips.idle.layout.left / 360 * 100}%;top:${cat.clips.idle.layout.top / 480 * 100}%;width:${cat.width / 360 * 100}%;height:${cat.height / 480 * 100}%;`} />
+                <canvas width="360" height="480" aria-hidden="true"></canvas>
+              </button>
             </div>
             <figcaption>{cat.name}</figcaption>
           </figure>)}
@@ -125,37 +116,44 @@ const cats: Array<{
 
   .cat-media { position: relative; min-height: 0; }
 
-  /* Use the same original-canvas scale for all cats, then align their paws.
-     Cropped files must not each expand to fill the entire column. */
+  /* Shared 360×480 canvas; Y=455 is the paw baseline for every action. */
   .cat-stage {
     position: absolute;
     bottom: 0;
     left: 50%;
     width: min(100%, calc(var(--cat-row-height) * .75));
     aspect-ratio: 3 / 4;
-    transform: translateX(-50%);
-  }
-  .cat-crop {
-    position: absolute;
-    bottom: calc(-1 * var(--cat-foot-offset));
-    left: 50%;
-    width: var(--cat-crop-width);
-    aspect-ratio: var(--cat-crop-ratio);
-    transform: translateX(calc(-1 * var(--cat-anchor)));
+    transform: translate(-50%, calc(25 / 480 * 100%));
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .cat img, .cat video {
+  .cat-stage:disabled { cursor: default; }
+  .cat-stage:focus-visible { outline: 1px solid var(--color-accent); outline-offset: 4px; }
+
+  .cat img, .cat canvas {
     position: absolute;
-    inset: 0;
     display: block;
+    pointer-events: none;
+  }
+  .cat canvas {
+    inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: center bottom;
+    opacity: 0;
   }
-
-  .cat video { opacity: 0; pointer-events: none; }
-  .cat-media[data-ready] video { opacity: 1; }
+  .cat-media :global(video) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cat-media[data-ready] canvas { opacity: 1; }
   .cat-media[data-ready] img { visibility: hidden; }
 
   .cat figcaption {

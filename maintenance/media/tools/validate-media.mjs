@@ -102,6 +102,21 @@ export function validate(albums, photos, groups = [], pets = []) {
     for (const action of ['idle', 'tilt', 'lick', 'yawn']) {
       const clip = pet.clips?.[action];
       assert(clip && Number.isFinite(clip.durationMs) && clip.durationMs > 0, `Pet ${pet.id}: missing ${action} timing.`);
+      assert(Number.isInteger(clip.width) && clip.width > 0 && Number.isInteger(clip.height) && clip.height > 0
+        && clip.fps === 24 && Number.isInteger(clip.frames) && clip.frames > 0
+        && Math.abs(clip.durationMs - clip.frames * 1000 / clip.fps) <= 1, `Pet ${pet.id}: invalid ${action} frame geometry or timing.`);
+      const f = clip.framing, l = clip.layout;
+      assert(f && f.referenceWidth === 360 && f.referenceHeight === 480
+        && Number.isFinite(f.anchorX) && f.anchorX >= 0 && f.anchorX <= clip.width
+        && Number.isFinite(f.footY) && f.footY > 0 && f.footY <= clip.height, `Pet ${pet.id}: invalid ${action} anchors.`);
+      const c = f.crop;
+      assert(c && [c.left, c.top, c.width, c.height].every(Number.isInteger)
+        && c.left >= 0 && c.top >= 0 && c.width === clip.width && c.height === clip.height
+        && c.left + c.width <= 360 && c.top + c.height <= 480, `Pet ${pet.id}: invalid ${action} crop.`);
+      assert(l && l.width === clip.width && l.height === clip.height
+        && Math.abs(l.left + f.anchorX - 180) < .01 && Math.abs(l.top + f.footY - 455) < .01
+        && l.left >= 0 && l.top >= 0 && l.left + l.width <= 360 && l.top + l.height <= 480,
+        `Pet ${pet.id}: ${action} must fit the common canvas and paw baseline.`);
       for (const [format, suffix] of [['webm', '.webm'], ['hevc', '.mov']]) {
         assert(mediaUrl(clip[format], 'pets') && clip[format].endsWith(suffix), `Pet ${pet.id}: invalid ${action} ${format}.`);
         unique(clip[format]);
