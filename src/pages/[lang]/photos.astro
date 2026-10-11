@@ -2,7 +2,7 @@
 export { getStaticPaths } from "./_getStaticPaths";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PhotoExhibition from "../../components/PhotoExhibition.astro";
-import { photos as collection, photoGroups } from "../../data/photos";
+import { photos as collection } from "../../data/photos";
 import { ui as zh } from "../../i18n/zh";
 import { ui as en } from "../../i18n/en";
 const lang = Astro.currentLocale || "zh";
@@ -22,7 +22,7 @@ const photos = [...collection].sort((a, b) => a.name.localeCompare(b.name, lang,
           <button class="view-option" data-photo-view="wall" aria-pressed="false" aria-controls="photo-wall-panel">{t.photos.viewWall}</button>
         </div>
       </div>
-      <PhotoExhibition photos={photos} groups={photoGroups} t={t.photos} />
+      <PhotoExhibition photos={photos} t={t.photos} />
       <section id="photo-wall-panel" class="wall-panel" aria-label={t.photos.viewWall} hidden>
         <div class="toolbar">
           <div class="search-wrap">

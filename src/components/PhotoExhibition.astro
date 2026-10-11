@@ -1,11 +1,9 @@
 ---
-import type { Photo, PhotoGroup } from "../data/photos";
+import type { Photo } from "../data/photos";
 import type { PhotosStrings } from "../types/i18n";
-interface Props { photos: Photo[]; groups: PhotoGroup[]; t: PhotosStrings; }
-const { photos, groups, t } = Astro.props;
-const byId = new Map(photos.map(photo => [photo.id, photo]));
-const ordered = groups.flatMap(group => group.photos.map(id => byId.get(id)))
-  .filter((photo): photo is Photo => !!photo?.note?.trim());
+interface Props { photos: Photo[]; t: PhotosStrings; }
+const { photos, t } = Astro.props;
+const ordered = photos.filter(photo => !!photo.note?.trim());
 const captureDate = (date: string) => date.slice(0, 10).replaceAll("-", ".");
 function shutter(seconds: number) {
   if (seconds >= 1) return `${Number(seconds.toPrecision(4))} s`;
